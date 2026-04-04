@@ -94,10 +94,7 @@ export default function Home() {
     { icon: <BadgeCheck className="h-6 w-6 text-primary" />, title: t.whyWarrantyTitle, desc: t.whyWarrantyDesc },
   ];
 
-  const cities = [
-    t.cityLahore, t.cityKarachi, t.cityIslamabad, t.cityRawalpindi,
-    t.cityFaisalabad, t.cityMultan, t.cityPeshawar, t.citySialkot,
-  ];
+  const cities = [t.cityJeddah, t.cityMakkah];
 
   if (loading) {
     return (

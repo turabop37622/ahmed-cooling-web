@@ -4,7 +4,7 @@ export const translations = {
     brandName: 'Ahmed Cooling',
     brandTagline: '& Appliances Workshop',
     trustedTagline: 'Your trusted appliance partner',
-    trustedFooter: 'Trusted by 2000+ customers across Pakistan',
+    trustedFooter: 'Trusted by 2000+ customers across Saudi Arabia',
     loadingServices: 'Loading services...',
 
     // Common
@@ -132,7 +132,7 @@ export const translations = {
     customerReviews: 'Customer Reviews', ratingPill: '⭐ 4.9 / 5',
 
     // Home - Service Areas
-    serviceAreas: 'We Serve Across Pakistan',
+    serviceAreas: 'We Serve Across Saudi Arabia',
 
     // Home - Sections
     ourServices: 'Our Services', seeAll: 'See All →',
@@ -272,7 +272,7 @@ export const translations = {
     followUs: 'Follow Us', version: 'Version 1.0.0',
     facebook: 'Facebook', instagram: 'Instagram', twitter: 'Twitter',
     aboutContactPhoneValue: '+92 300 1234567',
-    aboutContactEmailValue: 'info@ahmedcooling.com',
+    aboutContactEmailValue: 'ahmedcoolingworkshop@gmail.com',
     aboutContactAddressValue: 'Main Workshop, Lahore, Pakistan',
     aboutContactHoursValue: 'Mon–Sat: 9:00 AM – 8:00 PM',
     aboutStatYearsLabel: '15+ Years',
@@ -363,7 +363,7 @@ export const translations = {
     privacyRightDeletion: 'Deletion: ', privacyRightDeletionDesc: 'Request deletion of your data',
     privacyRightOptout: 'Opt-out: ', privacyRightOptoutDesc: 'Unsubscribe from marketing communications',
     privacyRightPortability: 'Data Portability: ', privacyRightPortabilityDesc: 'Request a copy of your data',
-    privacyRightsContact: 'To exercise these rights, please contact us at info@ahmedcooling.com',
+    privacyRightsContact: 'To exercise these rights, please contact us at ahmedcoolingworkshop@gmail.com',
     privacySection6: '6. Cookies and Tracking Technologies',
     privacyCookiesText: 'We use cookies and similar tracking technologies to track activity in our app and store certain information. You can control cookie settings through your device preferences.',
     privacySection7: "7. Children's Privacy",
@@ -446,9 +446,7 @@ export const translations = {
     call: 'Call',
 
     // Cities
-    cityLahore: 'Lahore', cityKarachi: 'Karachi', cityIslamabad: 'Islamabad',
-    cityRawalpindi: 'Rawalpindi', cityFaisalabad: 'Faisalabad',
-    cityMultan: 'Multan', cityPeshawar: 'Peshawar', citySialkot: 'Sialkot',
+    cityJeddah: 'Jeddah', cityMakkah: 'Makkah',
   },
 
   ar: {
@@ -456,7 +454,7 @@ export const translations = {
     brandName: 'أحمد للتبريد',
     brandTagline: 'وورشة الأجهزة',
     trustedTagline: 'شريكك الموثوق في الأجهزة',
-    trustedFooter: 'موثوق من أكثر من 2000 عميل في باكستان',
+    trustedFooter: 'موثوق من أكثر من ٢٠٠٠ عميل في المملكة العربية السعودية',
     loadingServices: 'جاري تحميل الخدمات...',
 
     years: 'سنوات', clients: 'عملاء', happy: 'رضا', from: 'من',
@@ -574,7 +572,7 @@ export const translations = {
 
     customerReviews: 'آراء العملاء', ratingPill: '⭐ 4.9 / 5',
 
-    serviceAreas: 'نخدم في جميع أنحاء باكستان',
+    serviceAreas: 'نخدم في جميع أنحاء المملكة العربية السعودية',
 
     ourServices: 'خدماتنا', seeAll: '← عرض الكل',
     emergencyStripTitle: 'إصلاح طوارئ 24/7',
@@ -706,7 +704,7 @@ export const translations = {
     followUs: 'تابعنا', version: 'الإصدار 1.0.0',
     facebook: 'فيسبوك', instagram: 'انستغرام', twitter: 'تويتر',
     aboutContactPhoneValue: '+92 300 1234567',
-    aboutContactEmailValue: 'info@ahmedcooling.com',
+    aboutContactEmailValue: 'ahmedcoolingworkshop@gmail.com',
     aboutContactAddressValue: 'الورشة الرئيسية، لاهور، باكستان',
     aboutContactHoursValue: 'الإثنين – السبت: 9:00 ص – 8:00 م',
     aboutStatYearsLabel: '+15 سنة',
@@ -794,7 +792,7 @@ export const translations = {
     privacyRightDeletion: 'الحذف: ', privacyRightDeletionDesc: 'طلب حذف بياناتك',
     privacyRightOptout: 'إلغاء الاشتراك: ', privacyRightOptoutDesc: 'إلغاء الاشتراك في الاتصالات التسويقية',
     privacyRightPortability: 'نقل البيانات: ', privacyRightPortabilityDesc: 'طلب نسخة من بياناتك',
-    privacyRightsContact: 'لممارسة هذه الحقوق، يرجى التواصل معنا على info@ahmedcooling.com',
+    privacyRightsContact: 'لممارسة هذه الحقوق، يرجى التواصل معنا على ahmedcoolingworkshop@gmail.com',
     privacySection6: '6. ملفات تعريف الارتباط وتقنيات التتبع',
     privacyCookiesText: 'نستخدم ملفات تعريف الارتباط وتقنيات التتبع المماثلة لتتبع النشاط في تطبيقنا وتخزين معلومات معينة. يمكنك التحكم في إعدادات ملفات تعريف الارتباط من خلال تفضيلات جهازك.',
     privacySection7: '7. خصوصية الأطفال',
@@ -872,8 +870,6 @@ export const translations = {
     callEmergencyNumber: 'اتصل برقم الطوارئ؟',
     call: 'اتصال',
 
-    cityLahore: 'لاهور', cityKarachi: 'كراتشي', cityIslamabad: 'إسلام آباد',
-    cityRawalpindi: 'راولبندي', cityFaisalabad: 'فيصل آباد',
-    cityMultan: 'ملتان', cityPeshawar: 'بيشاور', citySialkot: 'سيالكوت',
+    cityJeddah: 'جدة', cityMakkah: 'مكة المكرمة',
   },
 };
