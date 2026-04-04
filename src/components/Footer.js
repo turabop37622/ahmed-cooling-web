@@ -5,7 +5,7 @@ import { Phone, Mail, MapPin, Globe, Camera, X } from 'lucide-react';
 import { useTranslation } from '../contexts/TranslationContext';
 
 export default function Footer() {
-  const { t } = useTranslation();
+  const { t, isRTL } = useTranslation();
 
   return (
     <footer className="bg-[#0F172A] text-white">
@@ -39,7 +39,7 @@ export default function Footer() {
             <ul className="space-y-3">
               <li className="flex items-center gap-3 text-slate-400 text-sm">
                 <Phone className="h-4 w-4 shrink-0 text-primary" />
-                <a href="tel:+966590192146" className="hover:text-white transition-colors">
+                <a href="tel:+966590192146" className="hover:text-white transition-colors" dir="ltr" style={{unicodeBidi: 'embed'}}>
                   +966 590 192 146
                 </a>
               </li>
@@ -51,7 +51,7 @@ export default function Footer() {
               </li>
               <li className="flex items-start gap-3 text-slate-400 text-sm">
                 <MapPin className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
-                <span>Lahore, Pakistan</span>
+                <span>{isRTL ? 'جدة، المملكة العربية السعودية' : 'Jeddah, Saudi Arabia'}</span>
               </li>
             </ul>
           </div>
