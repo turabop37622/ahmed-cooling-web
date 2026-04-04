@@ -76,8 +76,9 @@ export default function Home() {
     router.push(`/book/${service._id || service.id}`);
   };
 
+  const PHONE = '+966590192146';
   const handleEmergency = () => {
-    window.location.href = 'tel:+923001234567';
+    window.open(`https://wa.me/${PHONE.replace('+', '')}?text=Emergency! I need urgent appliance repair service.`, '_blank');
   };
 
   const howSteps = [
@@ -303,7 +304,8 @@ export default function Home() {
             </p>
           </div>
           <a
-            href="tel:+923001234567"
+            href="https://wa.me/966590192146?text=Emergency! I need urgent repair."
+            target="_blank"
             className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-5 py-2.5 text-sm font-black text-white transition-colors hover:bg-red-600"
           >
             <Phone className="h-4 w-4" />
