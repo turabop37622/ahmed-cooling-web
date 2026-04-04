@@ -6,16 +6,19 @@ import { translations } from '../lib/translations';
 const TranslationContext = createContext(null);
 
 export const TranslationProvider = ({ children }) => {
-  const [language, setLang] = useState('en');
+  const [language, setLang] = useState('ar');
 
   useEffect(() => {
     try {
       const saved = localStorage.getItem('language');
       if (saved === 'en' || saved === 'ar') {
         setLang(saved);
-        document.documentElement.dir = saved === 'ar' ? 'rtl' : 'ltr';
-        document.documentElement.lang = saved;
+      } else {
+        setLang('ar');
       }
+      const lang = saved === 'en' ? 'en' : 'ar';
+      document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+      document.documentElement.lang = lang;
     } catch {}
   }, []);
 
