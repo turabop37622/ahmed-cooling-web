@@ -7,49 +7,8 @@ export default function WhatsAppButton() {
 
   const handleClick = () => {
     const msg = isRTL
-      ? `مرحباً! أحتاج خدمة إصلاح أجهزة.
-
-🔧 *خدماتنا وأسعارنا:*
-❄️ إصلاح التكييف — ١٥٠ ﷼
-🔧 تركيب التكييف — ٢٠٠ ﷼
-🧹 تنظيف عميق للتكييف — ٢٠٠ ﷼
-💨 تعبئة غاز التكييف — ٢٥٠ ﷼
-⚡ إصلاح ضاغط التكييف — ٦٥٠ ﷼
-🔌 إصلاح لوحة التكييف — ٣٥٠ ﷼
-🚛 نقل التكييف — ٢٥٠ ﷼
-🏢 صيانة التكييف المركزي — ٤٥٠ ﷼
-🧊 إصلاح الثلاجة — ٢٥٠ ﷼
-🥶 إصلاح الفريزر — ٣٠٠ ﷼
-🌊 إصلاح الغسالة — ٣٥٠ ﷼
-🍳 إصلاح الموقد والفرن — ٣٥٠ ﷼
-📡 إصلاح الميكروويف — ١٥٠ ﷼
-💧 إصلاح موزع المياه — ٢٥٠ ﷼
-⚡ إصلاح الأسلاك الكهربائية — ٢٠٠ ﷼
-🛠️ صيانة عامة — ٢٥٠ ﷼
-📋 خطة الصيانة السنوية — ٣,٠٠٠ ﷼
-🚨 إصلاح طوارئ ٢٤/٧ — ٣٥٠ ﷼`
-      : `Hello! I need appliance repair service.
-
-🔧 *Our Services & Prices:*
-❄️ AC Repair — 150 SAR
-🔧 AC Installation — 200 SAR
-🧹 AC Deep Cleaning — 200 SAR
-💨 AC Gas Refill — 250 SAR
-⚡ AC Compressor Repair — 650 SAR
-🔌 AC PCB Repair — 350 SAR
-🚛 AC Shifting — 250 SAR
-🏢 Central AC Service — 450 SAR
-🧊 Refrigerator Repair — 250 SAR
-🥶 Freezer Repair — 300 SAR
-🌊 Washing Machine Repair — 350 SAR
-🍳 Stove & Oven Repair — 350 SAR
-📡 Microwave Repair — 150 SAR
-💧 Water Dispenser Repair — 250 SAR
-⚡ Electrical Wiring Fix — 200 SAR
-🛠️ General Maintenance — 250 SAR
-📋 Annual Maintenance Plan — 3,000 SAR
-🚨 24/7 Emergency Repair — 350 SAR`;
-
+      ? 'مرحباً! أحتاج خدمة إصلاح أجهزة. أرجو إرسال قائمة الخدمات والأسعار.'
+      : 'Hello! I need appliance repair service. Please send me the services list and prices.';
     window.open(`https://wa.me/966590192146?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
