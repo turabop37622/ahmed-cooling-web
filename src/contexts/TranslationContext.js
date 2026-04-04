@@ -1,0 +1,58 @@
+'use client';
+
+import { createContext, useContext, useState, useEffect } from 'react';
+import { translations } from '../lib/translations';
+
+const TranslationContext = createContext(null);
+
+export const TranslationProvider = ({ children }) => {
+  const [language, setLang] = useState('en');
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('language');
+      if (saved === 'en' || saved === 'ar') {
+        setLang(saved);
+        document.documentElement.dir = saved === 'ar' ? 'rtl' : 'ltr';
+        document.documentElement.lang = saved;
+      }
+    } catch {}
+  }, []);
+
+  const setLanguage = (lang) => {
+    setLang(lang);
+    localStorage.setItem('language', lang);
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = lang;
+  };
+
+  const t = translations[language] || translations.en;
+  const isRTL = language === 'ar';
+
+  const toAr = (val) => {
+    if (language !== 'ar') return String(val);
+    return String(val).replace(/[0-9]/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
+  };
+
+  const formatPrice = (amount) => {
+    const num = Number(amount || 0);
+    if (language === 'ar') {
+      const formatted = num.toLocaleString();
+      const arNum = formatted.replace(/[0-9]/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
+      return `${arNum} ﷼`;
+    }
+    return `Rs. ${num.toLocaleString()}`;
+  };
+
+  return (
+    <TranslationContext.Provider value={{ t, language, isRTL, setLanguage, toAr, formatPrice }}>
+      {children}
+    </TranslationContext.Provider>
+  );
+};
+
+export const useTranslation = () => {
+  const context = useContext(TranslationContext);
+  if (!context) throw new Error('useTranslation must be used within TranslationProvider');
+  return context;
+};
