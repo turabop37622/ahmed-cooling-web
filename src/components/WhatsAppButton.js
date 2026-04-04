@@ -1,8 +1,10 @@
 'use client';
 
-import { MessageCircle } from 'lucide-react';
+import { useTranslation } from '../contexts/TranslationContext';
 
 export default function WhatsAppButton() {
+  const { isRTL } = useTranslation();
+
   const handleClick = () => {
     window.open('https://wa.me/966590192146?text=Hello! I need appliance repair service.', '_blank');
   };
@@ -10,7 +12,7 @@ export default function WhatsAppButton() {
   return (
     <button
       onClick={handleClick}
-      className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg shadow-green-500/30 transition-transform hover:scale-110 active:scale-95"
+      className={`fixed bottom-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg shadow-green-500/30 transition-transform hover:scale-110 active:scale-95 ${isRTL ? 'left-6' : 'right-6'}`}
       aria-label="WhatsApp"
     >
       <svg viewBox="0 0 24 24" className="h-7 w-7 fill-white">
