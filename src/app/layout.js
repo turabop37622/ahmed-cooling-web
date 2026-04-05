@@ -13,8 +13,16 @@ const geistSans = Geist({
 });
 
 export const metadata = {
-  title: "Ahmed Cooling Workshop",
-  description: "Professional AC & Appliance Repair",
+  title: "Ahmed Cooling Workshop | AC & Appliance Repair",
+  description: "Professional AC, Refrigerator, Washing Machine repair & maintenance services in Jeddah, Saudi Arabia. 24/7 Emergency service available.",
+  icons: {
+    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>❄️</text></svg>",
+  },
+  openGraph: {
+    title: "Ahmed Cooling Workshop",
+    description: "Professional AC & Appliance Repair in Jeddah, Saudi Arabia",
+    siteName: "Ahmed Cooling Workshop",
+  },
 };
 
 export default function RootLayout({ children }) {
