@@ -117,39 +117,52 @@ export default function Home() {
   return (
     <div className="bg-bg dark:bg-slate-950">
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#1D4ED8] via-[#2563EB] to-[#3B82F6]">
-        <div className="pointer-events-none absolute -top-20 -right-20 h-72 w-72 rounded-full bg-white/[0.06]" />
-        <div className="pointer-events-none absolute -bottom-16 -left-16 h-52 w-52 rounded-full bg-white/[0.04]" />
-        <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-96 w-96 rounded-full bg-white/[0.03]" />
+      <section className="relative min-h-[70vh] overflow-hidden bg-gradient-to-br from-[#1D4ED8] via-[#2563EB] to-[#3B82F6] flex items-center">
+        {/* Background Video */}
+        <video
+          autoPlay muted loop playsInline
+          className="absolute inset-0 h-full w-full object-cover"
+          poster="https://images.pexels.com/photos/7545787/pexels-photo-7545787.jpeg?auto=compress&cs=tinysrgb&w=1280"
+        >
+          <source src="https://cdn.pixabay.com/video/2022/05/25/118091-713900122_large.mp4" type="video/mp4" />
+        </video>
 
-        <div className="relative mx-auto w-full px-4 py-16 sm:px-8 sm:py-20 lg:px-16 lg:py-24 xl:px-24">
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#1D4ED8]/90 via-[#1D4ED8]/75 to-[#2563EB]/50" />
+
+        {/* Decorative shapes behind text */}
+        <div className="pointer-events-none absolute -top-20 -left-20 h-80 w-80 rounded-full bg-white/[0.06]" />
+        <div className="pointer-events-none absolute bottom-10 left-10 h-60 w-60 rounded-full bg-blue-400/[0.08]" />
+        <div className="pointer-events-none absolute top-20 right-1/3 h-40 w-40 rounded-full bg-white/[0.04]" />
+
+        <div className="relative mx-auto w-full px-4 py-20 sm:px-8 sm:py-28 lg:px-16 lg:py-32 xl:px-24">
           <div className="flex flex-col items-start gap-10 lg:flex-row lg:items-center lg:justify-between">
-            {/* Left content */}
-            <div className="max-w-2xl">
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/15 px-4 py-1.5">
-                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-xs font-extrabold text-emerald-300">{t.heroAvailable}</span>
-              </div>
+            {/* Left content with backdrop shape */}
+            <div className="relative max-w-2xl">
+              <div className="pointer-events-none absolute -inset-6 rounded-3xl bg-[#1D4ED8]/30 backdrop-blur-sm sm:-inset-8 lg:-inset-10" />
+              <div className="relative">
+                <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/15 px-4 py-1.5">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-xs font-extrabold text-emerald-300">{t.heroAvailable}</span>
+                </div>
 
-              <h1 className="text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
-                {t.heroTitle?.replace?.('\n', ' ')}
-              </h1>
-              <p className="mt-4 max-w-xl text-base font-medium leading-relaxed text-white/65 sm:text-lg">
-                {t.heroSubtitle}
-              </p>
+                <h1 className="text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl drop-shadow-lg">
+                  {t.heroTitle?.replace?.('\n', ' ')}
+                </h1>
+                <p className="mt-4 max-w-xl text-base font-medium leading-relaxed text-white/80 sm:text-lg">
+                  {t.heroSubtitle}
+                </p>
 
-              <div className="mt-8 flex flex-wrap gap-4">
-                <Link href="/services" className="rounded-2xl bg-white px-8 py-3.5 text-sm font-black text-[#1D4ED8] shadow-lg transition-transform hover:scale-105">
-                  {t.ourServices} →
-                </Link>
-                <button onClick={handleEmergency} className="rounded-2xl border-2 border-white/20 bg-white/10 px-8 py-3.5 text-sm font-extrabold text-white backdrop-blur transition-colors hover:bg-white/20">
-                  {t.heroEmergencyCta}
-                </button>
+                <div className="mt-8 flex flex-wrap gap-4">
+                  <Link href="/services" className="rounded-2xl bg-white px-8 py-3.5 text-sm font-black text-[#1D4ED8] shadow-lg transition-transform hover:scale-105">
+                    {t.ourServices} →
+                  </Link>
+                  <button onClick={handleEmergency} className="rounded-2xl border-2 border-white/30 bg-white/15 px-8 py-3.5 text-sm font-extrabold text-white backdrop-blur-sm transition-colors hover:bg-white/25">
+                    {t.heroEmergencyCta}
+                  </button>
+                </div>
               </div>
             </div>
-
-
-
           </div>
         </div>
       </section>
