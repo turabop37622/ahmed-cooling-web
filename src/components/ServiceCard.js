@@ -3,18 +3,18 @@
 import { useTranslation } from '../contexts/TranslationContext';
 
 const SERVICE_IMAGES = {
-  'AC Repair':              'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=400&h=220&fit=crop&q=80',
-  'AC Installation':        'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&h=220&fit=crop&q=80',
-  'AC Deep Cleaning':       'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&h=220&fit=crop&q=80',
-  'AC Gas Refill':          'https://images.unsplash.com/photo-1631545806609-7a9b30a4e680?w=400&h=220&fit=crop&q=80',
-  'AC Compressor Repair':   'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=400&h=220&fit=crop&q=80',
+  'AC Repair':              'https://images.unsplash.com/photo-1647022528152-52ed9338611d?w=400&h=220&fit=crop&q=80',
+  'AC Installation':        'https://images.unsplash.com/photo-1759772238012-9d5ad59ae637?w=400&h=220&fit=crop&q=80',
+  'AC Deep Cleaning':       'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=400&h=220&fit=crop&q=80',
+  'AC Gas Refill':          'https://images.unsplash.com/photo-1642749776312-aa42ce20c9f5?w=400&h=220&fit=crop&q=80',
+  'AC Compressor Repair':   'https://images.unsplash.com/photo-1698479603408-1a66a6d9e80f?w=400&h=220&fit=crop&q=80',
   'AC PCB Repair':          'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=220&fit=crop&q=80',
-  'AC Shifting':            'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=220&fit=crop&q=80',
+  'AC Shifting':            'https://images.unsplash.com/photo-1705579604902-eb832f58bf85?w=400&h=220&fit=crop&q=80',
   'Central AC Service':     'https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&h=220&fit=crop&q=80',
   'Refrigerator Repair':    'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=400&h=220&fit=crop&q=80',
   'Freezer Repair':         'https://images.unsplash.com/photo-1584568694244-14fbdf83bd30?w=400&h=220&fit=crop&q=80',
   'Fridge Gas Refill':      'https://images.unsplash.com/photo-1536353284924-9220c464e262?w=400&h=220&fit=crop&q=80',
-  'Fridge Thermostat Fix':  'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=400&h=220&fit=crop&q=80',
+  'Fridge Thermostat Fix':  'https://images.unsplash.com/photo-1562711411-f4d0e97f2d09?w=400&h=220&fit=crop&q=80',
   'Washing Machine Repair': 'https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?w=400&h=220&fit=crop&q=80',
   'Stove & Oven Repair':    'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=220&fit=crop&q=80',
   'Microwave Repair':       'https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?w=400&h=220&fit=crop&q=80',
@@ -23,11 +23,11 @@ const SERVICE_IMAGES = {
   'UPS & Inverter Repair':  'https://images.unsplash.com/photo-1509395176047-4a66953fd231?w=400&h=220&fit=crop&q=80',
   'General Maintenance':    'https://images.unsplash.com/photo-1581783898377-1c85bf937427?w=400&h=220&fit=crop&q=80',
   'Annual Maintenance Plan': 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=220&fit=crop&q=80',
-  '24/7 Emergency Repair':  'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&h=220&fit=crop&q=80',
+  '24/7 Emergency Repair':  'https://images.unsplash.com/photo-1596495717678-69df9f89c2a3?w=400&h=220&fit=crop&q=80',
 };
 
 const CATEGORY_IMAGES = {
-  ac:               'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=400&h=220&fit=crop&q=80',
+  ac:               'https://images.unsplash.com/photo-1647022528152-52ed9338611d?w=400&h=220&fit=crop&q=80',
   refrigerator:     'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=400&h=220&fit=crop&q=80',
   'washing-machine':'https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?w=400&h=220&fit=crop&q=80',
   stove:            'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=220&fit=crop&q=80',
