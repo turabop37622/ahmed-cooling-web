@@ -231,11 +231,11 @@ export default function BookingPage() {
 
         try {
           const gResp = await fetch(
-            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&language=${language === 'ar' ? 'ar' : 'en'}&key=AIzaSyCGL7csbANxIqisnCIeT4gPAVXaGQSgzug`
+            `https://ahmed-cooling-backend.onrender.com/api/geocode/reverse?lat=${latitude}&lng=${longitude}&lang=${language === 'ar' ? 'ar' : 'en'}`
           );
           const gData = await gResp.json();
-          if (gData.status === 'OK' && gData.results?.length) {
-            address = gData.results[0].formatted_address;
+          if (gData.success && gData.address) {
+            address = gData.address;
           }
         } catch {}
 
