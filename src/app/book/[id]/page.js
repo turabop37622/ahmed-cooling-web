@@ -143,6 +143,7 @@ export default function BookingPage() {
   const [service, setService] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [bookingSuccess, setBookingSuccess] = useState(null);
 
   const [fullName, setFullName] = useState('');
   const [countryCode, setCountryCode] = useState('+92');
@@ -268,8 +269,15 @@ export default function BookingPage() {
       };
       const res = await createBooking(bookingData);
       if (res?.success) {
-        alert((t.bookingConfirmed || 'Booking Confirmed!') + '\n\n' + (t.bookingSuccess || 'We will contact you soon.'));
-        router.push('/bookings');
+        setBookingSuccess({
+          orderId: res?.data?.bookingId || res?.data?.booking?.orderNumber || res?.data?.booking?.bookingId || '',
+          serviceName: svcName,
+          serviceIcon: service?.icon || '🔧',
+          date: selectedDate.toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+          time: selectedTime,
+          address: getFullAddress(),
+          total: formatPrice(totalAmount),
+        });
       } else {
         alert(res?.message || t.bookingErrorMsg || 'Failed to create booking.');
       }
@@ -304,6 +312,98 @@ export default function BookingPage() {
 
   const svcName = language === 'ar' && service.nameAr ? service.nameAr : service.name;
   const svcDesc = language === 'ar' && service.descriptionAr ? service.descriptionAr : service.description;
+
+  if (bookingSuccess) {
+    return (
+      <div className="min-h-screen bg-bg dark:bg-slate-950" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="mx-auto flex max-w-lg flex-col items-center px-4 pt-16 pb-10">
+          {/* Success Animation Circle */}
+          <div className="relative mb-6">
+            <div className="flex h-28 w-28 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/30">
+                <CheckCircle2 className="h-10 w-10 text-white" />
+              </div>
+            </div>
+            <div className="absolute -top-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md dark:bg-slate-800">
+              <Sparkles className="h-4 w-4 text-amber-500" />
+            </div>
+          </div>
+
+          {/* Title */}
+          <h1 className="mb-1 text-2xl font-black text-text dark:text-white">
+            {language === 'ar' ? 'تم تأكيد الحجز!' : 'Booking Confirmed!'}
+          </h1>
+          <p className="mb-6 text-center text-sm font-medium text-sub dark:text-slate-400">
+            {language === 'ar' ? 'سنتواصل معك قريباً لتأكيد الموعد' : 'We will contact you soon to confirm the appointment'}
+          </p>
+
+          {/* Order ID */}
+          {bookingSuccess.orderId && (
+            <div className="mb-6 rounded-xl bg-blue-50 px-5 py-2.5 dark:bg-blue-950/30">
+              <p className="text-center text-xs font-bold text-sub dark:text-slate-400">
+                {language === 'ar' ? 'رقم الطلب' : 'Order ID'}
+              </p>
+              <p className="text-center text-lg font-black tracking-wide text-primary dark:text-blue-400">
+                #{bookingSuccess.orderId.slice(-8).toUpperCase()}
+              </p>
+            </div>
+          )}
+
+          {/* Booking Details Card */}
+          <div className="mb-6 w-full overflow-hidden rounded-2xl border border-border bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+            {/* Service Header */}
+            <div className="flex items-center gap-3 border-b border-border bg-slate-50 px-5 py-4 dark:border-slate-700 dark:bg-slate-800/50">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-xl dark:bg-blue-950/50">
+                {bookingSuccess.serviceIcon}
+              </div>
+              <div>
+                <p className="text-sm font-bold text-text dark:text-white">{bookingSuccess.serviceName}</p>
+                <p className="text-xs font-semibold text-primary dark:text-blue-400">{bookingSuccess.total}</p>
+              </div>
+            </div>
+
+            {/* Details */}
+            <div className="space-y-0 divide-y divide-border dark:divide-slate-700">
+              <DetailRow icon={<Calendar className="h-4 w-4" />} label={language === 'ar' ? 'التاريخ' : 'Date'} value={bookingSuccess.date} />
+              <DetailRow icon={<Clock className="h-4 w-4" />} label={language === 'ar' ? 'الوقت' : 'Time'} value={bookingSuccess.time} />
+              <DetailRow icon={<MapPin className="h-4 w-4" />} label={language === 'ar' ? 'العنوان' : 'Address'} value={bookingSuccess.address} />
+            </div>
+
+            {/* Payment Note */}
+            <div className="border-t border-border bg-emerald-50 px-5 py-3 dark:border-slate-700 dark:bg-emerald-950/20">
+              <p className="text-center text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
+                💵 {language === 'ar' ? 'الدفع نقداً بعد إتمام الخدمة' : 'Cash payment after service completion'}
+              </p>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex w-full flex-col gap-3">
+            <button
+              onClick={() => router.push('/bookings')}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 text-sm font-black text-white shadow-lg shadow-primary/25 transition hover:bg-primary-dark dark:bg-blue-600 dark:hover:bg-blue-700"
+            >
+              {language === 'ar' ? 'عرض حجوزاتي' : 'View My Bookings'}
+            </button>
+            <button
+              onClick={() => router.push('/')}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-white py-3.5 text-sm font-bold text-text transition hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
+            >
+              {language === 'ar' ? 'العودة للرئيسية' : 'Back to Home'}
+            </button>
+          </div>
+
+          {/* Trust Badge */}
+          <div className="mt-6 flex items-center gap-1.5">
+            <Shield className="h-3.5 w-3.5 text-emerald-500" />
+            <p className="text-[11px] font-semibold text-sub dark:text-slate-500">
+              {language === 'ar' ? 'حجزك مؤمّن ومشفّر' : 'Your booking is secured & encrypted'}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-bg pb-10 dark:bg-slate-950" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -575,6 +675,18 @@ function SectionTitle({ icon, title }) {
     <div className="mb-3 flex items-center gap-2">
       <div className="text-primary dark:text-blue-400">{icon}</div>
       <h2 className="text-sm font-black text-text dark:text-white">{title}</h2>
+    </div>
+  );
+}
+
+function DetailRow({ icon, label, value }) {
+  return (
+    <div className="flex items-start gap-3 px-5 py-3.5">
+      <div className="mt-0.5 text-primary dark:text-blue-400">{icon}</div>
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-sub dark:text-slate-500">{label}</p>
+        <p className="text-sm font-semibold text-text dark:text-white">{value}</p>
+      </div>
     </div>
   );
 }
