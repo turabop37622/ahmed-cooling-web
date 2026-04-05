@@ -51,26 +51,31 @@ export default function ServiceCard({ service, onBook }) {
 
   return (
     <div className="group relative mx-auto w-full max-w-sm rounded-2xl border border-border bg-white shadow-sm transition-all duration-200 hover:scale-[1.02] hover:shadow-lg dark:border-slate-700 dark:bg-slate-800 overflow-hidden">
-      {/* Image area */}
-      <div className="relative h-36 w-full overflow-hidden bg-slate-100 dark:bg-slate-700">
+      {/* Icon / Image area */}
+      <div className="relative h-36 w-full overflow-hidden rounded-t-2xl bg-primary-light dark:bg-slate-700/50">
+        {/* Default: Icon */}
+        <div className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 group-hover:opacity-0">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border-[1.5px] border-blue-200 bg-blue-100 dark:border-slate-600 dark:bg-slate-600">
+            <span className="text-4xl">{service.icon || '🔧'}</span>
+          </div>
+        </div>
+
+        {/* Hover: Image */}
         <img
           src={imgSrc}
           alt={name}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+          className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
           loading="lazy"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-        <div className="absolute bottom-2 start-2 flex h-9 w-9 items-center justify-center rounded-xl bg-white/90 text-lg shadow-sm backdrop-blur-sm dark:bg-slate-800/90">
-          {service.icon || '🔧'}
-        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
         {(service.isPopular || service.popular) && (
-          <span className="absolute top-2 end-2 rounded-lg bg-primary px-2 py-0.5 text-[10px] font-black text-white shadow-sm">
+          <span className="absolute top-2 end-2 z-10 rounded-lg bg-primary px-2 py-0.5 text-[10px] font-black text-white shadow-sm">
             ★ {language === 'ar' ? 'مميز' : 'Popular'}
           </span>
         )}
         {(service.isEmergency || service.emergency) && (
-          <span className="absolute top-2 end-2 rounded-lg bg-red-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm">
+          <span className="absolute top-2 end-2 z-10 rounded-lg bg-red-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm">
             🚨 24/7
           </span>
         )}
