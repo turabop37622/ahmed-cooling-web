@@ -217,21 +217,6 @@ export default function BookingPage() {
 
   const [coordinates, setCoordinates] = useState(null);
 
-  const formatGeoAddress = (data) => {
-    if (!data?.address) return data?.display_name || '';
-    const a = data.address;
-    const parts = [
-      a.house_number,
-      a.road || a.street,
-      a.neighbourhood || a.suburb || a.quarter,
-      a.city_district || a.district,
-      a.city || a.town || a.village,
-      a.state || a.region,
-      a.country,
-    ].filter(Boolean);
-    return parts.join(', ');
-  };
-
   const handleGPS = useCallback(() => {
     if (!navigator.geolocation) {
       alert(language === 'ar' ? 'GPS غير مدعوم في هذا المتصفح' : 'GPS not supported on this browser.');
@@ -242,16 +227,34 @@ export default function BookingPage() {
       async (pos) => {
         const { latitude, longitude } = pos.coords;
         setCoordinates({ latitude, longitude });
+        let address = '';
+
         try {
-          const resp = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1&accept-language=${language === 'ar' ? 'ar' : 'en'}`,
-            { headers: { 'User-Agent': 'AhmedCoolingWorkshop/1.0' } }
+          const gResp = await fetch(
+            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&language=${language === 'ar' ? 'ar' : 'en'}&key=AIzaSyCGL7csbANxIqisnCIeT4gPAVXaGQSgzug`
           );
-          const data = await resp.json();
-          setGpsAddress(formatGeoAddress(data) || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
-        } catch {
-          setGpsAddress(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+          const gData = await gResp.json();
+          if (gData.status === 'OK' && gData.results?.length) {
+            address = gData.results[0].formatted_address;
+          }
+        } catch {}
+
+        if (!address) {
+          try {
+            const nResp = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1&accept-language=${language === 'ar' ? 'ar' : 'en'}`,
+              { headers: { 'User-Agent': 'AhmedCoolingWorkshop/1.0' } }
+            );
+            const nData = await nResp.json();
+            if (nData?.address) {
+              const a = nData.address;
+              address = [a.house_number, a.road || a.street, a.neighbourhood || a.suburb, a.city || a.town, a.state, a.country].filter(Boolean).join(', ');
+            }
+            if (!address) address = nData?.display_name || '';
+          } catch {}
         }
+
+        setGpsAddress(address || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
         setAddressMode('gps');
         setGpsLoading(false);
       },
