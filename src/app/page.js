@@ -336,8 +336,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══ DOWNLOAD APP BANNER ═══ */}
-      <section className="mx-auto w-full px-4 pb-12 sm:px-8 lg:px-16 xl:px-24">
+      {/* ═══ DOWNLOAD APP BANNER (disabled - enable when Play Store link ready) ═══ */}
+      {false && <section className="mx-auto w-full px-4 pb-12 sm:px-8 lg:px-16 xl:px-24">
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 shadow-2xl">
           <div className="pointer-events-none absolute -top-20 -right-20 h-60 w-60 rounded-full bg-white/5" />
           <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-white/5" />
@@ -403,7 +403,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       <div className="flex items-center justify-center gap-2 pb-8">
         <span className="h-2 w-2 rounded-full bg-emerald-500" />
