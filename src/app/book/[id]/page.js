@@ -242,13 +242,29 @@ export default function BookingPage() {
         if (!address) {
           try {
             const nResp = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1&accept-language=${language === 'ar' ? 'ar' : 'en'}`,
+              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1&namedetails=1&zoom=18&accept-language=${language === 'ar' ? 'ar' : 'en'}`,
               { headers: { 'User-Agent': 'AhmedCoolingWorkshop/1.0' } }
             );
             const nData = await nResp.json();
             if (nData?.address) {
               const a = nData.address;
-              address = [a.house_number, a.road || a.street, a.neighbourhood || a.suburb, a.city || a.town, a.state, a.country].filter(Boolean).join(', ');
+              const seen = new Set();
+              const parts = [
+                a.amenity || a.building || a.shop,
+                a.house_number,
+                a.road || a.street || a.pedestrian,
+                a.neighbourhood || a.quarter || a.hamlet,
+                a.suburb || a.residential || a.village,
+                a.city_district,
+                a.city || a.town,
+                a.country,
+              ].filter(Boolean).filter(p => {
+                const key = p.toLowerCase().replace(/\s*(tehsil|district|division|city)\s*/gi, '').trim();
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+              });
+              address = parts.join(', ');
             }
             if (!address) address = nData?.display_name || '';
           } catch {}
