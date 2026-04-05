@@ -97,10 +97,10 @@ export const translations = {
     welcomeStatCustomers: '2000+', welcomeStatRating: '4.9★', welcomeStatServices: '500+',
 
     // Home - Hero
-    heroAvailable: 'Available Now',
-    heroTitle: 'Expert Appliance\nRepair & Service',
-    heroSubtitle: 'AC, Fridge, Washing Machine & more — professional technicians at your doorstep',
-    heroEmergencyCta: '🚨  Emergency? Call Now',
+    heroAvailable: '✅ Serving Jeddah & Makkah',
+    heroTitle: 'Your Home.\nOur Expertise.',
+    heroSubtitle: 'From AC breakdowns to appliance emergencies — we fix it all. Trusted by 500+ families across Saudi Arabia.',
+    heroEmergencyCta: '🚨 24/7 Emergency Service',
     heroStatYears: '15+', heroStatCustomers: '2K+', heroStatRating: '4.9',
 
     // Home - Services fallback
@@ -543,10 +543,10 @@ export const translations = {
     welcomeSlide4Feat1: 'متاح 24/7', welcomeSlide4Feat2: 'استجابة سريعة', welcomeSlide4Feat3: 'رعاية طارئة',
     welcomeStatCustomers: '+2000', welcomeStatRating: '4.9★', welcomeStatServices: '+500',
 
-    heroAvailable: 'متاح الآن',
-    heroTitle: 'إصلاح وصيانة\nالأجهزة المنزلية',
-    heroSubtitle: 'تكييف، ثلاجة، غسالة والمزيد — فنيون محترفون عند بابك',
-    heroEmergencyCta: '🚨  طوارئ؟ اتصل الآن',
+    heroAvailable: '✅ نخدم جدة ومكة المكرمة',
+    heroTitle: 'بيتك.\nخبرتنا.',
+    heroSubtitle: 'من أعطال المكيفات إلى طوارئ الأجهزة — نصلح كل شيء. موثوقون من أكثر من ٥٠٠ عائلة في المملكة.',
+    heroEmergencyCta: '🚨 خدمة طوارئ ٢٤/٧',
     heroStatYears: '+15', heroStatCustomers: '+2 ألف', heroStatRating: '4.9',
 
     svcAcRepair: 'إصلاح التكييف', svcAcRepairDesc: 'تشخيص وإصلاح احترافي لجميع ماركات التكييف',

@@ -129,37 +129,51 @@ export default function Home() {
         {/* Dark overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-[#1D4ED8]/90 via-[#1D4ED8]/75 to-[#2563EB]/50" />
 
-        {/* Decorative shapes behind text */}
-        <div className="pointer-events-none absolute -top-20 -left-20 h-80 w-80 rounded-full bg-white/[0.06]" />
-        <div className="pointer-events-none absolute bottom-10 left-10 h-60 w-60 rounded-full bg-blue-400/[0.08]" />
-        <div className="pointer-events-none absolute top-20 right-1/3 h-40 w-40 rounded-full bg-white/[0.04]" />
-
         <div className="relative mx-auto w-full px-4 py-20 sm:px-8 sm:py-28 lg:px-16 lg:py-32 xl:px-24">
-          <div className="flex flex-col items-start gap-10 lg:flex-row lg:items-center lg:justify-between">
-            {/* Left content with backdrop shape */}
-            <div className="relative max-w-2xl">
-              <div className="pointer-events-none absolute -inset-6 rounded-3xl bg-[#1D4ED8]/30 backdrop-blur-sm sm:-inset-8 lg:-inset-10" />
-              <div className="relative">
-                <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/15 px-4 py-1.5">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-xs font-extrabold text-emerald-300">{t.heroAvailable}</span>
-                </div>
+          <div className="max-w-2xl">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 backdrop-blur-sm">
+              <span className="text-xs font-extrabold text-white">{t.heroAvailable}</span>
+            </div>
 
-                <h1 className="text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl drop-shadow-lg">
-                  {t.heroTitle?.replace?.('\n', ' ')}
-                </h1>
-                <p className="mt-4 max-w-xl text-base font-medium leading-relaxed text-white/80 sm:text-lg">
-                  {t.heroSubtitle}
-                </p>
+            <h1 className="text-5xl font-black leading-[1.1] tracking-tight text-white sm:text-6xl lg:text-7xl">
+              {(t.heroTitle || '').split('\n').map((line, i) => (
+                <span key={i}>
+                  {i === 0 ? line : <><br /><span className="text-blue-200">{line}</span></>}
+                </span>
+              ))}
+            </h1>
 
-                <div className="mt-8 flex flex-wrap gap-4">
-                  <Link href="/services" className="rounded-2xl bg-white px-8 py-3.5 text-sm font-black text-[#1D4ED8] shadow-lg transition-transform hover:scale-105">
-                    {t.ourServices} →
-                  </Link>
-                  <button onClick={handleEmergency} className="rounded-2xl border-2 border-white/30 bg-white/15 px-8 py-3.5 text-sm font-extrabold text-white backdrop-blur-sm transition-colors hover:bg-white/25">
-                    {t.heroEmergencyCta}
-                  </button>
-                </div>
+            <p className="mt-6 max-w-lg text-base font-medium leading-relaxed text-white/75 sm:text-lg">
+              {t.heroSubtitle}
+            </p>
+
+            <div className="mt-10 flex flex-wrap gap-4">
+              <Link href="/services" className="group rounded-2xl bg-white px-8 py-4 text-sm font-black text-[#1D4ED8] shadow-xl transition-all hover:scale-105 hover:shadow-2xl">
+                {t.ourServices} <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
+              </Link>
+              <button onClick={handleEmergency} className="rounded-2xl border-2 border-white/30 bg-white/10 px-8 py-4 text-sm font-extrabold text-white backdrop-blur-sm transition-all hover:bg-white/20 hover:border-white/50">
+                {t.heroEmergencyCta}
+              </button>
+            </div>
+
+            {/* Trust badges */}
+            <div className="mt-10 flex flex-wrap items-center gap-6">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">⭐</span>
+                <span className="text-sm font-bold text-white">4.8/5</span>
+                <span className="text-xs text-white/50">{language === 'ar' ? 'تقييم العملاء' : 'Customer Rating'}</span>
+              </div>
+              <div className="h-4 w-px bg-white/20" />
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🔧</span>
+                <span className="text-sm font-bold text-white">500+</span>
+                <span className="text-xs text-white/50">{language === 'ar' ? 'عميل سعيد' : 'Happy Clients'}</span>
+              </div>
+              <div className="h-4 w-px bg-white/20" />
+              <div className="flex items-center gap-2">
+                <span className="text-lg">⚡</span>
+                <span className="text-sm font-bold text-white">24/7</span>
+                <span className="text-xs text-white/50">{language === 'ar' ? 'خدمة طوارئ' : 'Emergency'}</span>
               </div>
             </div>
           </div>
