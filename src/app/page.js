@@ -336,6 +336,75 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ═══ DOWNLOAD APP BANNER ═══ */}
+      <section className="mx-auto w-full px-4 pb-12 sm:px-8 lg:px-16 xl:px-24">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 shadow-2xl">
+          <div className="pointer-events-none absolute -top-20 -right-20 h-60 w-60 rounded-full bg-white/5" />
+          <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-white/5" />
+          <div className="pointer-events-none absolute top-1/2 left-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/[0.02]" />
+
+          <div className="relative flex flex-col items-center gap-6 px-6 py-10 sm:flex-row sm:px-12 sm:py-12">
+            {/* Phone Mockup */}
+            <div className="flex shrink-0 items-center justify-center">
+              <div className="relative flex h-48 w-24 items-center justify-center rounded-2xl border-2 border-white/20 bg-white/10 backdrop-blur-sm sm:h-56 sm:w-28">
+                <div className="absolute top-2 h-1 w-10 rounded-full bg-white/30" />
+                <div className="text-center">
+                  <span className="text-4xl">❄️</span>
+                  <p className="mt-1 text-[8px] font-bold text-white/70">Ahmed Cooling</p>
+                </div>
+                <div className="absolute bottom-2 h-1 w-6 rounded-full bg-white/20" />
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 text-center sm:text-left">
+              <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[10px] font-bold text-white/80 backdrop-blur-sm">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                {language === 'ar' ? 'متوفر الآن' : 'Available Now'}
+              </div>
+              <h2 className="text-2xl font-black text-white sm:text-3xl">
+                {language === 'ar' ? 'حمّل تطبيقنا' : 'Download Our App'}
+              </h2>
+              <p className="mt-2 max-w-md text-sm font-medium text-blue-100/80">
+                {language === 'ar'
+                  ? 'احجز خدماتك بسهولة، تتبع حجوزاتك، واحصل على عروض حصرية من خلال تطبيقنا.'
+                  : 'Book services easily, track your bookings, and get exclusive offers through our mobile app.'}
+              </p>
+
+              <div className="mt-5 flex flex-col items-center gap-3 sm:flex-row sm:items-start">
+                <a
+                  href="https://play.google.com/store"
+                  target="_blank"
+                  className="inline-flex items-center gap-3 rounded-xl bg-white px-5 py-3 shadow-lg transition-transform hover:scale-105"
+                >
+                  <svg className="h-7 w-7" viewBox="0 0 24 24">
+                    <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 01-.61-.92V2.734a1 1 0 01.609-.92z" fill="#4285F4"/>
+                    <path d="M17.727 8.273L5.158.617l9.89 9.883 2.68-2.227z" fill="#EA4335"/>
+                    <path d="M21.778 12c0-.788-.382-1.5-1.02-1.88l-3.031-1.847-2.935 2.735L17.727 13.9l3.031-1.021A1.96 1.96 0 0021.778 12z" fill="#FBBC04"/>
+                    <path d="M5.158 23.383l12.57-7.483-2.935-2.892L5.158 23.383z" fill="#34A853"/>
+                  </svg>
+                  <div className="text-left">
+                    <p className="text-[9px] font-semibold uppercase text-sub">{language === 'ar' ? 'تحميل من' : 'Get it on'}</p>
+                    <p className="text-sm font-black text-text">Google Play</p>
+                  </div>
+                </a>
+              </div>
+
+              <div className="mt-4 flex items-center justify-center gap-4 sm:justify-start">
+                <div className="flex items-center gap-1">
+                  <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                  <span className="text-xs font-bold text-white">4.8</span>
+                </div>
+                <span className="text-xs text-white/50">•</span>
+                <span className="text-xs font-semibold text-white/70">{language === 'ar' ? 'مجاني' : 'Free'}</span>
+                <span className="text-xs text-white/50">•</span>
+                <span className="text-xs font-semibold text-white/70">{language === 'ar' ? 'حجز فوري' : 'Instant Booking'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <div className="flex items-center justify-center gap-2 pb-8">
         <span className="h-2 w-2 rounded-full bg-emerald-500" />
         <p className="text-xs font-semibold text-sub dark:text-slate-500">
