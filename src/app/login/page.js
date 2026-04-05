@@ -18,6 +18,7 @@ export default function LoginPage() {
   const { t, language } = useTranslation();
 
   const [tab, setTab] = useState('email');
+  const [showComingSoon, setShowComingSoon] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -155,7 +156,7 @@ export default function LoginPage() {
               {t.authContinueWithEmail}
             </button>
             <button
-              onClick={() => { setTab('phone'); setError(''); }}
+              onClick={() => { setShowComingSoon(true); setTimeout(() => setShowComingSoon(false), 2500); }}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 tab === 'phone'
                   ? 'bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-sm'
@@ -166,6 +167,16 @@ export default function LoginPage() {
               {t.authContinueWithPhone}
             </button>
           </div>
+
+          {/* Coming Soon */}
+          {showComingSoon && (
+            <div className="flex items-center justify-center gap-2 p-3 mb-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 animate-pulse">
+              <span className="text-lg">🚀</span>
+              <p className="text-sm font-bold text-amber-700 dark:text-amber-400">
+                {language === 'ar' ? 'قريباً! تسجيل الدخول بالهاتف سيتوفر قريباً.' : 'Coming Soon! Phone login will be available soon.'}
+              </p>
+            </div>
+          )}
 
           {/* Error */}
           {error && (
