@@ -16,7 +16,7 @@ const COUNTRY_CODES = [
 export default function SignupPage() {
   const router = useRouter();
   const { login } = useAuth();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
   const [step, setStep] = useState('form'); // 'form' | 'otp'
 
@@ -26,7 +26,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [countryIdx, setCountryIdx] = useState(0);
+  const [countryIdx, setCountryIdx] = useState(language === 'ar' ? 1 : 0);
   const [ccOpen, setCcOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);

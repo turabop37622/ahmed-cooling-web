@@ -99,8 +99,9 @@ export default function BookingsPage() {
   };
 
   const filtered = useMemo(() => {
-    if (activeFilter === 'all') return bookings;
-    return bookings.filter((b) => b.status?.toLowerCase() === activeFilter);
+    const nonCancelled = bookings.filter((b) => b.status?.toLowerCase() !== 'cancelled');
+    if (activeFilter === 'all') return nonCancelled;
+    return nonCancelled.filter((b) => b.status?.toLowerCase() === activeFilter);
   }, [bookings, activeFilter]);
 
   const handleCancel = async (booking) => {

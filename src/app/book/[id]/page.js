@@ -146,7 +146,7 @@ export default function BookingPage() {
   const [bookingSuccess, setBookingSuccess] = useState(null);
 
   const [fullName, setFullName] = useState('');
-  const [countryCode, setCountryCode] = useState('+92');
+  const [countryCode, setCountryCode] = useState(language === 'ar' ? '+966' : '+92');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState('');

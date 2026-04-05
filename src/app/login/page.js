@@ -16,7 +16,7 @@ const COUNTRY_CODES = [
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
   const [tab, setTab] = useState('email');
   const [email, setEmail] = useState('');
@@ -25,7 +25,7 @@ export default function LoginPage() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [phonePassword, setPhonePassword] = useState('');
   const [showPhonePassword, setShowPhonePassword] = useState(false);
-  const [countryIdx, setCountryIdx] = useState(0);
+  const [countryIdx, setCountryIdx] = useState(language === 'ar' ? 1 : 0);
   const [ccOpen, setCcOpen] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
