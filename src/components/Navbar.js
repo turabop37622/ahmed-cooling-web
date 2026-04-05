@@ -13,6 +13,7 @@ export default function Navbar() {
   const { t, language, setLanguage } = useTranslation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -23,6 +24,13 @@ export default function Navbar() {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 80);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   const navLinks = [
@@ -37,14 +45,14 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-white dark:bg-slate-900 border-b border-border shadow-sm">
+    <nav className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white dark:bg-slate-900 border-b border-border shadow-sm' : 'bg-[#1D4ED8] border-b border-transparent'}`}>
       <div className="w-full mx-auto px-4 sm:px-8 lg:px-16 xl:px-24">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0">
-            <Snowflake className="h-7 w-7 text-primary" />
+            <Snowflake className={`h-7 w-7 ${scrolled ? 'text-primary' : 'text-white'}`} />
             <div>
-              <span className="text-lg font-black text-text dark:text-white">{t.appName}</span>
+              <span className={`text-lg font-black ${scrolled ? 'text-text dark:text-white' : 'text-white'}`}>{t.appName}</span>
             </div>
           </Link>
 
@@ -54,7 +62,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="px-3 py-2 rounded-lg text-sm font-medium text-sub hover:text-primary hover:bg-primary-light dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800 transition-colors"
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${scrolled ? 'text-sub hover:text-primary hover:bg-primary-light dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800' : 'text-white/80 hover:text-white hover:bg-white/10'}`}
               >
                 {link.label}
               </Link>
@@ -68,7 +76,7 @@ export default function Navbar() {
 
             {/* My Bookings */}
             {token && (
-              <Link href="/bookings" className="px-4 py-1.5 text-sm font-bold rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20 dark:hover:bg-blue-500/20 transition-colors">
+              <Link href="/bookings" className={`px-4 py-1.5 text-sm font-bold rounded-full border transition-colors ${scrolled ? 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20' : 'bg-white/15 text-white border-white/25 hover:bg-white/25'}`}>
                 {t.myBookings || 'My Bookings'}
               </Link>
             )}
@@ -76,7 +84,7 @@ export default function Navbar() {
             {/* Language toggle */}
             <button
               onClick={toggleLanguage}
-              className="px-3 py-1.5 text-sm font-medium rounded-lg border border-border text-sub hover:text-primary hover:border-primary dark:text-slate-300 dark:border-slate-700 dark:hover:text-white transition-colors"
+              className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition-colors ${scrolled ? 'border-border text-sub hover:text-primary hover:border-primary dark:text-slate-300 dark:border-slate-700' : 'border-white/25 text-white/80 hover:text-white hover:border-white/50'}`}
             >
               {language === 'en' ? 'عربي' : 'EN'}
             </button>
@@ -84,7 +92,7 @@ export default function Navbar() {
             {/* Theme toggle */}
             <button
               onClick={toggleDarkMode}
-              className="p-2 rounded-lg text-sub hover:text-primary hover:bg-primary-light dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800 transition-colors"
+              className={`p-2 rounded-lg transition-colors ${scrolled ? 'text-sub hover:text-primary hover:bg-primary-light dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800' : 'text-white/80 hover:text-white hover:bg-white/10'}`}
               aria-label="Toggle theme"
             >
               {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
@@ -95,7 +103,7 @@ export default function Navbar() {
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-text hover:bg-primary-light dark:text-white dark:hover:bg-slate-800 transition-colors"
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${scrolled ? 'text-text hover:bg-primary-light dark:text-white dark:hover:bg-slate-800' : 'text-white hover:bg-white/10'}`}
                 >
                   <div className="h-7 w-7 rounded-full bg-primary flex items-center justify-center">
                     <span className="text-xs font-bold text-white">
@@ -130,7 +138,7 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-primary-dark text-white text-sm font-medium transition-colors"
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${scrolled ? 'bg-primary hover:bg-primary-dark text-white' : 'bg-white text-[#1D4ED8] hover:bg-white/90'}`}
               >
                 <User className="h-4 w-4" />
                 {t.login}
@@ -141,7 +149,7 @@ export default function Navbar() {
           {/* Mobile menu button */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden p-2 rounded-lg text-sub hover:text-primary hover:bg-primary-light dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
+            className={`md:hidden p-2 rounded-lg transition-colors ${scrolled ? 'text-sub hover:text-primary hover:bg-primary-light dark:text-slate-300 dark:hover:bg-slate-800' : 'text-white hover:bg-white/10'}`}
             aria-label="Toggle menu"
           >
             {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
