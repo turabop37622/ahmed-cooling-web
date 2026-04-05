@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Snowflake, Phone, Star, ChevronRight, Shield, Zap, DollarSign, BadgeCheck, MapPin, AlertTriangle } from 'lucide-react';
@@ -16,19 +16,29 @@ const SERVICES_FALLBACK = [
 ];
 
 const REVIEWS_EN = [
-  { name: 'Ali Hassan', city: 'Lahore', rating: 5, text: 'Bohat achi service mili. AC 1 ghante mein theek ho gaya. Highly recommended!', timeAgo: '2 days ago' },
-  { name: 'Fatima Khan', city: 'Karachi', rating: 5, text: 'Professional technician aaya, time pe aaya aur kaam bhi zabardast kiya.', timeAgo: '5 days ago' },
-  { name: 'Usman Ahmed', city: 'Islamabad', rating: 4, text: 'Fridge ki repair karwai, ab bilkul sahi chal rahi hai. Good prices.', timeAgo: '1 week ago' },
-  { name: 'Ayesha Malik', city: 'Rawalpindi', rating: 5, text: 'Emergency mein raat ko call kiya, 45 min mein technician aa gaya. Amazing!', timeAgo: '2 weeks ago' },
-  { name: 'Hamza Tariq', city: 'Faisalabad', rating: 5, text: 'Washing machine bilkul band thi, ab nai jaisi chal rahi hai. Thank you!', timeAgo: '3 weeks ago' },
+  { name: 'Ahmed Al-Harbi', city: 'Jeddah', rating: 5, text: 'Excellent AC repair service! The technician came on time and fixed the AC within an hour. Highly recommended!', timeAgo: '2 days ago' },
+  { name: 'Fatima Al-Zahrani', city: 'Makkah', rating: 5, text: 'Professional and fast service. They installed my new split AC perfectly. Very happy with the work!', timeAgo: '3 days ago' },
+  { name: 'Mohammed Al-Ghamdi', city: 'Jeddah', rating: 5, text: 'Called them for an emergency fridge repair at night. Technician arrived in 30 minutes. Amazing service!', timeAgo: '5 days ago' },
+  { name: 'Sara Al-Otaibi', city: 'Makkah', rating: 4, text: 'Good washing machine repair. The technician was knowledgeable and fixed the issue quickly. Fair prices.', timeAgo: '1 week ago' },
+  { name: 'Khalid Al-Shehri', city: 'Jeddah', rating: 5, text: 'Best AC deep cleaning service! My AC is running like new now. Will definitely use again.', timeAgo: '1 week ago' },
+  { name: 'Noura Al-Qahtani', city: 'Makkah', rating: 5, text: 'Very reliable company. They repaired my oven and microwave on the same visit. Great value!', timeAgo: '2 weeks ago' },
+  { name: 'Omar Al-Dossari', city: 'Jeddah', rating: 5, text: 'Annual maintenance plan is worth it! They service all appliances regularly. Excellent team.', timeAgo: '2 weeks ago' },
+  { name: 'Huda Al-Malki', city: 'Makkah', rating: 4, text: 'Freezer was leaking and they fixed it same day. Technician was very professional. Recommended!', timeAgo: '3 weeks ago' },
+  { name: 'Yusuf Al-Rashidi', city: 'Jeddah', rating: 5, text: 'Called for electrical wiring fix. Fast response, clean work, and very affordable pricing.', timeAgo: '3 weeks ago' },
+  { name: 'Maryam Al-Subaie', city: 'Makkah', rating: 5, text: 'They repaired my central AC system for the entire building. Professional and experienced team!', timeAgo: '1 month ago' },
 ];
 
 const REVIEWS_AR = [
-  { name: 'علي حسن', city: 'لاهور', rating: 5, text: 'خدمة ممتازة. تم إصلاح المكيف خلال ساعة. أنصح بشدة!', timeAgo: 'منذ يومين' },
-  { name: 'فاطمة خان', city: 'كراتشي', rating: 5, text: 'فني محترف، جاء في الوقت المحدد والعمل كان رائعاً.', timeAgo: 'منذ ٥ أيام' },
-  { name: 'عثمان أحمد', city: 'إسلام آباد', rating: 4, text: 'تم إصلاح الثلاجة، الآن تعمل بشكل ممتاز. أسعار جيدة.', timeAgo: 'منذ أسبوع' },
-  { name: 'عائشة مالك', city: 'راولبندي', rating: 5, text: 'اتصلت في حالة طوارئ ليلاً، وصل الفني خلال ٤٥ دقيقة. مذهل!', timeAgo: 'منذ أسبوعين' },
-  { name: 'حمزة طارق', city: 'فيصل آباد', rating: 5, text: 'الغسالة كانت معطلة تماماً، الآن تعمل كالجديدة. شكراً!', timeAgo: 'منذ ٣ أسابيع' },
+  { name: 'أحمد الحربي', city: 'جدة', rating: 5, text: 'خدمة إصلاح مكيفات ممتازة! جاء الفني في الوقت المحدد وأصلح المكيف خلال ساعة. أنصح بشدة!', timeAgo: 'منذ يومين' },
+  { name: 'فاطمة الزهراني', city: 'مكة', rating: 5, text: 'خدمة احترافية وسريعة. ركبوا مكيف سبليت جديد بشكل مثالي. سعيدة جداً بالعمل!', timeAgo: 'منذ ٣ أيام' },
+  { name: 'محمد الغامدي', city: 'جدة', rating: 5, text: 'اتصلت بهم لإصلاح ثلاجة طارئ بالليل. وصل الفني خلال ٣٠ دقيقة. خدمة مذهلة!', timeAgo: 'منذ ٥ أيام' },
+  { name: 'سارة العتيبي', city: 'مكة', rating: 4, text: 'إصلاح غسالة جيد. الفني كان متخصص وأصلح المشكلة بسرعة. أسعار معقولة.', timeAgo: 'منذ أسبوع' },
+  { name: 'خالد الشهري', city: 'جدة', rating: 5, text: 'أفضل خدمة تنظيف مكيفات! المكيف يعمل كالجديد الآن. سأستخدمهم مرة أخرى بالتأكيد.', timeAgo: 'منذ أسبوع' },
+  { name: 'نورة القحطاني', city: 'مكة', rating: 5, text: 'شركة موثوقة جداً. أصلحوا الفرن والميكروويف في نفس الزيارة. قيمة ممتازة!', timeAgo: 'منذ أسبوعين' },
+  { name: 'عمر الدوسري', city: 'جدة', rating: 5, text: 'خطة الصيانة السنوية تستحق! يصيانون جميع الأجهزة بانتظام. فريق ممتاز.', timeAgo: 'منذ أسبوعين' },
+  { name: 'هدى المالكي', city: 'مكة', rating: 4, text: 'الفريزر كان يسرب ماء وأصلحوه في نفس اليوم. الفني كان محترف جداً. أنصح بهم!', timeAgo: 'منذ ٣ أسابيع' },
+  { name: 'يوسف الرشيدي', city: 'جدة', rating: 5, text: 'اتصلت لإصلاح الأسلاك الكهربائية. استجابة سريعة، عمل نظيف، وأسعار معقولة.', timeAgo: 'منذ ٣ أسابيع' },
+  { name: 'مريم السبيعي', city: 'مكة', rating: 5, text: 'أصلحوا نظام التكييف المركزي للمبنى بالكامل. فريق محترف وذو خبرة!', timeAgo: 'منذ شهر' },
 ];
 
 export default function Home() {
@@ -37,8 +47,6 @@ export default function Home() {
   const [services, setServices] = useState(SERVICES_FALLBACK);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
-  const reviewsRef = useRef(null);
-
   useEffect(() => {
     loadData();
   }, []);
@@ -194,7 +202,7 @@ export default function Home() {
       </section>
 
       {/* ═══ CUSTOMER REVIEWS ═══ */}
-      <section className="py-10">
+      <section className="py-10 overflow-hidden">
         <div className="mx-auto w-full px-4 sm:px-8 lg:px-16 xl:px-24">
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-xl font-black tracking-tight text-text dark:text-white">
@@ -206,43 +214,41 @@ export default function Home() {
           </div>
         </div>
 
-        <div
-          ref={reviewsRef}
-          className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-none sm:px-6 lg:px-8"
-          style={{ scrollbarWidth: 'none' }}
-        >
-          {reviews.map((r, i) => (
-            <div
-              key={i}
-              className="w-72 shrink-0 rounded-2xl border border-border bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800 sm:w-80"
-            >
-              <div className="mb-3 flex items-center gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-xs font-black text-white">
-                  {r.name
-                    ?.split(' ')
-                    .map((w) => w[0])
-                    .join('')}
+        <div className="relative">
+          <div className="flex w-max animate-marquee gap-4 px-4 hover:[animation-play-state:paused]">
+            {[...reviews, ...reviews].map((r, i) => (
+              <div
+                key={i}
+                className="w-72 shrink-0 rounded-2xl border border-border bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800 sm:w-80"
+              >
+                <div className="mb-3 flex items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-xs font-black text-white">
+                    {r.name
+                      ?.split(' ')
+                      .map((w) => w[0])
+                      .join('')}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-extrabold text-text dark:text-white">
+                      {r.name}
+                    </p>
+                    <p className="text-[10px] font-semibold text-sub dark:text-slate-400">
+                      📍 {r.city}
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-xs">
+                    {'⭐'.repeat(r.rating)}
+                  </span>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-extrabold text-text dark:text-white">
-                    {r.name}
-                  </p>
-                  <p className="text-[10px] font-semibold text-sub dark:text-slate-400">
-                    {r.city}
-                  </p>
-                </div>
-                <span className="shrink-0 text-xs">
-                  {'⭐'.repeat(r.rating)}
-                </span>
+                <p className="line-clamp-3 text-xs font-medium leading-relaxed text-sub dark:text-slate-300">
+                  &ldquo;{r.text}&rdquo;
+                </p>
+                <p className="mt-2 text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                  {r.timeAgo}
+                </p>
               </div>
-              <p className="line-clamp-3 text-xs font-medium leading-relaxed text-sub dark:text-slate-300">
-                {r.text}
-              </p>
-              <p className="mt-2 text-[10px] font-semibold text-slate-400 dark:text-slate-500">
-                {r.timeAgo}
-              </p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
