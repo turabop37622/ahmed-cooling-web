@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
-  Loader2, MapPin, Navigation, Calendar, Clock, FileText,
+  Loader2, MapPin, Calendar, Clock, FileText,
   ChevronLeft, ChevronRight, User, Phone, CheckCircle2, Shield,
   Sparkles, AlertCircle,
 } from 'lucide-react';
@@ -150,12 +150,9 @@ export default function BookingPage() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState('');
   const [notes, setNotes] = useState('');
-  const [gpsLoading, setGpsLoading] = useState(false);
-  const [addressMode, setAddressMode] = useState('manual');
   const [selectedCity, setSelectedCity] = useState('');
   const [selectedArea, setSelectedArea] = useState('');
   const [subLocation, setSubLocation] = useState('');
-  const [gpsAddress, setGpsAddress] = useState('');
   const [errors, setErrors] = useState({});
 
   const today = useMemo(() => {
@@ -215,75 +212,7 @@ export default function BookingPage() {
     setCalYear(d.getFullYear());
   };
 
-  const [coordinates, setCoordinates] = useState(null);
-
-  const handleGPS = useCallback(() => {
-    if (!navigator.geolocation) {
-      alert(language === 'ar' ? 'GPS غير مدعوم في هذا المتصفح' : 'GPS not supported on this browser.');
-      return;
-    }
-    setGpsLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setCoordinates({ latitude, longitude });
-        let address = '';
-
-        try {
-          const gResp = await fetch(
-            `https://ahmed-cooling-backend.onrender.com/api/geocode/reverse?lat=${latitude}&lng=${longitude}&lang=${language === 'ar' ? 'ar' : 'en'}`
-          );
-          const gData = await gResp.json();
-          if (gData.success && gData.address) {
-            address = gData.address;
-          }
-        } catch {}
-
-        if (!address) {
-          try {
-            const nResp = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1&namedetails=1&zoom=18&accept-language=${language === 'ar' ? 'ar' : 'en'}`,
-              { headers: { 'User-Agent': 'AhmedCoolingWorkshop/1.0' } }
-            );
-            const nData = await nResp.json();
-            if (nData?.address) {
-              const a = nData.address;
-              const seen = new Set();
-              const parts = [
-                a.amenity || a.building || a.shop,
-                a.house_number,
-                a.road || a.street || a.pedestrian,
-                a.neighbourhood || a.quarter || a.hamlet,
-                a.suburb || a.residential || a.village,
-                a.city_district,
-                a.city || a.town,
-                a.country,
-              ].filter(Boolean).filter(p => {
-                const key = p.toLowerCase().replace(/\s*(tehsil|district|division|city)\s*/gi, '').trim();
-                if (seen.has(key)) return false;
-                seen.add(key);
-                return true;
-              });
-              address = parts.join(', ');
-            }
-            if (!address) address = nData?.display_name || '';
-          } catch {}
-        }
-
-        setGpsAddress(address || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
-        setAddressMode('gps');
-        setGpsLoading(false);
-      },
-      () => {
-        setGpsLoading(false);
-        alert(language === 'ar' ? 'تعذر تحديد الموقع' : 'Could not get location.');
-      },
-      { enableHighAccuracy: true, timeout: 15000 }
-    );
-  }, [language]);
-
   const getFullAddress = () => {
-    if (addressMode === 'gps' && gpsAddress) return gpsAddress;
     if (!selectedCity || !selectedArea || !subLocation.trim()) return '';
     const city = LOCATION_DATA[selectedCity];
     const area = city?.areas.find(a => a.en === selectedArea);
@@ -301,13 +230,9 @@ export default function BookingPage() {
     if (!phoneNumber.trim()) e.phone = t.enterPhoneMsg || 'Phone is required';
     if (!selectedDate) e.date = t.selectDateMsg || 'Select a date';
     if (!selectedTime) e.time = t.selectTimeMsg || 'Select a time';
-    if (addressMode === 'manual') {
-      if (!selectedCity) e.city = language === 'ar' ? 'اختر المدينة' : 'City is required';
-      if (selectedCity && !selectedArea) e.area = language === 'ar' ? 'اختر المنطقة' : 'Area is required';
-      if (selectedArea && !subLocation.trim()) e.subLocation = language === 'ar' ? 'أدخل العنوان التفصيلي' : 'Street/House details required';
-    } else {
-      if (!gpsAddress) e.gps = language === 'ar' ? 'حدد موقعك الحالي' : 'Please detect your location';
-    }
+    if (!selectedCity) e.city = language === 'ar' ? 'اختر المدينة' : 'City is required';
+    if (selectedCity && !selectedArea) e.area = language === 'ar' ? 'اختر المنطقة' : 'Area is required';
+    if (selectedArea && !subLocation.trim()) e.subLocation = language === 'ar' ? 'أدخل العنوان التفصيلي' : 'Street/House details required';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -335,7 +260,7 @@ export default function BookingPage() {
         date: selectedDate.toISOString().split('T')[0],
         time: selectedTime,
         address: getFullAddress(),
-        coordinates: coordinates || { latitude: 0, longitude: 0 },
+        coordinates: { latitude: 0, longitude: 0 },
         comments: notes.trim(),
         language: language || 'en',
         platform: 'web',
@@ -529,116 +454,67 @@ export default function BookingPage() {
         {/* Location Section */}
         <SectionTitle icon={<MapPin className="h-5 w-5" />} title={t.serviceLocation || 'Service Location'} />
         <div className="mb-6 rounded-2xl border border-border bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-          {/* Mode Tabs */}
-          <div className="mb-4 flex gap-2">
-            <button onClick={() => setAddressMode('manual')}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-xs font-bold transition ${addressMode === 'manual' ? 'border-primary bg-primary text-white dark:border-blue-500 dark:bg-blue-600' : 'border-border bg-white text-text hover:border-primary/40 dark:border-slate-600 dark:bg-slate-800 dark:text-white'}`}
-            >
-              <MapPin className="h-3.5 w-3.5" />
-              {language === 'ar' ? 'العنوان يدوياً' : 'Enter Manually'}
-            </button>
-            <button onClick={() => setAddressMode('gps')}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-xs font-bold transition ${addressMode === 'gps' ? 'border-primary bg-primary text-white dark:border-blue-500 dark:bg-blue-600' : 'border-border bg-white text-text hover:border-primary/40 dark:border-slate-600 dark:bg-slate-800 dark:text-white'}`}
-            >
-              <Navigation className="h-3.5 w-3.5" />
-              {language === 'ar' ? 'الموقع الحالي' : 'Current Location'}
-            </button>
-          </div>
+          <div className="space-y-3">
+            <div>
+              <label className="mb-1.5 block text-xs font-bold text-sub dark:text-slate-400">
+                {language === 'ar' ? 'المدينة' : 'City'} <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={selectedCity}
+                onChange={(e) => { setSelectedCity(e.target.value); setSelectedArea(''); setSubLocation(''); }}
+                className={`w-full rounded-xl border bg-white py-3 px-4 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${errors.city ? 'border-red-400' : selectedCity ? 'border-primary dark:border-blue-500' : 'border-border dark:border-slate-600'}`}
+              >
+                <option value="">{language === 'ar' ? 'اختر المدينة' : 'Select City'}</option>
+                {Object.entries(LOCATION_DATA).map(([key, city]) => (
+                  <option key={key} value={key}>{language === 'ar' ? city.ar : city.en}</option>
+                ))}
+              </select>
+              {errors.city && <p className="mt-1 text-xs font-semibold text-red-500">{errors.city}</p>}
+            </div>
 
-          {/* Manual Address Fields */}
-          {addressMode === 'manual' && (
-            <div className="space-y-3">
+            {selectedCity && (
               <div>
                 <label className="mb-1.5 block text-xs font-bold text-sub dark:text-slate-400">
-                  {language === 'ar' ? 'المدينة' : 'City'} <span className="text-red-500">*</span>
+                  {language === 'ar' ? 'الموقع الرئيسي' : 'Main Location'} <span className="text-red-500">*</span>
                 </label>
                 <select
-                  value={selectedCity}
-                  onChange={(e) => { setSelectedCity(e.target.value); setSelectedArea(''); setSubLocation(''); }}
-                  className={`w-full rounded-xl border bg-white py-3 px-4 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${errors.city ? 'border-red-400' : selectedCity ? 'border-primary dark:border-blue-500' : 'border-border dark:border-slate-600'}`}
+                  value={selectedArea}
+                  onChange={(e) => { setSelectedArea(e.target.value); setSubLocation(''); }}
+                  className={`w-full rounded-xl border bg-white py-3 px-4 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${errors.area ? 'border-red-400' : selectedArea ? 'border-primary dark:border-blue-500' : 'border-border dark:border-slate-600'}`}
                 >
-                  <option value="">{language === 'ar' ? 'اختر المدينة' : 'Select City'}</option>
-                  {Object.entries(LOCATION_DATA).map(([key, city]) => (
-                    <option key={key} value={key}>{language === 'ar' ? city.ar : city.en}</option>
+                  <option value="">{language === 'ar' ? 'اختر المنطقة' : 'Select Area'}</option>
+                  {LOCATION_DATA[selectedCity]?.areas.map((area, i) => (
+                    <option key={i} value={area.en}>{language === 'ar' ? area.ar : area.en}</option>
                   ))}
                 </select>
-                {errors.city && <p className="mt-1 text-xs font-semibold text-red-500">{errors.city}</p>}
+                {errors.area && <p className="mt-1 text-xs font-semibold text-red-500">{errors.area}</p>}
               </div>
+            )}
 
-              {selectedCity && (
-                <div>
-                  <label className="mb-1.5 block text-xs font-bold text-sub dark:text-slate-400">
-                    {language === 'ar' ? 'الموقع الرئيسي' : 'Main Location'} <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={selectedArea}
-                    onChange={(e) => { setSelectedArea(e.target.value); setSubLocation(''); }}
-                    className={`w-full rounded-xl border bg-white py-3 px-4 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${errors.area ? 'border-red-400' : selectedArea ? 'border-primary dark:border-blue-500' : 'border-border dark:border-slate-600'}`}
-                  >
-                    <option value="">{language === 'ar' ? 'اختر المنطقة' : 'Select Area'}</option>
-                    {LOCATION_DATA[selectedCity]?.areas.map((area, i) => (
-                      <option key={i} value={area.en}>{language === 'ar' ? area.ar : area.en}</option>
-                    ))}
-                  </select>
-                  {errors.area && <p className="mt-1 text-xs font-semibold text-red-500">{errors.area}</p>}
-                </div>
-              )}
+            {selectedArea && (
+              <div>
+                <label className="mb-1.5 block text-xs font-bold text-sub dark:text-slate-400">
+                  {language === 'ar' ? 'العنوان التفصيلي' : 'Street / Block / House No'} <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text" value={subLocation} onChange={(e) => setSubLocation(e.target.value)}
+                  placeholder={language === 'ar' ? 'مثال: شارع ٥، بلوك B، منزل ١٢' : 'e.g., Street 5, Block B, House 12'}
+                  className={`w-full rounded-xl border py-3 px-4 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${errors.subLocation ? 'border-red-400' : subLocation ? 'border-primary dark:border-blue-500' : 'border-border dark:border-slate-600'}`}
+                />
+                {errors.subLocation && <p className="mt-1 text-xs font-semibold text-red-500">{errors.subLocation}</p>}
+              </div>
+            )}
 
-              {selectedArea && (
-                <div>
-                  <label className="mb-1.5 block text-xs font-bold text-sub dark:text-slate-400">
-                    {language === 'ar' ? 'العنوان التفصيلي' : 'Street / Block / House No'} <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text" value={subLocation} onChange={(e) => setSubLocation(e.target.value)}
-                    placeholder={language === 'ar' ? 'مثال: شارع ٥، بلوك B، منزل ١٢' : 'e.g., Street 5, Block B, House 12'}
-                    className={`w-full rounded-xl border py-3 px-4 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${errors.subLocation ? 'border-red-400' : subLocation ? 'border-primary dark:border-blue-500' : 'border-border dark:border-slate-600'}`}
-                  />
-                  {errors.subLocation && <p className="mt-1 text-xs font-semibold text-red-500">{errors.subLocation}</p>}
+            {selectedCity && selectedArea && subLocation.trim() && (
+              <div className="flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 p-3 dark:border-slate-600 dark:bg-slate-700">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary dark:text-blue-400" />
+                <div className="flex-1">
+                  <p className="text-[10px] font-bold uppercase text-sub dark:text-slate-400">{language === 'ar' ? 'العنوان الكامل' : 'Full Address'}</p>
+                  <p className="text-xs font-semibold text-text dark:text-white">{getFullAddress()}</p>
                 </div>
-              )}
-
-              {selectedCity && selectedArea && subLocation.trim() && (
-                <div className="flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 p-3 dark:border-slate-600 dark:bg-slate-700">
-                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary dark:text-blue-400" />
-                  <div className="flex-1">
-                    <p className="text-[10px] font-bold uppercase text-sub dark:text-slate-400">{language === 'ar' ? 'العنوان الكامل' : 'Full Address'}</p>
-                    <p className="text-xs font-semibold text-text dark:text-white">{getFullAddress()}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* GPS Mode */}
-          {addressMode === 'gps' && (
-            <div>
-              <button onClick={handleGPS} disabled={gpsLoading}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-blue-50 py-3.5 text-sm font-bold text-primary transition hover:bg-blue-100 dark:border-blue-500/30 dark:bg-blue-950/30 dark:text-blue-400"
-              >
-                {gpsLoading
-                  ? <Loader2 className="h-5 w-5 animate-spin" />
-                  : <Navigation className="h-5 w-5" />
-                }
-                {gpsLoading
-                  ? (language === 'ar' ? 'جاري تحديد الموقع...' : 'Detecting location...')
-                  : (language === 'ar' ? 'تحديد موقعي الحالي' : 'Detect My Location')
-                }
-              </button>
-              {gpsAddress && (
-                <div className="mt-3 flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 p-3 dark:border-slate-600 dark:bg-slate-700">
-                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary dark:text-blue-400" />
-                  <div className="flex-1">
-                    <p className="text-[10px] font-bold uppercase text-sub dark:text-slate-400">{language === 'ar' ? 'الموقع المحدد' : 'Detected Location'}</p>
-                    <p className="text-xs font-semibold text-text dark:text-white">{gpsAddress}</p>
-                  </div>
-                  <button onClick={() => { setGpsAddress(''); setCoordinates(null); }} className="text-xs font-bold text-primary dark:text-blue-400">{t.clearAddress || 'Clear'}</button>
-                </div>
-              )}
-              {!gpsAddress && <p className="mt-2 text-center text-[11px] font-semibold text-sub dark:text-slate-500">{language === 'ar' ? 'اضغط الزر لتحديد موقعك تلقائياً' : 'Tap to detect your current location'}</p>}
-              {errors.gps && <p className="mt-1.5 text-xs font-semibold text-red-500">{errors.gps}</p>}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Notes Section */}
