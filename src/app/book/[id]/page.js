@@ -217,6 +217,21 @@ export default function BookingPage() {
 
   const [coordinates, setCoordinates] = useState(null);
 
+  const formatGeoAddress = (data) => {
+    if (!data?.address) return data?.display_name || '';
+    const a = data.address;
+    const parts = [
+      a.house_number,
+      a.road || a.street,
+      a.neighbourhood || a.suburb || a.quarter,
+      a.city_district || a.district,
+      a.city || a.town || a.village,
+      a.state || a.region,
+      a.country,
+    ].filter(Boolean);
+    return parts.join(', ');
+  };
+
   const handleGPS = useCallback(() => {
     if (!navigator.geolocation) {
       alert(language === 'ar' ? 'GPS غير مدعوم في هذا المتصفح' : 'GPS not supported on this browser.');
@@ -233,7 +248,7 @@ export default function BookingPage() {
             { headers: { 'User-Agent': 'AhmedCoolingWorkshop/1.0' } }
           );
           const data = await resp.json();
-          setGpsAddress(data.display_name || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+          setGpsAddress(formatGeoAddress(data) || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
         } catch {
           setGpsAddress(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
         }
