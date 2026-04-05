@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   Loader2, MapPin, Navigation, Calendar, Clock, FileText,
@@ -35,6 +35,69 @@ const DAY_NAMES_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DAY_NAMES_AR = ['أحد', 'إثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'];
 const MONTH_NAMES_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const MONTH_NAMES_AR = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+
+const LOCATION_DATA = {
+  jeddah: {
+    en: 'Jeddah', ar: 'جدة',
+    areas: [
+      { en: 'Abhur', ar: 'أبحر' },
+      { en: 'Al Ajwad', ar: 'الأجواد' },
+      { en: 'Al Andalus', ar: 'الأندلس' },
+      { en: 'Al Aziziyah', ar: 'العزيزية' },
+      { en: 'Al Balad', ar: 'البلد' },
+      { en: 'Al Basateen', ar: 'البساتين' },
+      { en: 'Al Bawadi', ar: 'البوادي' },
+      { en: 'Al Faisaliyyah', ar: 'الفيصلية' },
+      { en: 'Al Hamra', ar: 'الحمراء' },
+      { en: 'Al Hamdaniyah', ar: 'الحمدانية' },
+      { en: 'Al Khalidiyyah', ar: 'الخالدية' },
+      { en: 'Al Manar', ar: 'المنار' },
+      { en: 'Al Marwah', ar: 'المروة' },
+      { en: 'Al Muhammadiyah', ar: 'المحمدية' },
+      { en: 'Al Nahdah', ar: 'النهضة' },
+      { en: 'Al Naim', ar: 'النعيم' },
+      { en: 'Al Naseem', ar: 'النسيم' },
+      { en: 'Al Rabwah', ar: 'الربوة' },
+      { en: 'Al Rawdah', ar: 'الروضة' },
+      { en: 'Al Rehab', ar: 'الرحاب' },
+      { en: 'Al Safa', ar: 'الصفا' },
+      { en: 'Al Salamah', ar: 'السلامة' },
+      { en: 'Al Samer', ar: 'السامر' },
+      { en: 'Al Sharafiyah', ar: 'الشرفية' },
+      { en: 'Al Shati', ar: 'الشاطئ' },
+      { en: 'Al Thaghr', ar: 'الثغر' },
+      { en: 'Al Wurud', ar: 'الورود' },
+      { en: 'Al Zahra', ar: 'الزهراء' },
+      { en: 'Bryman', ar: 'بريمان' },
+    ],
+  },
+  makkah: {
+    en: 'Makkah', ar: 'مكة المكرمة',
+    areas: [
+      { en: 'Al Adl', ar: 'العدل' },
+      { en: 'Al Awali', ar: 'العوالي' },
+      { en: 'Al Aziziyah', ar: 'العزيزية' },
+      { en: 'Al Buhayrat', ar: 'البحيرات' },
+      { en: 'Al Hajlah', ar: 'الحجلة' },
+      { en: 'Al Hindawiyyah', ar: 'الهنداوية' },
+      { en: 'Al Jamiah', ar: 'الجامعة' },
+      { en: 'Al Kakiyyah', ar: 'الكعكية' },
+      { en: 'Al Khalidiyyah', ar: 'الخالدية' },
+      { en: 'Al Maabdah', ar: 'المعابدة' },
+      { en: 'Al Misfalah', ar: 'المسفلة' },
+      { en: 'Al Naseem', ar: 'النسيم' },
+      { en: 'Al Nuzha', ar: 'النزهة' },
+      { en: 'Al Rusayfah', ar: 'الرصيفة' },
+      { en: 'Al Shisha', ar: 'الشيشة' },
+      { en: 'Al Shoqiyah', ar: 'الشوقية' },
+      { en: 'Al Taneem', ar: 'التنعيم' },
+      { en: 'Al Utaibiyyah', ar: 'العتيبية' },
+      { en: 'Al Zaidi', ar: 'الزايدي' },
+      { en: 'Jarwal', ar: 'جرول' },
+      { en: 'Kudai', ar: 'كدي' },
+    ],
+  },
+};
 
 function getMonthGrid(year, month) {
   const firstDay = new Date(year, month, 1).getDay();
@@ -86,9 +149,13 @@ export default function BookingPage() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState('');
-  const [address, setAddress] = useState('');
   const [notes, setNotes] = useState('');
   const [gpsLoading, setGpsLoading] = useState(false);
+  const [addressMode, setAddressMode] = useState('manual');
+  const [selectedCity, setSelectedCity] = useState('');
+  const [selectedArea, setSelectedArea] = useState('');
+  const [subLocation, setSubLocation] = useState('');
+  const [gpsAddress, setGpsAddress] = useState('');
   const [errors, setErrors] = useState({});
 
   const today = useMemo(() => {
@@ -104,7 +171,6 @@ export default function BookingPage() {
         const ph = user.phone.replace(/^\+\d{2,3}/, '');
         setPhoneNumber(ph);
       }
-      if (user.address && !address) setAddress(user.address);
     }
   }, [user]);
 
@@ -150,14 +216,10 @@ export default function BookingPage() {
   };
 
   const [coordinates, setCoordinates] = useState(null);
-  const [locQuery, setLocQuery] = useState('');
-  const [locResults, setLocResults] = useState([]);
-  const [locSearching, setLocSearching] = useState(false);
-  const locTimer = useRef(null);
 
   const handleGPS = useCallback(() => {
     if (!navigator.geolocation) {
-      alert('GPS not supported on this browser. Please enter address manually.');
+      alert(language === 'ar' ? 'GPS غير مدعوم في هذا المتصفح' : 'GPS not supported on this browser.');
       return;
     }
     setGpsLoading(true);
@@ -171,42 +233,29 @@ export default function BookingPage() {
             { headers: { 'User-Agent': 'AhmedCoolingWorkshop/1.0' } }
           );
           const data = await resp.json();
-          setAddress(data.display_name || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+          setGpsAddress(data.display_name || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
         } catch {
-          setAddress(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+          setGpsAddress(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
         }
+        setAddressMode('gps');
         setGpsLoading(false);
       },
-      (err) => {
+      () => {
         setGpsLoading(false);
-        alert('Could not get location. Please allow location access or enter address manually.');
+        alert(language === 'ar' ? 'تعذر تحديد الموقع' : 'Could not get location.');
       },
       { enableHighAccuracy: true, timeout: 15000 }
     );
   }, [language]);
 
-  const searchLocation = (text) => {
-    setLocQuery(text);
-    if (text.length < 2) { setLocResults([]); return; }
-    clearTimeout(locTimer.current);
-    locTimer.current = setTimeout(async () => {
-      setLocSearching(true);
-      try {
-        const lang = language === 'ar' ? 'ar' : 'en';
-        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(text)}&format=json&addressdetails=1&limit=8&dedupe=1&accept-language=${lang}`;
-        const res = await fetch(url, { headers: { 'User-Agent': 'AhmedCoolingWorkshop/1.0' } });
-        const data = await res.json();
-        setLocResults(data?.length ? data.map(r => ({ id: r.place_id, title: r.display_name, lat: parseFloat(r.lat), lng: parseFloat(r.lon) })) : []);
-      } catch { setLocResults([]); }
-      finally { setLocSearching(false); }
-    }, 300);
-  };
-
-  const selectLocation = (item) => {
-    setAddress(item.title);
-    setCoordinates({ latitude: item.lat, longitude: item.lng });
-    setLocQuery('');
-    setLocResults([]);
+  const getFullAddress = () => {
+    if (addressMode === 'gps' && gpsAddress) return gpsAddress;
+    if (!selectedCity || !selectedArea || !subLocation.trim()) return '';
+    const city = LOCATION_DATA[selectedCity];
+    const area = city?.areas.find(a => a.en === selectedArea);
+    const cityName = language === 'ar' ? city?.ar : city?.en;
+    const areaName = language === 'ar' ? area?.ar : area?.en;
+    return `${subLocation.trim()}, ${areaName}, ${cityName}`;
   };
 
   const servicePrice = service?.basePrice || service?.price || 0;
@@ -218,7 +267,13 @@ export default function BookingPage() {
     if (!phoneNumber.trim()) e.phone = t.enterPhoneMsg || 'Phone is required';
     if (!selectedDate) e.date = t.selectDateMsg || 'Select a date';
     if (!selectedTime) e.time = t.selectTimeMsg || 'Select a time';
-    if (!address.trim()) e.address = t.setLocationMsg || 'Address is required';
+    if (addressMode === 'manual') {
+      if (!selectedCity) e.city = language === 'ar' ? 'اختر المدينة' : 'City is required';
+      if (selectedCity && !selectedArea) e.area = language === 'ar' ? 'اختر المنطقة' : 'Area is required';
+      if (selectedArea && !subLocation.trim()) e.subLocation = language === 'ar' ? 'أدخل العنوان التفصيلي' : 'Street/House details required';
+    } else {
+      if (!gpsAddress) e.gps = language === 'ar' ? 'حدد موقعك الحالي' : 'Please detect your location';
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -245,7 +300,7 @@ export default function BookingPage() {
         email: user?.email || '',
         date: selectedDate.toISOString().split('T')[0],
         time: selectedTime,
-        address: address.trim(),
+        address: getFullAddress(),
         coordinates: coordinates || { latitude: 0, longitude: 0 },
         comments: notes.trim(),
         language: language || 'en',
@@ -440,55 +495,116 @@ export default function BookingPage() {
         {/* Location Section */}
         <SectionTitle icon={<MapPin className="h-5 w-5" />} title={t.serviceLocation || 'Service Location'} />
         <div className="mb-6 rounded-2xl border border-border bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-          {/* Search */}
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <MapPin className="pointer-events-none absolute top-3.5 left-3 h-4 w-4 text-sub dark:text-slate-500" />
-              <input
-                type="text" value={locQuery} onChange={(e) => searchLocation(e.target.value)}
-                placeholder={t.searchLocation || 'Search area, street, city...'}
-                className="w-full rounded-xl border border-border py-3 pr-4 pl-10 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-              />
-              {locSearching && <Loader2 className="absolute top-3.5 right-3 h-4 w-4 animate-spin text-primary" />}
-            </div>
-            <button onClick={handleGPS} disabled={gpsLoading}
-              className="rounded-xl border border-border bg-blue-50 px-3 transition hover:bg-blue-100 dark:border-slate-600 dark:bg-slate-700 dark:hover:bg-slate-600"
-              title="Get current location"
+          {/* Mode Tabs */}
+          <div className="mb-4 flex gap-2">
+            <button onClick={() => setAddressMode('manual')}
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-xs font-bold transition ${addressMode === 'manual' ? 'border-primary bg-primary text-white dark:border-blue-500 dark:bg-blue-600' : 'border-border bg-white text-text hover:border-primary/40 dark:border-slate-600 dark:bg-slate-800 dark:text-white'}`}
             >
-              {gpsLoading
-                ? <Loader2 className="h-5 w-5 animate-spin text-primary dark:text-blue-400" />
-                : <Navigation className="h-5 w-5 text-primary dark:text-blue-400" />
-              }
+              <MapPin className="h-3.5 w-3.5" />
+              {language === 'ar' ? 'العنوان يدوياً' : 'Enter Manually'}
+            </button>
+            <button onClick={() => setAddressMode('gps')}
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-xs font-bold transition ${addressMode === 'gps' ? 'border-primary bg-primary text-white dark:border-blue-500 dark:bg-blue-600' : 'border-border bg-white text-text hover:border-primary/40 dark:border-slate-600 dark:bg-slate-800 dark:text-white'}`}
+            >
+              <Navigation className="h-3.5 w-3.5" />
+              {language === 'ar' ? 'الموقع الحالي' : 'Current Location'}
             </button>
           </div>
 
-          {/* Search Results */}
-          {locResults.length > 0 && (
-            <div className="mt-2 max-h-48 overflow-y-auto rounded-xl border border-border bg-white shadow-lg dark:border-slate-600 dark:bg-slate-800">
-              {locResults.map((item, i) => (
-                <button key={item.id || i} onClick={() => selectLocation(item)}
-                  className="flex w-full items-start gap-2 border-b border-border px-3 py-2.5 text-left transition hover:bg-blue-50 last:border-0 dark:border-slate-700 dark:hover:bg-slate-700"
+          {/* Manual Address Fields */}
+          {addressMode === 'manual' && (
+            <div className="space-y-3">
+              <div>
+                <label className="mb-1.5 block text-xs font-bold text-sub dark:text-slate-400">
+                  {language === 'ar' ? 'المدينة' : 'City'} <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={selectedCity}
+                  onChange={(e) => { setSelectedCity(e.target.value); setSelectedArea(''); setSubLocation(''); }}
+                  className={`w-full rounded-xl border bg-white py-3 px-4 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${errors.city ? 'border-red-400' : selectedCity ? 'border-primary dark:border-blue-500' : 'border-border dark:border-slate-600'}`}
                 >
-                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                  <span className="text-xs font-medium text-text dark:text-white">{item.title}</span>
-                </button>
-              ))}
+                  <option value="">{language === 'ar' ? 'اختر المدينة' : 'Select City'}</option>
+                  {Object.entries(LOCATION_DATA).map(([key, city]) => (
+                    <option key={key} value={key}>{language === 'ar' ? city.ar : city.en}</option>
+                  ))}
+                </select>
+                {errors.city && <p className="mt-1 text-xs font-semibold text-red-500">{errors.city}</p>}
+              </div>
+
+              {selectedCity && (
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-sub dark:text-slate-400">
+                    {language === 'ar' ? 'الموقع الرئيسي' : 'Main Location'} <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={selectedArea}
+                    onChange={(e) => { setSelectedArea(e.target.value); setSubLocation(''); }}
+                    className={`w-full rounded-xl border bg-white py-3 px-4 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${errors.area ? 'border-red-400' : selectedArea ? 'border-primary dark:border-blue-500' : 'border-border dark:border-slate-600'}`}
+                  >
+                    <option value="">{language === 'ar' ? 'اختر المنطقة' : 'Select Area'}</option>
+                    {LOCATION_DATA[selectedCity]?.areas.map((area, i) => (
+                      <option key={i} value={area.en}>{language === 'ar' ? area.ar : area.en}</option>
+                    ))}
+                  </select>
+                  {errors.area && <p className="mt-1 text-xs font-semibold text-red-500">{errors.area}</p>}
+                </div>
+              )}
+
+              {selectedArea && (
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-sub dark:text-slate-400">
+                    {language === 'ar' ? 'العنوان التفصيلي' : 'Street / Block / House No'} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text" value={subLocation} onChange={(e) => setSubLocation(e.target.value)}
+                    placeholder={language === 'ar' ? 'مثال: شارع ٥، بلوك B، منزل ١٢' : 'e.g., Street 5, Block B, House 12'}
+                    className={`w-full rounded-xl border py-3 px-4 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${errors.subLocation ? 'border-red-400' : subLocation ? 'border-primary dark:border-blue-500' : 'border-border dark:border-slate-600'}`}
+                  />
+                  {errors.subLocation && <p className="mt-1 text-xs font-semibold text-red-500">{errors.subLocation}</p>}
+                </div>
+              )}
+
+              {selectedCity && selectedArea && subLocation.trim() && (
+                <div className="flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 p-3 dark:border-slate-600 dark:bg-slate-700">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary dark:text-blue-400" />
+                  <div className="flex-1">
+                    <p className="text-[10px] font-bold uppercase text-sub dark:text-slate-400">{language === 'ar' ? 'العنوان الكامل' : 'Full Address'}</p>
+                    <p className="text-xs font-semibold text-text dark:text-white">{getFullAddress()}</p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
-          {/* Selected Address */}
-          {address && (
-            <div className="mt-2 flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 p-3 dark:border-slate-600 dark:bg-slate-700">
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary dark:text-blue-400" />
-              <div className="flex-1">
-                <p className="text-[10px] font-bold uppercase text-sub dark:text-slate-400">{t.selectedAddress || 'Selected Address'}</p>
-                <p className="text-xs font-semibold text-text dark:text-white">{address}</p>
-              </div>
-              <button onClick={() => { setAddress(''); setCoordinates(null); }} className="text-xs font-bold text-primary dark:text-blue-400">{t.clearAddress || 'Clear'}</button>
+          {/* GPS Mode */}
+          {addressMode === 'gps' && (
+            <div>
+              <button onClick={handleGPS} disabled={gpsLoading}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-blue-50 py-3.5 text-sm font-bold text-primary transition hover:bg-blue-100 dark:border-blue-500/30 dark:bg-blue-950/30 dark:text-blue-400"
+              >
+                {gpsLoading
+                  ? <Loader2 className="h-5 w-5 animate-spin" />
+                  : <Navigation className="h-5 w-5" />
+                }
+                {gpsLoading
+                  ? (language === 'ar' ? 'جاري تحديد الموقع...' : 'Detecting location...')
+                  : (language === 'ar' ? 'تحديد موقعي الحالي' : 'Detect My Location')
+                }
+              </button>
+              {gpsAddress && (
+                <div className="mt-3 flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 p-3 dark:border-slate-600 dark:bg-slate-700">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary dark:text-blue-400" />
+                  <div className="flex-1">
+                    <p className="text-[10px] font-bold uppercase text-sub dark:text-slate-400">{language === 'ar' ? 'الموقع المحدد' : 'Detected Location'}</p>
+                    <p className="text-xs font-semibold text-text dark:text-white">{gpsAddress}</p>
+                  </div>
+                  <button onClick={() => { setGpsAddress(''); setCoordinates(null); }} className="text-xs font-bold text-primary dark:text-blue-400">{t.clearAddress || 'Clear'}</button>
+                </div>
+              )}
+              {!gpsAddress && <p className="mt-2 text-center text-[11px] font-semibold text-sub dark:text-slate-500">{language === 'ar' ? 'اضغط الزر لتحديد موقعك تلقائياً' : 'Tap to detect your current location'}</p>}
+              {errors.gps && <p className="mt-1.5 text-xs font-semibold text-red-500">{errors.gps}</p>}
             </div>
           )}
-          {!address && <p className="mt-2 text-[11px] font-semibold text-sub dark:text-slate-500">{t.gpsHint || 'Search above or tap location icon for GPS'}</p>}
-          {errors.address && <p className="mt-1.5 text-xs font-semibold text-red-500">{errors.address}</p>}
         </div>
 
         {/* Notes Section */}
