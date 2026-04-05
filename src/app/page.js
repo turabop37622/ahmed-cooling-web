@@ -117,7 +117,7 @@ export default function Home() {
   return (
     <div className="bg-bg dark:bg-slate-950">
       {/* ═══ HERO ═══ */}
-      <section className="relative min-h-[70vh] overflow-hidden bg-gradient-to-br from-[#1D4ED8] via-[#2563EB] to-[#3B82F6] flex items-center">
+      <section className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#1D4ED8] via-[#2563EB] to-[#3B82F6] flex items-center">
         {/* Background Video */}
         <video
           autoPlay muted loop playsInline
