@@ -44,8 +44,7 @@ export const TranslationProvider = ({ children }) => {
       const arNum = formatted.replace(/[0-9]/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
       return `${arNum} ﷼`;
     }
-    const pkr = Math.round(sar * 75);
-    return `Rs. ${pkr.toLocaleString()}`;
+    return `SAR ${sar.toLocaleString()}`;
   };
 
   return (
