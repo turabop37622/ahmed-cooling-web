@@ -3,38 +3,38 @@
 import { useTranslation } from '../contexts/TranslationContext';
 
 const SERVICE_IMAGES = {
-  'AC Repair':              'https://images.unsplash.com/photo-1647022528152-52ed9338611d?w=400&h=220&fit=crop&q=80',
-  'AC Installation':        'https://images.unsplash.com/photo-1759772238012-9d5ad59ae637?w=400&h=220&fit=crop&q=80',
-  'AC Deep Cleaning':       'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=400&h=220&fit=crop&q=80',
-  'AC Gas Refill':          'https://images.unsplash.com/photo-1642749776312-aa42ce20c9f5?w=400&h=220&fit=crop&q=80',
-  'AC Compressor Repair':   'https://images.unsplash.com/photo-1698479603408-1a66a6d9e80f?w=400&h=220&fit=crop&q=80',
-  'AC PCB Repair':          'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=220&fit=crop&q=80',
-  'AC Shifting':            'https://images.unsplash.com/photo-1705579604902-eb832f58bf85?w=400&h=220&fit=crop&q=80',
-  'Central AC Service':     'https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&h=220&fit=crop&q=80',
-  'Refrigerator Repair':    'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=400&h=220&fit=crop&q=80',
-  'Freezer Repair':         'https://images.unsplash.com/photo-1584568694244-14fbdf83bd30?w=400&h=220&fit=crop&q=80',
-  'Fridge Gas Refill':      'https://images.unsplash.com/photo-1536353284924-9220c464e262?w=400&h=220&fit=crop&q=80',
-  'Fridge Thermostat Fix':  'https://images.unsplash.com/photo-1562711411-f4d0e97f2d09?w=400&h=220&fit=crop&q=80',
-  'Washing Machine Repair': 'https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?w=400&h=220&fit=crop&q=80',
-  'Stove & Oven Repair':    'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=220&fit=crop&q=80',
-  'Microwave Repair':       'https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?w=400&h=220&fit=crop&q=80',
-  'Water Dispenser Repair': 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=400&h=220&fit=crop&q=80',
-  'Electrical Wiring Fix':  'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400&h=220&fit=crop&q=80',
-  'UPS & Inverter Repair':  'https://images.unsplash.com/photo-1509395176047-4a66953fd231?w=400&h=220&fit=crop&q=80',
-  'General Maintenance':    'https://images.unsplash.com/photo-1581783898377-1c85bf937427?w=400&h=220&fit=crop&q=80',
-  'Annual Maintenance Plan': 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=220&fit=crop&q=80',
-  '24/7 Emergency Repair':  'https://images.unsplash.com/photo-1596495717678-69df9f89c2a3?w=400&h=220&fit=crop&q=80',
+  'AC Repair':              'https://images.pexels.com/photos/7545787/pexels-photo-7545787.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+  'AC Installation':        'https://images.pexels.com/photos/8297856/pexels-photo-8297856.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+  'AC Deep Cleaning':       'https://images.pexels.com/photos/5463573/pexels-photo-5463573.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+  'AC Gas Refill':          'https://images.pexels.com/photos/5463579/pexels-photo-5463579.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+  'AC Compressor Repair':   'https://images.pexels.com/photos/5463576/pexels-photo-5463576.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+  'AC PCB Repair':          'https://images.pexels.com/photos/7286002/pexels-photo-7286002.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+  'AC Shifting':            'https://images.pexels.com/photos/5463571/pexels-photo-5463571.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+  'Central AC Service':     'https://images.pexels.com/photos/8297856/pexels-photo-8297856.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+  'Refrigerator Repair':    'https://images.pexels.com/photos/2343467/pexels-photo-2343467.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+  'Freezer Repair':         'https://images.pexels.com/photos/5824517/pexels-photo-5824517.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+  'Fridge Gas Refill':      'https://images.pexels.com/photos/6283972/pexels-photo-6283972.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+  'Fridge Thermostat Fix':  'https://images.pexels.com/photos/2343467/pexels-photo-2343467.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+  'Washing Machine Repair': 'https://images.pexels.com/photos/5901622/pexels-photo-5901622.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+  'Stove & Oven Repair':    'https://images.pexels.com/photos/8055149/pexels-photo-8055149.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+  'Microwave Repair':       'https://images.pexels.com/photos/6835157/pexels-photo-6835157.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+  'Water Dispenser Repair': 'https://images.pexels.com/photos/6527057/pexels-photo-6527057.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+  'Electrical Wiring Fix':  'https://images.pexels.com/photos/7286002/pexels-photo-7286002.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+  'UPS & Inverter Repair':  'https://images.pexels.com/photos/7568415/pexels-photo-7568415.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+  'General Maintenance':    'https://images.pexels.com/photos/8005397/pexels-photo-8005397.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+  'Annual Maintenance Plan': 'https://images.pexels.com/photos/5463573/pexels-photo-5463573.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+  '24/7 Emergency Repair':  'https://images.pexels.com/photos/5463576/pexels-photo-5463576.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
 };
 
 const CATEGORY_IMAGES = {
-  ac:               'https://images.unsplash.com/photo-1647022528152-52ed9338611d?w=400&h=220&fit=crop&q=80',
-  refrigerator:     'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=400&h=220&fit=crop&q=80',
-  'washing-machine':'https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?w=400&h=220&fit=crop&q=80',
-  stove:            'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=220&fit=crop&q=80',
-  general:          'https://images.unsplash.com/photo-1581783898377-1c85bf937427?w=400&h=220&fit=crop&q=80',
+  ac:               'https://images.pexels.com/photos/7545787/pexels-photo-7545787.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+  refrigerator:     'https://images.pexels.com/photos/2343467/pexels-photo-2343467.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+  'washing-machine':'https://images.pexels.com/photos/5901622/pexels-photo-5901622.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+  stove:            'https://images.pexels.com/photos/8055149/pexels-photo-8055149.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
+  general:          'https://images.pexels.com/photos/8005397/pexels-photo-8005397.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop',
 };
 
-const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1581783898377-1c85bf937427?w=400&h=220&fit=crop&q=80';
+const DEFAULT_IMAGE = 'https://images.pexels.com/photos/8005397/pexels-photo-8005397.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&fit=crop';
 
 export default function ServiceCard({ service, onBook }) {
   const { t, language, toAr, formatPrice } = useTranslation();
