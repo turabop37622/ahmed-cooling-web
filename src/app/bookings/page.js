@@ -187,7 +187,7 @@ export default function BookingsPage() {
 
   return (
     <div className="min-h-screen bg-bg pb-10 dark:bg-slate-950" dir={isRTL ? 'rtl' : 'ltr'}>
-      <div className="mx-auto w-full px-4 pt-6 sm:px-8 lg:px-16 xl:px-24">
+      <div className="mx-auto max-w-5xl px-4 pt-6 sm:px-6 lg:px-8">
 
         {/* Header */}
         <div className="mb-6 flex items-end gap-3">

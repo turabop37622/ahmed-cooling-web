@@ -90,7 +90,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-bg pb-10 dark:bg-slate-950" dir={isRTL ? 'rtl' : 'ltr'}>
-      <div className="mx-auto w-full px-4 pt-6 sm:px-8 lg:px-16 xl:px-24">
+      <div className="mx-auto max-w-3xl px-4 pt-6 sm:px-6 lg:px-8">
 
         {/* Profile Card */}
         <div className="mb-6 overflow-hidden rounded-2xl border border-border bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
