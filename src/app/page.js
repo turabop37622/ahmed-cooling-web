@@ -127,7 +127,7 @@ export default function Home() {
         </video>
 
         {/* Dark overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#1D4ED8]/90 via-[#1D4ED8]/75 to-[#2563EB]/50" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#1D4ED8]/60 via-[#1D4ED8]/40 to-[#2563EB]/20" />
 
         <div className="relative mx-auto w-full px-4 py-20 sm:px-8 sm:py-28 lg:px-16 lg:py-32 xl:px-24">
           <div className="max-w-2xl">
