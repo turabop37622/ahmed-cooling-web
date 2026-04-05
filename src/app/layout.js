@@ -27,7 +27,8 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${geistSans.variable} h-full`} suppressHydrationWarning>
+    <html lang="ar" className={`${geistSans.variable} h-full`} translate="no" suppressHydrationWarning>
+      <head><meta name="google" content="notranslate" /></head>
       <body className="min-h-full flex flex-col bg-[#F0F4FF] text-[#0F172A] dark:bg-[#0F172A] dark:text-[#F1F5F9] antialiased">
         <ThemeProvider>
           <TranslationProvider>
