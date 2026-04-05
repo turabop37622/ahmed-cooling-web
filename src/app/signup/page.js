@@ -68,8 +68,14 @@ export default function SignupPage() {
       await signupEmail({ fullName: name.trim(), name: name.trim(), email: email.trim(), password, phone: fullPhone });
       setStep('otp');
     } catch (err) {
-      const msg = err?.response?.data?.message || err?.response?.data?.error;
-      setError(msg || t.authMsgRegistrationFailed);
+      const msg = err?.response?.data?.message || err?.response?.data?.error || '';
+      if (msg.includes('already exists')) {
+        setError(language === 'ar' ? 'هذا البريد الإلكتروني مسجل بالفعل. يرجى تسجيل الدخول.' : 'This email is already registered. Please log in instead.');
+      } else if (msg.includes('phone') && msg.includes('registered')) {
+        setError(language === 'ar' ? 'رقم الهاتف مسجل بالفعل.' : 'This phone number is already registered.');
+      } else {
+        setError(msg || t.authMsgRegistrationFailed);
+      }
     } finally {
       setLoading(false);
     }
