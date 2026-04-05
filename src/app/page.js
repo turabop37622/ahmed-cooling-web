@@ -49,7 +49,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     loadData();
-  }, []);
+  }, [language]);
 
   const loadData = async () => {
     try {

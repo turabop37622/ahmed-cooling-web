@@ -75,7 +75,7 @@ export default function ServiceCard({ service, onBook }) {
           </span>
         )}
         {(service.isEmergency || service.emergency) && (
-          <span className="absolute top-2 end-2 z-10 rounded-lg bg-red-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm">
+          <span className="absolute top-2 start-2 z-10 rounded-lg bg-red-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm">
             🚨 24/7
           </span>
         )}
