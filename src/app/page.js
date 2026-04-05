@@ -122,9 +122,8 @@ export default function Home() {
         <video
           autoPlay muted loop playsInline
           className="absolute inset-0 h-full w-full object-cover"
-          poster="https://images.pexels.com/photos/7545787/pexels-photo-7545787.jpeg?auto=compress&cs=tinysrgb&w=1280"
         >
-          <source src="https://cdn.pixabay.com/video/2022/05/25/118091-713900122_large.mp4" type="video/mp4" />
+          <source src="/hero.mp4" type="video/mp4" />
         </video>
 
         {/* Dark overlay */}
