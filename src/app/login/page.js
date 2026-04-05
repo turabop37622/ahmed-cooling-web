@@ -9,7 +9,6 @@ import { useTranslation } from '../../contexts/TranslationContext';
 import { loginEmail, loginPhone } from '../../lib/api';
 
 const COUNTRY_CODES = [
-  { code: '+92', label: '🇵🇰 +92', phonePlaceholder: '3XXXXXXXXX', regex: /^3\d{9}$/ },
   { code: '+966', label: '🇸🇦 +966', phonePlaceholder: '5XXXXXXXX', regex: /^5\d{8}$/ },
 ];
 
@@ -25,7 +24,7 @@ export default function LoginPage() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [phonePassword, setPhonePassword] = useState('');
   const [showPhonePassword, setShowPhonePassword] = useState(false);
-  const [countryIdx, setCountryIdx] = useState(language === 'ar' ? 1 : 0);
+  const [countryIdx, setCountryIdx] = useState(0);
   const [ccOpen, setCcOpen] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);

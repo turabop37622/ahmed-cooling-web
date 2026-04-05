@@ -9,7 +9,6 @@ import { useTranslation } from '../../contexts/TranslationContext';
 import { signupEmail, verifyOTP, resendOTP } from '../../lib/api';
 
 const COUNTRY_CODES = [
-  { code: '+92', label: '🇵🇰 +92', phonePlaceholder: '3XXXXXXXXX', regex: /^3\d{9}$/ },
   { code: '+966', label: '🇸🇦 +966', phonePlaceholder: '5XXXXXXXX', regex: /^5\d{8}$/ },
 ];
 
@@ -26,7 +25,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [countryIdx, setCountryIdx] = useState(language === 'ar' ? 1 : 0);
+  const [countryIdx, setCountryIdx] = useState(0);
   const [ccOpen, setCcOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);

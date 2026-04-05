@@ -27,7 +27,6 @@ const TIME_SLOTS = [
 ];
 
 const COUNTRY_CODES = [
-  { code: '+92', label: '🇵🇰 +92', country: 'PK' },
   { code: '+966', label: '🇸🇦 +966', country: 'SA' },
 ];
 
@@ -146,7 +145,7 @@ export default function BookingPage() {
   const [bookingSuccess, setBookingSuccess] = useState(null);
 
   const [fullName, setFullName] = useState('');
-  const [countryCode, setCountryCode] = useState(language === 'ar' ? '+966' : '+92');
+  const [countryCode, setCountryCode] = useState('+966');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState('');
