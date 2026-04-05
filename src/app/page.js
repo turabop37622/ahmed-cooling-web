@@ -130,7 +130,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-r from-[#1D4ED8]/60 via-[#1D4ED8]/40 to-[#2563EB]/20" />
 
         <div className="relative mx-auto w-full px-4 py-20 sm:px-8 sm:py-28 lg:px-16 lg:py-32 xl:px-24" dir="ltr">
-          <div className="max-w-2xl" style={{ direction: language === 'ar' ? 'rtl' : 'ltr' }}>
+          <div className="max-w-2xl lg:max-w-xl" style={{ direction: language === 'ar' ? 'rtl' : 'ltr' }}>
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 backdrop-blur-sm">
               <span className="text-xs font-extrabold text-white">{t.heroAvailable}</span>
             </div>
