@@ -491,7 +491,7 @@ export default function BookingPage() {
                 <ChevronLeft className="h-4 w-4 text-text dark:text-white" />
               </button>
               <span className="text-sm font-black text-text dark:text-white">
-                {monthNames[calMonth]} {calYear}
+                {monthNames[calMonth]} {language === 'ar' ? toAr(calYear) : calYear}
               </span>
               <button onClick={nextMonth} className="rounded-lg p-1.5 transition hover:bg-slate-200 dark:hover:bg-slate-700">
                 <ChevronRight className="h-4 w-4 text-text dark:text-white" />
@@ -519,7 +519,7 @@ export default function BookingPage() {
                         ${isToday && !selected ? 'border border-primary text-primary dark:text-blue-400' : ''}
                         ${!past && !selected && !isToday ? 'text-text hover:bg-blue-50 dark:text-white dark:hover:bg-slate-700' : ''}
                       `}
-                    >{day}</button>
+                    >{language === 'ar' ? toAr(day) : day}</button>
                   );
                 })}
               </div>
@@ -541,7 +541,7 @@ export default function BookingPage() {
                     ${!busy && !active ? 'border-border bg-white text-text hover:border-primary/40 dark:border-slate-600 dark:bg-slate-800 dark:text-white' : ''}
                   `}
                 >
-                  {time}
+                  {language === 'ar' ? toAr(time) : time}
                   {busy && <span className="mt-0.5 block text-[9px] font-semibold">{language === 'ar' ? 'مشغول' : 'Busy'}</span>}
                 </button>
               );

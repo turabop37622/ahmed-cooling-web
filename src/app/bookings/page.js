@@ -196,7 +196,7 @@ export default function BookingsPage() {
           <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-black tracking-tight text-text dark:text-white">{t.myBookings || 'My Bookings'}</h1>
             <p className="mt-0.5 text-xs font-semibold text-sub dark:text-slate-400">
-              {bookings.length} {bookings.length === 1 ? (t.bookingCount || 'booking') : (t.bookingCountPlural || 'bookings')}
+              {language === 'ar' ? toAr(bookings.length) : bookings.length} {bookings.length === 1 ? (t.bookingCount || 'booking') : (t.bookingCountPlural || 'bookings')}
             </p>
           </div>
         </div>
@@ -215,7 +215,7 @@ export default function BookingsPage() {
                 }`}
               >
                 {filterLabels[f]}
-                <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-black ${active ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-700'}`}>{count}</span>
+                <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-black ${active ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-700'}`}>{language === 'ar' ? toAr(count) : count}</span>
               </button>
             );
           })}
@@ -249,7 +249,7 @@ export default function BookingsPage() {
                             {booking.serviceName || booking.service?.name || (t.acService || 'Service')}
                           </p>
                           <p className="text-[11px] font-semibold text-sub dark:text-slate-500">
-                            {t.orderLabel || 'Order:'} #{(id || '').slice(-6).toUpperCase()}
+                            {t.orderLabel || 'Order:'} #{language === 'ar' ? toAr((id || '').slice(-6).toUpperCase()) : (id || '').slice(-6).toUpperCase()}
                           </p>
                         </div>
                       </div>
@@ -348,7 +348,7 @@ export default function BookingsPage() {
                     </div>
                     <div>
                       <p className="text-sm font-bold text-text dark:text-white">{b.serviceName || b.service?.name || 'Service'}</p>
-                      <p className="text-xs text-sub dark:text-slate-500">#{(bid || '').slice(-6).toUpperCase()}</p>
+                      <p className="text-xs text-sub dark:text-slate-500">#{language === 'ar' ? toAr((bid || '').slice(-6).toUpperCase()) : (bid || '').slice(-6).toUpperCase()}</p>
                     </div>
                   </div>
 
