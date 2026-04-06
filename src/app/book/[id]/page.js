@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from '@/contexts/TranslationContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { getServices, createBooking } from '@/lib/api';
+import { getServices, createBooking, updateProfile } from '@/lib/api';
 
 const VISIT_FEE = 200;
 
@@ -131,7 +131,7 @@ export default function BookingPage() {
   const params = useParams();
   const router = useRouter();
   const { t, language, isRTL, toAr, formatPrice } = useTranslation();
-  const { user, token, loading: authLoading } = useAuth();
+  const { user, token, loading: authLoading, updateUser } = useAuth();
 
   useEffect(() => {
     if (!authLoading && !token) {
@@ -170,6 +170,32 @@ export default function BookingPage() {
       }
     }
   }, [user]);
+
+  useEffect(() => {
+    if (!user?.address) return;
+    if (selectedCity || selectedArea || subLocation) return;
+
+    const raw = String(user.address).trim();
+    if (!raw) return;
+
+    const parts = raw.split(',').map((p) => p.trim()).filter(Boolean);
+    if (parts.length < 3) return;
+
+    const cityEn = parts[parts.length - 1];
+    const areaEn = parts[parts.length - 2];
+    const sub = parts.slice(0, -2).join(', ');
+
+    const cityKey = Object.entries(LOCATION_DATA).find(([, c]) => c?.en === cityEn)?.[0];
+    if (!cityKey) return;
+
+    const city = LOCATION_DATA[cityKey];
+    const areaExists = city?.areas?.some((a) => a?.en === areaEn);
+    if (!areaExists) return;
+
+    setSelectedCity(cityKey);
+    setSelectedArea(areaEn);
+    setSubLocation(sub);
+  }, [user?.address, selectedCity, selectedArea, subLocation]);
 
   useEffect(() => {
     loadService();
@@ -221,6 +247,14 @@ export default function BookingPage() {
     return `${subLocation.trim()}, ${areaName}, ${cityName}`;
   };
 
+  const getCanonicalAddress = () => {
+    if (!selectedCity || !selectedArea || !subLocation.trim()) return '';
+    const city = LOCATION_DATA[selectedCity];
+    const area = city?.areas.find((a) => a.en === selectedArea);
+    if (!city?.en || !area?.en) return '';
+    return `${subLocation.trim()}, ${area.en}, ${city.en}`;
+  };
+
   const servicePrice = service?.basePrice || service?.price || 0;
   const totalAmount = servicePrice + VISIT_FEE;
 
@@ -268,6 +302,22 @@ export default function BookingPage() {
       };
       const res = await createBooking(bookingData);
       if (res?.success) {
+        try {
+          const canonicalAddress = getCanonicalAddress();
+          const fullPhone = `${countryCode}${phoneNumber.trim()}`;
+          const profileRes = await updateProfile({
+            phone: fullPhone,
+            address: canonicalAddress,
+          });
+          const updated = profileRes?.user || profileRes?.data;
+          if (updated) {
+            updateUser({ ...user, ...updated, phone: updated.phone || fullPhone, address: updated.address || canonicalAddress });
+          } else {
+            updateUser({ ...user, phone: fullPhone, address: canonicalAddress });
+          }
+        } catch {
+          // If profile update fails, booking still succeeded; keep silent.
+        }
         setBookingSuccess({
           orderId: res?.data?.bookingId || res?.data?.booking?.orderNumber || res?.data?.booking?.bookingId || '',
           serviceName: svcName,
