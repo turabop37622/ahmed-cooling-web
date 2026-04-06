@@ -6,7 +6,10 @@ import { useTranslation } from '@/contexts/TranslationContext';
 
 export default function PrivacyPage() {
   const { t, isRTL } = useTranslation();
-  const email = t.aboutContactEmailValue || 'info@ahmedcooling.com';
+  const email = String(t.aboutContactEmailValue || 'ahmedcoolingworkshop@gmail.com')
+    .trim()
+    .replace(/\s+/g, '');
+  const mailtoHref = `mailto:${email}`;
 
   const sections = [
     {
@@ -152,14 +155,14 @@ export default function PrivacyPage() {
 
         <div className="mt-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
           <a
-            href={`mailto:${email}`}
+            href={mailtoHref}
             className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-primary/25 transition-colors hover:bg-primary-dark dark:bg-blue-600 dark:hover:bg-blue-700 sm:w-auto"
           >
             <Mail className="h-5 w-5" aria-hidden />
             {t.privacyContactBtn}
           </a>
           <Link
-            href="/about"
+            href="/about#contact"
             className="inline-flex w-full items-center justify-center rounded-xl border border-border bg-white px-6 py-3.5 text-sm font-bold text-text transition-colors hover:border-primary dark:border-slate-600 dark:bg-slate-900 dark:text-white dark:hover:border-blue-500 sm:w-auto"
           >
             {t.contactInformation}
