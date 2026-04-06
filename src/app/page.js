@@ -180,28 +180,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══ OUR SERVICES ═══ */}
-      <section className="mx-auto w-full px-4 pt-10 pb-4 sm:px-8 lg:px-16 xl:px-24">
-        <div className="mb-6 flex items-center gap-3">
-          <div className="h-6 w-1 rounded-full bg-primary" />
-          <h2 className="flex-1 text-xl font-black tracking-tight text-text dark:text-white">
-            {t.ourServices}
-          </h2>
-          <Link
-            href="/services"
-            className="text-sm font-bold text-primary transition-colors hover:text-primary-dark"
-          >
-            {t.seeAll}
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {services.slice(0, 8).map((svc) => (
-            <ServiceCard key={svc._id || svc.name} service={svc} onBook={handleBook} />
-          ))}
-        </div>
-      </section>
-
       {/* ═══ HOW IT WORKS ═══ */}
       <section className="mx-auto w-full px-4 py-12 sm:px-8 lg:px-16 xl:px-24">
         <h2 className="mb-8 text-xl font-black tracking-tight text-text dark:text-white">
@@ -223,6 +201,28 @@ export default function Home() {
                 </p>
               </div>
             </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ═══ OUR SERVICES ═══ */}
+      <section className="mx-auto w-full px-4 pt-10 pb-4 sm:px-8 lg:px-16 xl:px-24">
+        <div className="mb-6 flex items-center gap-3">
+          <div className="h-6 w-1 rounded-full bg-primary" />
+          <h2 className="flex-1 text-xl font-black tracking-tight text-text dark:text-white">
+            {t.ourServices}
+          </h2>
+          <Link
+            href="/services"
+            className="text-sm font-bold text-primary transition-colors hover:text-primary-dark"
+          >
+            {t.seeAll}
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {services.slice(0, 8).map((svc) => (
+            <ServiceCard key={svc._id || svc.name} service={svc} onBook={handleBook} />
           ))}
         </div>
       </section>
