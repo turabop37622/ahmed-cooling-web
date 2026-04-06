@@ -182,21 +182,27 @@ export default function Home() {
 
       {/* ═══ HOW IT WORKS ═══ */}
       <section className="mx-auto w-full px-4 py-12 sm:px-8 lg:px-16 xl:px-24">
-        <h2 className="mb-8 text-xl font-black tracking-tight text-text dark:text-white">
-          {t.howItWorks}
-        </h2>
+        <div className="mb-6 flex items-center gap-3">
+            <div className="h-7 w-1 rounded-full bg-primary dark:bg-blue-500" />
+            <h2 className="text-xl font-black tracking-tight text-text dark:text-white sm:text-2xl">
+              {t.howItWorks}
+            </h2>
+          </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2">
           {howSteps.map((item, i) => (
-            <div key={i} className="flex items-start gap-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-sm font-black text-white">
+            <div
+              key={i}
+              className="group flex items-start gap-4 rounded-2xl border border-border bg-white p-5 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-900"
+            >
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary text-sm font-black text-white shadow-sm transition-transform group-hover:scale-105 dark:bg-blue-600">
                 {item.step}
               </div>
               <div>
-                <h3 className="text-sm font-extrabold text-text dark:text-white">
+                <h3 className="text-base font-black text-text dark:text-white">
                   {item.title}
                 </h3>
-                <p className="mt-1 text-xs font-medium leading-relaxed text-sub dark:text-slate-400">
+                <p className="mt-1 text-sm font-semibold leading-relaxed text-sub dark:text-slate-300">
                   {item.desc}
                 </p>
               </div>
