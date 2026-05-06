@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Phone, Mail, MapPin, Globe, Camera, X } from 'lucide-react';
+import { Phone, Mail, MapPin, Facebook, Camera, X } from 'lucide-react';
 import { useTranslation } from '../contexts/TranslationContext';
 
 export default function Footer() {
@@ -61,13 +61,13 @@ export default function Footer() {
             <h3 className="text-lg font-semibold mb-4">{t.followUs}</h3>
             <div className="flex items-center gap-3">
               <a
-                href="https://facebook.com"
+                href="https://www.facebook.com/profile.php?id=61589456784736"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2.5 rounded-lg bg-slate-800 text-slate-400 hover:bg-primary hover:text-white transition-colors"
                 aria-label={t.facebook}
               >
-                <Globe className="h-5 w-5" />
+                <Facebook className="h-5 w-5" />
               </a>
               <a
                 href="https://instagram.com"
