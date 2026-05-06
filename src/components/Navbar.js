@@ -29,7 +29,7 @@ export default function Navbar() {
     { href: '/', label: t.home },
     { href: '/services', label: t.services },
     { href: '/about', label: t.aboutUs },
-    { href: '/about#contact', label: language === 'ar' ? 'اتصل بنا' : 'Contact' },
+    { href: '/contact', label: language === 'ar' ? 'اتصل بنا' : 'Contact' },
   ];
 
   const toggleLanguage = () => {

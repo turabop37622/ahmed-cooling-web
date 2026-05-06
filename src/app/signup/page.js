@@ -43,6 +43,12 @@ export default function SignupPage() {
     if (!name.trim()) return t.valFullNameRequired;
     if (!email.trim()) return t.valEmailRequired;
     if (!/\S+@\S+\.\S+/.test(email)) return t.valInvalidEmail;
+
+    const DISPOSABLE_DOMAINS = ['tempmail.com', 'mailinator.com', 'yopmail.com', 'guerrillamail.com'];
+    if (DISPOSABLE_DOMAINS.includes(email.split('@')[1]?.toLowerCase())) {
+      return language === 'ar' ? 'البريد الإلكتروني المؤقت غير مسموح به' : 'Temporary emails are not allowed';
+    }
+
     if (!password) return t.valPasswordRequired;
     if (password.length < 6) return t.valPasswordMin6;
     if (!confirmPassword) return t.valConfirmPasswordRequired;
@@ -142,7 +148,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-blue-50 via-sky-50 to-indigo-100 px-4 py-12 sm:px-8 lg:px-16 xl:px-24 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+    <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-blue-50 via-sky-50 to-indigo-100 px-4 pt-12 pb-24 sm:px-8 lg:px-16 xl:px-24 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       <div className="w-full max-w-md">
         {/* Brand */}
         <div className="text-center mb-8">

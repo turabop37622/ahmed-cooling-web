@@ -16,7 +16,7 @@ export const SERVICE_IMAGES = {
   'Microwave Repair': require('../../assets/microwave_repair.png').default || require('../../assets/microwave_repair.png'),
   'Water Dispenser Repair': require('../../assets/water_dispenser_repair.png').default || require('../../assets/water_dispenser_repair.png'),
   'Electrical Wiring Fix': require('../../assets/electrical_wiring_fix.png').default || require('../../assets/electrical_wiring_fix.png'),
-  'UPS & Inverter Repair': require('../../assets/ups_inverter_repair.png').default || require('../../assets/ups_inverter_repair.png'),
+  'UPS & Inverter Repair': require('../../assets/ups_inverter_repair.jpg').default || require('../../assets/ups_inverter_repair.jpg'),
 };
 
 export const getServiceImage = (serviceName) => {

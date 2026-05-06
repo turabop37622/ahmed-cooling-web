@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Snowflake, Phone, Star, ChevronRight, Shield, Zap, DollarSign, BadgeCheck, MapPin, AlertTriangle } from 'lucide-react';
 import { useTranslation } from '../contexts/TranslationContext';
+import { useAuth } from '../contexts/AuthContext';
 import { getServices, getPublicReviews } from '../lib/api';
 import ServiceCard from '../components/ServiceCard';
 
@@ -44,6 +45,7 @@ const REVIEWS_AR = [
 export default function Home() {
   const router = useRouter();
   const { t, language } = useTranslation();
+  const { user } = useAuth();
   const [services, setServices] = useState(SERVICES_FALLBACK);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -87,6 +89,15 @@ export default function Home() {
   const PHONE = '+966590192146';
   const handleEmergency = () => {
     window.location.href = `tel:${PHONE}`;
+  };
+
+  const handleRateClick = (e) => {
+    e.preventDefault();
+    if (!user) {
+      router.push('/login');
+    } else {
+      router.push('/rate');
+    }
   };
 
   const howSteps = [
@@ -365,10 +376,10 @@ export default function Home() {
             </div>
             <h2 className="text-2xl font-black text-white sm:text-3xl">{t.howWasExperience || 'How was your experience?'}</h2>
             <p className="mx-auto mt-2 max-w-md text-sm font-medium text-white/80">{t.shareYourFeedback || 'Share your feedback and help us improve our service'}</p>
-            <Link href="/rate" className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-white px-8 py-3.5 text-sm font-black text-orange-600 shadow-lg transition-transform hover:scale-105">
+            <button onClick={handleRateClick} className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-white px-8 py-3.5 text-sm font-black text-orange-600 shadow-lg transition-transform hover:scale-105">
               <Star className="h-5 w-5" />
               {t.rateUs || 'Rate Us'}
-            </Link>
+            </button>
           </div>
         </div>
       </section>

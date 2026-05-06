@@ -127,7 +127,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-blue-50 via-sky-50 to-indigo-100 px-4 py-12 sm:px-8 lg:px-16 xl:px-24 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+    <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-blue-50 via-sky-50 to-indigo-100 px-4 pt-12 pb-24 sm:px-8 lg:px-16 xl:px-24 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       <div className="w-full max-w-md">
         {/* Brand */}
         <div className="text-center mb-8">
@@ -146,25 +146,25 @@ export default function LoginPage() {
           <div className="flex bg-slate-100 dark:bg-slate-700 rounded-xl p-1 mb-6">
             <button
               onClick={() => { setTab('email'); setError(''); }}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                 tab === 'email'
                   ? 'bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-sm'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
             >
-              <Mail className="w-4 h-4" />
-              {t.authContinueWithEmail}
+              <Mail className="w-4 h-4 shrink-0" />
+              {t.email}
             </button>
             <button
               onClick={() => { setShowComingSoon(true); setTimeout(() => setShowComingSoon(false), 2500); }}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                 tab === 'phone'
                   ? 'bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-sm'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
             >
-              <Phone className="w-4 h-4" />
-              {t.authContinueWithPhone}
+              <Phone className="w-4 h-4 shrink-0" />
+              {t.phone}
             </button>
           </div>
 
@@ -221,7 +221,7 @@ export default function LoginPage() {
               </div>
 
               <div className="text-right">
-                <button type="button" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">{t.forgotPassword}</button>
+                <Link href="/forgot-password" size="sm" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">{t.forgotPassword}</Link>
               </div>
 
               <button
