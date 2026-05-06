@@ -44,7 +44,10 @@ export default function SignupPage() {
     if (!email.trim()) return t.valEmailRequired;
     if (!/\S+@\S+\.\S+/.test(email)) return t.valInvalidEmail;
 
-    const DISPOSABLE_DOMAINS = ['tempmail.com', 'mailinator.com', 'yopmail.com', 'guerrillamail.com'];
+    const DISPOSABLE_DOMAINS = [
+      'tempmail.com', 'mailinator.com', 'yopmail.com', 'guerrillamail.com', 
+      'gixpos.com', 'vintomland.com', 'tempm.com', 'mail.tm'
+    ];
     if (DISPOSABLE_DOMAINS.includes(email.split('@')[1]?.toLowerCase())) {
       return language === 'ar' ? 'البريد الإلكتروني المؤقت غير مسموح به' : 'Temporary emails are not allowed';
     }
