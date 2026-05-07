@@ -46,7 +46,7 @@ export default function SignupPage() {
 
     const DISPOSABLE_DOMAINS = [
       'tempmail.com', 'mailinator.com', 'yopmail.com', 'guerrillamail.com', 
-      'gixpos.com', 'vintomland.com', 'tempm.com', 'mail.tm'
+      'gixpos.com', 'vintomland.com', 'tempm.com', 'mail.tm', 'vertexinbox.com'
     ];
     if (DISPOSABLE_DOMAINS.includes(email.split('@')[1]?.toLowerCase())) {
       return language === 'ar' ? 'البريد الإلكتروني المؤقت غير مسموح به' : 'Temporary emails are not allowed';
