@@ -73,6 +73,22 @@ export const getServices = async () => {
   return res.data;
 };
 
+export const getServiceById = async (id) => {
+  try {
+    const res = await api.get(`/services/${id}`);
+    return res.data;
+  } catch (error) {
+    // Fallback: search within getServices
+    const listRes = await getServices();
+    const list = listRes?.services ?? listRes?.data ?? listRes;
+    if (Array.isArray(list)) {
+      const found = list.find((s) => (s._id || s.id) === id);
+      if (found) return { success: true, service: found };
+    }
+    throw error;
+  }
+};
+
 // Bookings
 export const createBooking = async (data) => {
   const res = await api.post('/bookings/public', data);

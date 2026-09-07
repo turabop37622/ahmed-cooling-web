@@ -82,7 +82,7 @@ export default function ServicesPage() {
 
   return (
     <div className="min-h-[60vh] bg-bg pb-12 dark:bg-slate-950">
-      <div className="mx-auto w-full px-4 pt-8 pb-6 sm:px-8 lg:px-16 xl:px-24">
+      <div className="mx-auto max-w-[1560px] px-4 pt-8 pb-6 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-6">
           <div className="mb-3 flex flex-wrap items-end gap-3">
@@ -134,9 +134,9 @@ export default function ServicesPage() {
           </div>
         )}
 
-        {/* Grid */}
+        {/* Grid: 3 cards per row */}
         {!loading && filteredServices.length > 0 && (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filteredServices.map((svc) => (
               <ServiceCard
                 key={svc._id || svc.id || svc.name}

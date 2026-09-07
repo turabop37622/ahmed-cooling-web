@@ -1,9 +1,13 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { useTranslation } from '../contexts/TranslationContext';
 
 export default function WhatsAppButton() {
+  const pathname = usePathname();
   const { isRTL } = useTranslation();
+
+  if (pathname?.startsWith('/admin')) return null;
 
   const handleClick = () => {
     const msg = isRTL

@@ -119,14 +119,14 @@ export const translations = {
     howStep1Title: 'Choose Service', howStep1Desc: 'Pick the service you need from our list',
     howStep2Title: 'Book a Slot', howStep2Desc: 'Select date, time & provide your address',
     howStep3Title: 'Expert Arrives', howStep3Desc: 'Certified technician comes to your door',
-    howStep4Title: 'Problem Solved', howStep4Desc: 'We fix it with 30-day warranty guarantee',
+    howStep4Title: 'Problem Solved', howStep4Desc: 'We fix it with official certified warranty guarantee',
 
     // Home - Why Us
     whyChooseUs: 'Why Choose Us',
     whyCertifiedTitle: 'Certified Experts', whyCertifiedDesc: 'Licensed & trained professionals',
     whySameDayTitle: 'Same Day Service', whySameDayDesc: 'Fast response within hours',
     whyPricingTitle: 'Transparent Pricing', whyPricingDesc: 'No hidden or surprise charges',
-    whyWarrantyTitle: '30-Day Warranty', whyWarrantyDesc: 'Guaranteed quality workmanship',
+    whyWarrantyTitle: 'Certified Warranty', whyWarrantyDesc: 'Guaranteed quality workmanship',
 
     // Home - Reviews
     customerReviews: 'Customer Reviews', ratingPill: '⭐ 4.9 / 5',
@@ -447,6 +447,37 @@ export const translations = {
 
     // Cities
     cityJeddah: 'Jeddah', cityMakkah: 'Makkah',
+
+    // Service Detail Page
+    viewDetails: 'View Details',
+    serviceDetails: 'Service Details',
+    whatsIncluded: "What's Included in This Service",
+    commonIssues: 'Common Problems We Solve',
+    serviceProcess: 'Our Repair Process',
+    step1Title: '1. Easy Booking',
+    step1Desc: 'Pick your preferred date & time slot in just a minute.',
+    step2Title: '2. Professional Diagnosis',
+    step2Desc: 'Certified technician arrives on-site with advanced diagnostic tools.',
+    step3Title: '3. Precision Repair',
+    step3Desc: 'We use genuine parts and follow strict manufacturer protocols.',
+    step4Title: '4. Testing & Warranty',
+    step4Desc: 'Post-repair system test with an official certified service warranty.',
+    bookViaWhatsApp: 'Book via WhatsApp',
+    callTechnician: 'Call Hotline Now',
+    startingFrom: 'Starting from',
+    warrantyBadge: 'Official Certified Warranty',
+    payAfterService: 'Pay after service is completed & inspected',
+    certifiedTechnicians: 'Certified & Background-Checked Technicians',
+    sameDayAvailable: 'Same Day & 24/7 Emergency Service',
+    relatedServices: 'Related Services You May Need',
+    backToServices: 'Back to Services',
+    serviceNotFound: 'Service Not Found',
+    serviceNotFoundDesc: 'The service you are looking for does not exist or has been moved.',
+    keyFeatures: 'Key Highlights',
+    diagnosticIncluded: 'Full Diagnostic & Troubleshooting',
+    genuineParts: '100% Genuine Spare Parts Guarantee',
+    postServiceClean: 'Workspace Cleanup Included',
+    transparentEstimate: 'Transparent Upfront Pricing',
   },
 
   ar: {
@@ -562,13 +593,13 @@ export const translations = {
     howStep1Title: 'اختر الخدمة', howStep1Desc: 'اختر الخدمة التي تحتاجها من قائمتنا',
     howStep2Title: 'احجز موعد', howStep2Desc: 'حدد التاريخ والوقت وقدم عنوانك',
     howStep3Title: 'وصول الخبير', howStep3Desc: 'فني معتمد يأتي إلى بابك',
-    howStep4Title: 'تم الحل', howStep4Desc: 'نصلحه مع ضمان 30 يوماً',
+    howStep4Title: 'تم الحل', howStep4Desc: 'نصلحه مع ضمان رسمي معتمد',
 
     whyChooseUs: 'لماذا نحن',
     whyCertifiedTitle: 'خبراء معتمدون', whyCertifiedDesc: 'محترفون مرخصون ومدربون',
     whySameDayTitle: 'خدمة نفس اليوم', whySameDayDesc: 'استجابة سريعة خلال ساعات',
     whyPricingTitle: 'أسعار شفافة', whyPricingDesc: 'بدون رسوم خفية أو مفاجآت',
-    whyWarrantyTitle: 'ضمان 30 يوم', whyWarrantyDesc: 'جودة عمل مضمونة',
+    whyWarrantyTitle: 'ضمان رسمي معتمد', whyWarrantyDesc: 'جودة عمل مضمونة',
 
     customerReviews: 'آراء العملاء', ratingPill: '⭐ 4.9 / 5',
 
@@ -871,5 +902,36 @@ export const translations = {
     call: 'اتصال',
 
     cityJeddah: 'جدة', cityMakkah: 'مكة المكرمة',
+
+    // Service Detail Page
+    viewDetails: 'عرض التفاصيل',
+    serviceDetails: 'تفاصيل الخدمة',
+    whatsIncluded: 'ما تشمله هذه الخدمة',
+    commonIssues: 'مشاكل شائعة نقوم بحلها',
+    serviceProcess: 'خطوات تقديم الخدمة',
+    step1Title: '١. حجز سهل وسريع',
+    step1Desc: 'حدد التاريخ والوقت المناسب لك في دقيقة واحدة.',
+    step2Title: '٢. تشخيص وفحص دقيق',
+    step2Desc: 'يصلك فني معتمد ومجهز بأحدث أجهزة الفحص المتطورة.',
+    step3Title: '٣. صيانة بقطع أصلية',
+    step3Desc: 'إصلاح دقيق باستخدام قطع غيار أصلية ومضمونة.',
+    step4Title: '٤. اختبار وضمان معتمد',
+    step4Desc: 'اختبار كفاءة الجهاز بعد الصيانة مع ضمان رسمي معتمد.',
+    bookViaWhatsApp: 'احجز عبر واتساب',
+    callTechnician: 'اتصل بالخط الساخن الآن',
+    startingFrom: 'يبدأ من',
+    warrantyBadge: 'ضمان رسمي ومعتمد',
+    payAfterService: 'الدفع بعد إتمام الخدمة والفحص الكامل',
+    certifiedTechnicians: 'فنيون مؤهلون ومعتمدون',
+    sameDayAvailable: 'خدمة سريعة في نفس اليوم وعلى مدار الساعة',
+    relatedServices: 'خدمات أخرى قد تحتاجها',
+    backToServices: 'العودة إلى الخدمات',
+    serviceNotFound: 'الخدمة غير متوفرة',
+    serviceNotFoundDesc: 'الخدمة التي تبحث عنها غير متوفرة حالياً أو تم نقلها.',
+    keyFeatures: 'أبرز مميزات الخدمة',
+    diagnosticIncluded: 'فحص وتشخيص شامل للأعطال',
+    genuineParts: 'قطع غيار أصلية ١٠٠٪ مع الضمان',
+    postServiceClean: 'تنظيف مكان العمل بعد الانتهاء',
+    transparentEstimate: 'أسعار واضحة ومحددة مسبقاً',
   },
 };

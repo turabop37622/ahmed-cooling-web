@@ -38,7 +38,7 @@ export default function AboutPage() {
       <section className="relative overflow-hidden border-b border-border bg-gradient-to-b from-primary-light/80 to-bg dark:from-slate-900 dark:to-slate-950 dark:border-slate-800">
         <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-primary/10 blur-3xl dark:bg-blue-500/15" />
         <div className="pointer-events-none absolute -bottom-32 -left-24 h-72 w-72 rounded-full bg-blue-400/10 blur-3xl dark:bg-blue-600/10" />
-        <div className="mx-auto w-full px-4 py-14 sm:px-8 sm:py-20 lg:px-16 xl:px-24">
+        <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
           <div className="flex flex-col items-center text-center">
             <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-white shadow-lg shadow-primary/15 ring-1 ring-primary/10 dark:bg-slate-800 dark:ring-blue-500/30">
               <Snowflake className="h-10 w-10 text-primary dark:text-blue-400" aria-hidden />
@@ -69,7 +69,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <div className="mx-auto w-full space-y-16 px-4 pt-14 sm:px-8 lg:px-16 xl:px-24">
+      <div className="mx-auto max-w-[1560px] space-y-16 px-4 pt-14 sm:px-6 lg:px-8">
         {/* Who We Are */}
         <section>
           <div className="mb-4 flex items-center gap-3">

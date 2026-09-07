@@ -1,13 +1,13 @@
 'use client';
 
+import { useTranslation } from '@/contexts/TranslationContext';
 import {
-  Phone,
+  Clock,
   Mail,
   MapPin,
-  Clock,
+  Phone,
   X,
 } from 'lucide-react';
-import { useTranslation } from '@/contexts/TranslationContext';
 
 export default function ContactPage() {
   const { t, isRTL, language } = useTranslation();
@@ -17,7 +17,7 @@ export default function ContactPage() {
       className="min-h-[60vh] bg-bg pb-16 pt-10 dark:bg-slate-950"
       dir={isRTL ? 'rtl' : 'ltr'}
     >
-      <div className="mx-auto w-full space-y-16 px-4 pt-14 sm:px-8 lg:px-16 xl:px-24">
+      <div className="mx-auto max-w-[1560px] space-y-16 px-4 pt-14 sm:px-6 lg:px-8">
         {/* Contact */}
         <section id="contact">
           <div className="mb-6 flex items-center gap-3">

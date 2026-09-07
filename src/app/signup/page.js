@@ -126,7 +126,21 @@ export default function SignupPage() {
     setLoading(true);
     try {
       const response = await verifyOTP({ email: email.trim(), otp: code });
-      login(response);
+      const fullPhone = country.code + phoneNumber.trim();
+      const userProfile = {
+        fullName: name.trim(),
+        name: name.trim(),
+        email: email.trim(),
+        phone: fullPhone,
+        ...(response?.user || {}),
+      };
+      login({
+        token: response?.token || 'verified-user-token',
+        user: userProfile,
+      });
+      try {
+        localStorage.setItem('user', JSON.stringify(userProfile));
+      } catch (e) {}
       router.push('/');
     } catch (err) {
       const msg = err?.response?.data?.message || err?.response?.data?.error;

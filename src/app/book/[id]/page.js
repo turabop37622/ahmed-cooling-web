@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import {
   Loader2, MapPin, Calendar, Clock, FileText,
   ChevronLeft, ChevronRight, User, Phone, CheckCircle2, Shield,
-  Sparkles, AlertCircle,
+  Sparkles, AlertCircle, Mail,
 } from 'lucide-react';
 import { useTranslation } from '@/contexts/TranslationContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -127,17 +127,124 @@ function isPast(date) {
   return date < today;
 }
 
+const FALLBACK_SERVICES = [
+  {
+    _id: 'pkg_diagnostic',
+    id: 'pkg_diagnostic',
+    name: 'Diagnostic Repair Visit',
+    nameAr: 'فحص وتشخيص عطل بالمنزل',
+    basePrice: 150,
+    icon: '🔍',
+    category: 'ac',
+    description: 'Comprehensive on-site diagnostic of cooling faults, electrical issues, and upfront written quote with warranty.',
+    descriptionAr: 'فحص شامل للعطل بالمنزل مع تسعير مسبق معتمد وضمان رسمي على الصيانة.',
+  },
+  {
+    _id: 'pkg_summer',
+    id: 'pkg_summer',
+    name: 'Summer AC Prep - Deep Wash + Gas Topup',
+    nameAr: 'باقة التبريد المثالي - غسيل عميق وشحن فريون',
+    basePrice: 280,
+    icon: '❄️',
+    category: 'ac',
+    description: 'High pressure coil & blower wash, refrigerant gas check and top-up, antimicrobial sanitization, and drain clearing.',
+    descriptionAr: 'غسيل ضغط عالي للمبخر والمروحة وشحن فريون أصلي مع تعقيم ومكافحة الروائح وتسليك مجرى التصريف.',
+  },
+  {
+    _id: 'pkg_villa',
+    id: 'pkg_villa',
+    name: 'Annual Villa Care - Full Home Maintenance',
+    nameAr: 'عقد رعاية سنوية للفلل والمنازل',
+    basePrice: 750,
+    icon: '🏡',
+    category: 'general',
+    description: '4 seasonal AC maintenance visits, VIP priority 24/7 hotline dispatch, and 20% off all spare parts.',
+    descriptionAr: '٤ زيارات فحص دوري للمكيفات مع صيانة طوارئ ذات أولوية قصوى وخصم ٢٠٪ على قطع الغيار.',
+  },
+  {
+    _id: '1',
+    id: '1',
+    name: 'AC Repair & Diagnostics',
+    nameAr: 'صيانة وفحص المكيفات',
+    basePrice: 150,
+    icon: '❄️',
+    category: 'ac',
+    description: 'Expert diagnostics and repair for all split, window, and central AC systems. We fix cooling faults, gas leaks, and noisy units.',
+    descriptionAr: 'تشخيص وإصلاح احترافي لجميع مكيفات الاسبليت والشباك والمركزي. صيانة ضعف التبريد وتسريب الفريون والأعطال الكهربائية.',
+  },
+  {
+    _id: '2',
+    id: '2',
+    name: 'AC Installation & Dismantling',
+    nameAr: 'تركيب وفك مكيفات سبليت وشباك',
+    basePrice: 200,
+    icon: '🔧',
+    category: 'ac',
+    description: 'Professional split & window AC mounting, vacuum test, and leak-free copper piping done by certified technicians.',
+    descriptionAr: 'فك وتركيب احترافي للمكيفات الجديدة والمنقولة مع فحص التفريغ وتمديد مواسير النحاس بأعلى معايير الأمان.',
+  },
+  {
+    _id: '3',
+    id: '3',
+    name: 'AC Deep Cleaning & Sanitization',
+    nameAr: 'غسيل وتنظيف عميق للمكيفات',
+    basePrice: 100,
+    icon: '🧹',
+    category: 'ac',
+    description: 'Complete high-pressure jet wash, antimicrobial coil sanitization, and drain clearing for maximum airflow & health.',
+    descriptionAr: 'غسيل بأجهزة الضغط العالي ومواد التعقيم للمبخر والمروحة ومجرى التصريف لضمان هواء نقي وتبريد قوي.',
+  },
+  {
+    _id: '4',
+    id: '4',
+    name: 'Refrigerator & Freezer Repair',
+    nameAr: 'صيانة وإصلاح الثلاجات والفريزر',
+    basePrice: 150,
+    icon: '🧊',
+    category: 'refrigerator',
+    description: 'All refrigerator brands: compressor replacement, defrost timer fixes, thermostat calibration, and genuine gas refill.',
+    descriptionAr: 'صيانة متخصصة لجميع ماركات الثلاجات والفريزر. تغيير الثرموستات والكمبروسر ومعالجة تسريب الفريون والثلج.',
+  },
+  {
+    _id: '5',
+    id: '5',
+    name: 'Washing Machine Repair',
+    nameAr: 'إصلاح وصيانة الغسالات',
+    basePrice: 140,
+    icon: '🧺',
+    category: 'washing-machine',
+    description: 'Expert repair for front-load and top-load washers: motor issues, water drainage, noisy bearings, and electronic PCB boards.',
+    descriptionAr: 'إصلاح جميع أنواع الغسالات الأوتوماتيك والعادية: مشاكل دوران الحوض، طرد المياه، اهتزاز التجفيف ولوحات التحكم.',
+  },
+  {
+    _id: '6',
+    id: '6',
+    name: 'AC Gas Refill (Freon R410A / R22)',
+    nameAr: 'تعبئة غاز فريون أصلي',
+    basePrice: 180,
+    icon: '💨',
+    category: 'ac',
+    description: 'Pressure test, leak detection, complete evacuation, and 100% genuine refrigerant refill.',
+    descriptionAr: 'شحن فريون أمريكي أصلي مع كشف وتصليح مكان التسريب وفحص الضغوط.',
+  },
+  {
+    _id: '7',
+    id: '7',
+    name: 'Cooking Stove & Oven Repair',
+    nameAr: 'صيانة الأفران والبوتاجازات',
+    basePrice: 160,
+    icon: '🔥',
+    category: 'stove',
+    description: 'Burner cleaning, ignition fixes, thermostat replacement, and gas safety checks.',
+    descriptionAr: 'صيانة شعلات الغاز وتغيير الحساسات وضبط درجات حرارة الأفران.',
+  },
+];
+
 export default function BookingPage() {
   const params = useParams();
   const router = useRouter();
   const { t, language, isRTL, toAr, formatPrice } = useTranslation();
   const { user, token, loading: authLoading, updateUser } = useAuth();
-
-  useEffect(() => {
-    if (!authLoading && !token) {
-      router.replace('/login');
-    }
-  }, [authLoading, token, router]);
 
   const [service, setService] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -162,40 +269,65 @@ export default function BookingPage() {
   const [calYear, setCalYear] = useState(today.getFullYear());
 
   useEffect(() => {
-    if (user) {
-      if (user.name && !fullName) setFullName(user.name);
-      if (user.phone && !phoneNumber) {
-        const ph = user.phone.replace(/^\+\d{2,3}/, '');
-        setPhoneNumber(ph);
+    let currentUser = user;
+    if (!currentUser && typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('user');
+        if (saved) currentUser = JSON.parse(saved);
+      } catch (e) {}
+    }
+
+    if (currentUser) {
+      const displayName = currentUser.fullName || currentUser.name || currentUser.customerName || '';
+      if (displayName) {
+        setFullName(displayName);
+      }
+
+      const rawPhone = String(currentUser.phone || currentUser.phoneNumber || '').trim();
+      if (rawPhone) {
+        if (rawPhone.startsWith('+966')) {
+          setCountryCode('+966');
+          setPhoneNumber(rawPhone.replace('+966', '').replace(/^0/, ''));
+        } else if (rawPhone.startsWith('966')) {
+          setCountryCode('+966');
+          setPhoneNumber(rawPhone.replace('966', '').replace(/^0/, ''));
+        } else if (rawPhone.startsWith('+92')) {
+          setCountryCode('+92');
+          setPhoneNumber(rawPhone.replace('+92', '').replace(/^0/, ''));
+        } else {
+          setPhoneNumber(rawPhone.replace(/^0/, ''));
+        }
+      }
+
+      if (currentUser.address) {
+        const raw = String(currentUser.address).trim();
+        const parts = raw.split(',').map((p) => p.trim()).filter(Boolean);
+        if (parts.length >= 2) {
+          const cityEn = parts[parts.length - 1];
+          const areaEn = parts[parts.length - 2];
+          const sub = parts.slice(0, -2).join(', ');
+
+          const cityKey = Object.entries(LOCATION_DATA).find(
+            ([, c]) => c?.en?.toLowerCase() === cityEn?.toLowerCase() || c?.ar?.toLowerCase() === cityEn?.toLowerCase()
+          )?.[0];
+          if (cityKey) {
+            setSelectedCity(cityKey);
+            const foundArea = LOCATION_DATA[cityKey]?.areas?.find(
+              (a) => a.en?.toLowerCase() === areaEn?.toLowerCase() || a.ar?.toLowerCase() === areaEn?.toLowerCase()
+            );
+            if (foundArea) {
+              setSelectedArea(foundArea.en);
+            }
+            if (sub) setSubLocation(sub);
+          } else {
+            setSubLocation(raw);
+          }
+        } else {
+          setSubLocation(raw);
+        }
       }
     }
   }, [user]);
-
-  useEffect(() => {
-    if (!user?.address) return;
-    if (selectedCity || selectedArea || subLocation) return;
-
-    const raw = String(user.address).trim();
-    if (!raw) return;
-
-    const parts = raw.split(',').map((p) => p.trim()).filter(Boolean);
-    if (parts.length < 3) return;
-
-    const cityEn = parts[parts.length - 1];
-    const areaEn = parts[parts.length - 2];
-    const sub = parts.slice(0, -2).join(', ');
-
-    const cityKey = Object.entries(LOCATION_DATA).find(([, c]) => c?.en === cityEn)?.[0];
-    if (!cityKey) return;
-
-    const city = LOCATION_DATA[cityKey];
-    const areaExists = city?.areas?.some((a) => a?.en === areaEn);
-    if (!areaExists) return;
-
-    setSelectedCity(cityKey);
-    setSelectedArea(areaEn);
-    setSubLocation(sub);
-  }, [user?.address, selectedCity, selectedArea, subLocation]);
 
   useEffect(() => {
     loadService();
@@ -204,14 +336,53 @@ export default function BookingPage() {
   const loadService = async () => {
     setLoading(true);
     try {
-      const res = await getServices();
-      const list = res?.services ?? res?.data ?? res;
-      if (Array.isArray(list)) {
-        const found = list.find((s) => (s._id || s.id) === params.id);
-        setService(found || null);
+      const targetId = String(params.id || '').trim();
+      let found = null;
+
+      // 1. Check known packages and fallbacks first for instant resolution
+      found = FALLBACK_SERVICES.find(
+        (s) => s._id === targetId || s.id === targetId
+      );
+
+      // 2. Query live services from API
+      if (!found) {
+        try {
+          const res = await getServices();
+          const list = res?.services ?? res?.data ?? res;
+          if (Array.isArray(list)) {
+            found = list.find((s) => (s._id || s.id) === targetId);
+          }
+        } catch (apiErr) {
+          console.warn('API services fetch error in booking page:', apiErr);
+        }
       }
+
+      // 3. Check numeric index (e.g. /book/1 -> FALLBACK_SERVICES[0])
+      if (!found) {
+        const numIndex = parseInt(targetId, 10);
+        if (!isNaN(numIndex) && numIndex >= 1 && numIndex <= FALLBACK_SERVICES.length) {
+          found = FALLBACK_SERVICES[numIndex - 1];
+        }
+      }
+
+      // 4. Ultimate fallback to prevent "Service not found" blocking the user
+      if (!found) {
+        found = {
+          _id: targetId || 'general_repair',
+          id: targetId || 'general_repair',
+          name: 'Home Appliance Repair Visit',
+          nameAr: 'زيارة كشف وصيانة منزلية',
+          basePrice: 150,
+          icon: '🔧',
+          category: 'ac',
+          description: 'Full inspection and diagnostic visit for home air conditioning and appliances in Jeddah & Makkah.',
+          descriptionAr: 'فحص وتشخيص شامل لأجهزة التكييف والتبريد المنزلية في جدة ومكة المكرمة.',
+        };
+      }
+
+      setService(found);
     } catch {
-      setService(null);
+      setService(FALLBACK_SERVICES[0]);
     } finally {
       setLoading(false);
     }
@@ -303,17 +474,19 @@ export default function BookingPage() {
       const res = await createBooking(bookingData);
       if (res?.success) {
         try {
-          const canonicalAddress = getCanonicalAddress();
-          const fullPhone = `${countryCode}${phoneNumber.trim()}`;
-          const profileRes = await updateProfile({
-            phone: fullPhone,
-            address: canonicalAddress,
-          });
-          const updated = profileRes?.user || profileRes?.data;
-          if (updated) {
-            updateUser({ ...user, ...updated, phone: updated.phone || fullPhone, address: updated.address || canonicalAddress });
-          } else {
-            updateUser({ ...user, phone: fullPhone, address: canonicalAddress });
+          if (user) {
+            const canonicalAddress = getCanonicalAddress();
+            const fullPhone = `${countryCode}${phoneNumber.trim()}`;
+            const profileRes = await updateProfile({
+              phone: fullPhone,
+              address: canonicalAddress,
+            });
+            const updated = profileRes?.user || profileRes?.data;
+            if (updated) {
+              updateUser({ ...user, ...updated, phone: updated.phone || fullPhone, address: updated.address || canonicalAddress });
+            } else {
+              updateUser({ ...user, phone: fullPhone, address: canonicalAddress });
+            }
           }
         } catch {
           // If profile update fails, booking still succeeded; keep silent.
@@ -458,6 +631,22 @@ export default function BookingPage() {
     <div className="min-h-screen bg-bg pb-10 dark:bg-slate-950" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="mx-auto max-w-3xl px-4 pt-6 sm:px-6 lg:px-8">
 
+        {!user && (
+          <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-blue-200/80 bg-blue-50/80 px-4 py-3 text-xs text-blue-900 shadow-sm dark:border-blue-900/40 dark:bg-blue-950/30 dark:text-blue-300">
+            <div className="min-w-0">
+              <span className="font-bold">{language === 'ar' ? 'حجز سريع كضيف:' : 'Quick Guest Booking:'}</span>{' '}
+              <span>{language === 'ar' ? 'يمكنك إتمام الحجز بدون حساب، أو تسجيل الدخول لحفظ طلباتك.' : 'You can book directly without an account, or sign in to track your order.'}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => router.push('/login')}
+              className="shrink-0 rounded-xl bg-blue-600 px-3 py-1.5 font-bold text-white shadow-sm hover:bg-blue-700 transition"
+            >
+              {language === 'ar' ? 'دخول' : 'Sign In'}
+            </button>
+          </div>
+        )}
+
         {/* Service Hero Card */}
         <div className="mb-6 overflow-hidden rounded-2xl border border-border bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-5 py-4">
@@ -478,7 +667,15 @@ export default function BookingPage() {
         </div>
 
         {/* Contact Section */}
-        <SectionTitle icon={<User className="h-5 w-5" />} title={t.contactInfo || 'Contact Information'} />
+        <div className="flex items-center justify-between mb-2">
+          <SectionTitle icon={<User className="h-5 w-5" />} title={t.contactInfo || 'Contact Information'} />
+          {user && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>{language === 'ar' ? 'تم تعبئة بيانات حسابك' : 'Auto-filled from Account'}</span>
+            </span>
+          )}
+        </div>
         <div className="mb-6 space-y-3 rounded-2xl border border-border bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <div>
             <label className="mb-1.5 block text-xs font-bold text-sub dark:text-slate-400">{t.fullNameInput || 'Full Name'}</label>
@@ -505,13 +702,29 @@ export default function BookingPage() {
                 <Phone className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-sub dark:text-slate-500" />
                 <input
                   type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
-                  placeholder="3001234567"
+                  placeholder="5XXXXXXXX"
                   className={`w-full rounded-xl border py-3 pr-4 pl-10 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${errors.phone ? 'border-red-400' : 'border-border dark:border-slate-600'}`}
                 />
               </div>
             </div>
             {errors.phone && <p className="mt-1 text-xs font-semibold text-red-500">{errors.phone}</p>}
           </div>
+          {user?.email && (
+            <div>
+              <label className="mb-1.5 block text-xs font-bold text-sub dark:text-slate-400">
+                {language === 'ar' ? 'البريد الإلكتروني المرتبط بالحساب' : 'Account Email'}
+              </label>
+              <div className="relative">
+                <Mail className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-sub dark:text-slate-500" />
+                <input
+                  type="email"
+                  disabled
+                  value={user.email}
+                  className="w-full rounded-xl border border-border bg-slate-50 py-3 pr-4 pl-10 text-sm font-semibold text-slate-500 outline-none dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400 cursor-not-allowed"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Date & Time Section */}

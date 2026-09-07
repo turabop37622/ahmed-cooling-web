@@ -2,12 +2,14 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Menu, X, Sun, Moon, User, LogOut, ChevronDown, Snowflake } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTranslation } from '../contexts/TranslationContext';
 
 export default function Navbar() {
+  const pathname = usePathname();
   const { user, token, logout } = useAuth();
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { t, language, setLanguage } = useTranslation();
@@ -36,9 +38,11 @@ export default function Navbar() {
     setLanguage(language === 'en' ? 'ar' : 'en');
   };
 
+  if (pathname?.startsWith('/admin')) return null;
+
   return (
     <nav className="sticky top-0 z-50 bg-white dark:bg-slate-900 shadow-sm">
-      <div className="w-full mx-auto px-4 sm:px-8 lg:px-16 xl:px-24">
+      <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0">
