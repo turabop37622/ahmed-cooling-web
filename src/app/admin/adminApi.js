@@ -373,16 +373,22 @@ export const adminApi = {
       } catch (err2) {
         // If demo credentials matched, allow local demo session
         if (
-          (email === 'admin@ahmedcooling.com' || email === 'admin@example.com') &&
-          (password === 'admin123456' || password === 'admin' || password === 'Ahmadlegend9038@')
+          (email.toLowerCase() === 'admin@ahmedcooling.com' || 
+           email.toLowerCase() === 'admin@example.com' || 
+           email.toLowerCase() === 'ahmadcoolingpoint9038@gmail.com') &&
+          (password === 'admin123456' || 
+           password === 'admin' || 
+           password === 'Ahmadlegend9038@' || 
+           password === 'Ahmadlegand5712' || 
+           password === 'Ahmadlegend5712')
         ) {
           return {
             success: true,
             token: 'demo-admin-jwt-token-ahmedcooling-2026',
             user: {
               id: 'usr_admin',
-              fullName: 'Admin',
-              email: 'admin@ahmedcooling.com',
+              fullName: 'Ahmed Admin',
+              email: email,
               role: 'admin',
               isVerified: true,
             },

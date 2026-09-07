@@ -21,17 +21,44 @@ import {
   Sparkles,
   Check,
   AlertCircle,
+  Snowflake,
+  WashingMachine,
+  Refrigerator,
+  Zap,
 } from 'lucide-react';
 
 const CATEGORIES = [
   { key: 'all', label: 'All Services', icon: Layers },
-  { key: 'ac', label: 'AC Cooling', icon: Sparkles },
-  { key: 'refrigerator', label: 'Refrigerators', icon: Sparkles },
-  { key: 'washing-machine', label: 'Washing Machines', icon: Sparkles },
-  { key: 'stove', label: 'Stoves & Ovens', icon: Sparkles },
+  { key: 'ac', label: 'AC Cooling', icon: Snowflake },
+  { key: 'refrigerator', label: 'Refrigerators', icon: Refrigerator },
+  { key: 'washing-machine', label: 'Washing Machines', icon: WashingMachine },
+  { key: 'stove', label: 'Stoves & Ovens', icon: Flame },
+  { key: 'electrical', label: 'Electrical', icon: Zap },
+  { key: 'general', label: 'General', icon: Wrench },
 ];
 
-const EMOJI_OPTIONS = ['❄️', '🧼', '🔧', '💨', '🧊', '🧺', '🔥', '⚡', '🛠️', '🧰'];
+const getServiceIconComponent = (service) => {
+  const cat = ((service.category || '') + ' ' + (service.name || '')).toLowerCase();
+  if (cat.includes('wash') || cat.includes('laundry')) {
+    return <WashingMachine className="w-6 h-6 text-blue-600 dark:text-blue-400 stroke-[1.8]" />;
+  }
+  if (cat.includes('ref') || cat.includes('fridge') || cat.includes('freezer')) {
+    return <Refrigerator className="w-6 h-6 text-cyan-600 dark:text-cyan-400 stroke-[1.8]" />;
+  }
+  if (cat.includes('stove') || cat.includes('oven')) {
+    return <Flame className="w-6 h-6 text-amber-600 dark:text-amber-400 stroke-[1.8]" />;
+  }
+  if (cat.includes('clean') || cat.includes('jet')) {
+    return <Sparkles className="w-6 h-6 text-emerald-600 dark:text-emerald-400 stroke-[1.8]" />;
+  }
+  if (cat.includes('electr') || cat.includes('wire') || cat.includes('power')) {
+    return <Zap className="w-6 h-6 text-amber-500 dark:text-amber-400 stroke-[1.8]" />;
+  }
+  if (cat.includes('ac') || cat.includes('cool') || cat.includes('freon') || cat.includes('air')) {
+    return <Snowflake className="w-6 h-6 text-sky-600 dark:text-sky-400 stroke-[1.8]" />;
+  }
+  return <Wrench className="w-6 h-6 text-indigo-600 dark:text-indigo-400 stroke-[1.8]" />;
+};
 
 export default function AdminServicesPage() {
   const [services, setServices] = useState([]);
@@ -365,8 +392,8 @@ export default function AdminServicesPage() {
                 {/* Top Row: Icon, Badges, Status */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-500/10 text-2xl flex items-center justify-center shrink-0 border border-blue-100 dark:border-blue-500/20 shadow-sm">
-                      {service.icon || '🔧'}
+                    <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center shrink-0 border border-blue-100 dark:border-blue-500/20 shadow-sm">
+                      {getServiceIconComponent(service)}
                     </div>
                     <div>
                       <div className="flex items-center gap-1.5 flex-wrap">
@@ -511,29 +538,15 @@ export default function AdminServicesPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Emoji Icon
+                    Icon Style (Outline)
                   </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={formData.icon}
-                      onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                      className="w-16 text-center text-lg px-2 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:outline-none"
-                    />
-                    <div className="flex items-center gap-1 overflow-x-auto">
-                      {EMOJI_OPTIONS.map((em) => (
-                        <button
-                          key={em}
-                          type="button"
-                          onClick={() => setFormData({ ...formData, icon: em })}
-                          className={`p-1.5 text-base rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 ${
-                            formData.icon === em ? 'bg-blue-100 dark:bg-blue-500/20' : ''
-                          }`}
-                        >
-                          {em}
-                        </button>
-                      ))}
+                  <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 h-[42px]">
+                    <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center shrink-0">
+                      {getServiceIconComponent(formData)}
                     </div>
+                    <span className="text-xs font-medium text-slate-600 dark:text-slate-400 capitalize">
+                      {formData.category || 'General'} Outline
+                    </span>
                   </div>
                 </div>
               </div>
