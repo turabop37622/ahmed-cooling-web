@@ -255,25 +255,34 @@ export default function AdminBookingsPage() {
           </p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden w-full">
+          <div className="w-full overflow-hidden">
+            <table className="w-full table-fixed text-left border-collapse">
+              <colgroup>
+                <col className="w-[26%]" />
+                <col className="w-[17%]" />
+                <col className="w-[15%]" />
+                <col className="w-[18%]" />
+                <col className="w-[11%]" />
+                <col className="w-[7%]" />
+                <col className="w-[6%]" />
+              </colgroup>
               <thead>
                 <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                  <th className="py-4 px-6">Order ID & Service</th>
-                  <th className="py-4 px-6">Customer</th>
-                  <th className="py-4 px-6">Date & Time</th>
-                  <th className="py-4 px-6">Location</th>
-                  <th className="py-4 px-6">Status</th>
-                  <th className="py-4 px-6 text-right">Total (SAR)</th>
-                  <th className="py-4 px-6 text-center">Actions</th>
+                  <th className="py-3.5 px-3 lg:px-3.5">Order ID & Service</th>
+                  <th className="py-3.5 px-3 lg:px-3.5">Customer</th>
+                  <th className="py-3.5 px-3 lg:px-3.5">Date & Time</th>
+                  <th className="py-3.5 px-3 lg:px-3.5">Location</th>
+                  <th className="py-3.5 px-3 lg:px-3.5">Status</th>
+                  <th className="py-3.5 px-2 sm:px-3 text-right">Total</th>
+                  <th className="py-3.5 px-1 sm:px-2 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 text-sm">
                 {filteredBookings.map((bkg) => {
                   const status = STATUS_CONFIG[normalizeStatus(bkg.status)] || STATUS_CONFIG.pending;
                   const customerName = bkg.customerName || bkg.user?.name || bkg.user?.fullName || 'Guest Customer';
-                  const serviceName = bkg.service?.name || bkg.serviceName || 'Appliance Maintenance';
+                  const serviceName = bkg.service?.name || bkg.serviceDetails?.name || bkg.serviceName || 'Appliance Maintenance';
 
                   return (
                     <tr
@@ -282,53 +291,55 @@ export default function AdminBookingsPage() {
                       className="hover:bg-blue-50/40 dark:hover:bg-slate-800/40 transition cursor-pointer group"
                     >
                       {/* Order & Service */}
-                      <td className="py-4 px-6">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-base shrink-0">
+                      <td className="py-3 px-3 lg:px-3.5 min-w-0">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-sm shrink-0">
                             {bkg.service?.icon || '❄️'}
                           </div>
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-slate-900 dark:text-white truncate">
-                                {serviceName}
-                              </span>
-                            </div>
-                            <span className="text-[11px] font-mono text-slate-400">
-                              #{bkg.orderNumber || bkg._id?.slice(-6).toUpperCase()}
+                          <div className="min-w-0 flex-1">
+                            <p className="font-bold text-slate-900 dark:text-white truncate text-xs sm:text-sm">
+                              {serviceName}
+                            </p>
+                            <span className="text-[10px] sm:text-[11px] font-mono text-slate-400 truncate block">
+                              #{bkg.orderNumber || bkg.bookingId || bkg._id?.slice(-6).toUpperCase()}
                             </span>
                           </div>
                         </div>
                       </td>
 
                       {/* Customer */}
-                      <td className="py-4 px-6">
-                        <p className="font-semibold text-slate-800 dark:text-slate-200">{customerName}</p>
-                        <p className="text-xs text-slate-400 font-mono">{bkg.phone || 'No phone'}</p>
+                      <td className="py-3 px-3 lg:px-3.5 min-w-0">
+                        <p className="font-semibold text-slate-800 dark:text-slate-200 truncate text-xs sm:text-sm">
+                          {customerName}
+                        </p>
+                        <p className="text-[11px] text-slate-400 font-mono truncate">
+                          {bkg.phone || 'No phone'}
+                        </p>
                       </td>
 
                       {/* Date & Time */}
-                      <td className="py-4 px-6 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-medium">
-                          <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                          <span>{bkg.date ? new Date(bkg.date).toLocaleDateString('en-GB') : 'Immediate'}</span>
+                      <td className="py-3 px-3 lg:px-3.5 min-w-0">
+                        <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-medium text-xs">
+                          <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span className="truncate">{bkg.date ? new Date(bkg.date).toLocaleDateString('en-GB') : 'Immediate'}</span>
                         </div>
-                        <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-0.5">
-                          <Clock className="w-3 h-3" />
-                          <span>{bkg.time || 'Flexible'}</span>
+                        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mt-0.5">
+                          <Clock className="w-3 h-3 text-slate-400 shrink-0" />
+                          <span className="truncate">{bkg.time || 'Flexible'}</span>
                         </div>
                       </td>
 
                       {/* Address */}
-                      <td className="py-4 px-6">
-                        <p className="text-xs text-slate-600 dark:text-slate-300 truncate max-w-xs" title={bkg.address}>
+                      <td className="py-3 px-3 lg:px-3.5 min-w-0">
+                        <p className="text-xs text-slate-600 dark:text-slate-300 truncate block" title={bkg.address}>
                           {bkg.address || 'Jeddah / Makkah'}
                         </p>
                       </td>
 
                       {/* Status */}
-                      <td className="py-4 px-6 whitespace-nowrap">
+                      <td className="py-3 px-3 lg:px-3.5">
                         <span
-                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${status.bg}`}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${status.bg} whitespace-nowrap`}
                         >
                           <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
                           {status.label}
@@ -336,28 +347,28 @@ export default function AdminBookingsPage() {
                       </td>
 
                       {/* Total */}
-                      <td className="py-4 px-6 text-right font-black text-slate-900 dark:text-white whitespace-nowrap">
+                      <td className="py-3 px-2 sm:px-3 text-right font-black text-slate-900 dark:text-white whitespace-nowrap text-xs sm:text-sm">
                         {bkg.totalAmount ?? 150} SAR
                       </td>
 
                       {/* Actions */}
-                      <td className="py-4 px-6 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-center gap-2">
+                      <td className="py-3 px-1 sm:px-2 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-center gap-1.5">
                           {bkg.phone && (
                             <button
                               onClick={() => openWhatsApp(bkg.phone, customerName, serviceName)}
-                              className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 transition"
+                              className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 transition cursor-pointer"
                               title="Chat on WhatsApp"
                             >
-                              <MessageCircle className="w-4 h-4" />
+                              <MessageCircle className="w-3.5 h-3.5" />
                             </button>
                           )}
                           <button
                             onClick={() => setSelectedBooking(bkg)}
-                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-blue-600 transition"
+                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-blue-600 transition cursor-pointer"
                             title="View Full Details"
                           >
-                            <ChevronRight className="w-4 h-4" />
+                            <ChevronRight className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </td>

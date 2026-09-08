@@ -252,7 +252,7 @@ function AdminShell({ children }) {
         </header>
 
         {/* Page Body */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-3 sm:p-5 lg:p-7 w-full max-w-[1750px] mx-auto min-w-0">
           {children}
         </main>
       </div>
