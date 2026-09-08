@@ -24,7 +24,83 @@ import {
   Wrench,
   DollarSign,
   Loader2,
+  Snowflake,
+  Refrigerator,
+  WashingMachine,
+  Flame,
+  Sparkles,
+  Wind,
+  Zap,
+  ShieldCheck,
 } from 'lucide-react';
+
+function renderServiceOutlineIcon(service, serviceName, size = 'sm') {
+  const text = ((service?.name || '') + ' ' + (serviceName || '') + ' ' + (service?.category || '')).toLowerCase();
+  const iconSize = size === 'lg' ? 'w-6 h-6 stroke-[1.8]' : 'w-4 h-4 stroke-[1.8]';
+  const boxSize = size === 'lg' ? 'w-12 h-12 rounded-2xl' : 'w-8 h-8 rounded-xl';
+
+  if (text.includes('clean') || text.includes('jet') || text.includes('sanitiz') || text.includes('غسيل')) {
+    return (
+      <div className={`${boxSize} bg-cyan-50 dark:bg-cyan-500/10 border border-cyan-200/60 dark:border-cyan-500/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shrink-0`}>
+        <Sparkles className={iconSize} />
+      </div>
+    );
+  }
+  if (text.includes('wash') || text.includes('laundry') || text.includes('غسال')) {
+    return (
+      <div className={`${boxSize} bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200/60 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0`}>
+        <WashingMachine className={iconSize} />
+      </div>
+    );
+  }
+  if (text.includes('ref') || text.includes('fridge') || text.includes('freezer') || text.includes('ثلاج') || text.includes('ice')) {
+    return (
+      <div className={`${boxSize} bg-teal-50 dark:bg-teal-500/10 border border-teal-200/60 dark:border-teal-500/20 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0`}>
+        <Refrigerator className={iconSize} />
+      </div>
+    );
+  }
+  if (text.includes('gas') || text.includes('freon') || text.includes('فريون')) {
+    return (
+      <div className={`${boxSize} bg-sky-50 dark:bg-sky-500/10 border border-sky-200/60 dark:border-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0`}>
+        <Wind className={iconSize} />
+      </div>
+    );
+  }
+  if (text.includes('stove') || text.includes('oven') || text.includes('cook') || text.includes('فرن') || text.includes('بوتجاز')) {
+    return (
+      <div className={`${boxSize} bg-amber-50 dark:bg-amber-500/10 border border-amber-200/60 dark:border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0`}>
+        <Flame className={iconSize} />
+      </div>
+    );
+  }
+  if (text.includes('plan') || text.includes('annual') || text.includes('contract') || text.includes('عقد') || text.includes('صيانة سنوية')) {
+    return (
+      <div className={`${boxSize} bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200/60 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0`}>
+        <ShieldCheck className={iconSize} />
+      </div>
+    );
+  }
+  if (text.includes('emergency') || text.includes('24/7') || text.includes('urgent') || text.includes('طوارئ')) {
+    return (
+      <div className={`${boxSize} bg-rose-50 dark:bg-rose-500/10 border border-rose-200/60 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0`}>
+        <Zap className={iconSize} />
+      </div>
+    );
+  }
+  if (text.includes('ac') || text.includes('cool') || text.includes('air') || text.includes('تكييف') || text.includes('مكيف')) {
+    return (
+      <div className={`${boxSize} bg-blue-50 dark:bg-blue-500/10 border border-blue-200/60 dark:border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0`}>
+        <Snowflake className={iconSize} />
+      </div>
+    );
+  }
+  return (
+    <div className={`${boxSize} bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-400 flex items-center justify-center shrink-0`}>
+      <Wrench className={iconSize} />
+    </div>
+  );
+}
 
 const STATUS_TABS = [
   { key: 'all', label: 'All Bookings' },
@@ -293,9 +369,7 @@ export default function AdminBookingsPage() {
                       {/* Order & Service */}
                       <td className="py-3 px-3 lg:px-3.5 min-w-0">
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-sm shrink-0">
-                            {bkg.service?.icon || '❄️'}
-                          </div>
+                          {renderServiceOutlineIcon(bkg.service, serviceName, 'sm')}
                           <div className="min-w-0 flex-1">
                             <p className="font-bold text-slate-900 dark:text-white truncate text-xs sm:text-sm">
                               {serviceName}
@@ -428,9 +502,7 @@ export default function AdminBookingsPage() {
                 {/* Service Card */}
                 <div className="p-4 rounded-2xl bg-blue-50/60 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/40">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xl shrink-0">
-                      {selectedBooking.service?.icon || '❄️'}
-                    </div>
+                    {renderServiceOutlineIcon(selectedBooking.service, selectedBooking.service?.name || selectedBooking.serviceName, 'lg')}
                     <div>
                       <h3 className="font-bold text-slate-900 dark:text-white">
                         {selectedBooking.service?.name || selectedBooking.serviceName || 'Appliance Service'}
