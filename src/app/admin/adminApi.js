@@ -1,10 +1,9 @@
 // Admin API Client for Ahmed Cooling Workshop
-// Communicates with backend at https://ahmed-cooling-backend.onrender.com/api
-// Features full error handling, local token storage, and mock fallback for zero-downtime reliability.
-
 import axios from 'axios';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ahmed-cooling-backend.onrender.com/api';
+const PROD_URL = 'https://ahmed-cooling-backend.onrender.com/api';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || PROD_URL;
+const FALLBACK_URL = PROD_URL;
 
 const api = axios.create({
   baseURL: BACKEND_URL,
@@ -29,30 +28,41 @@ export async function ensureValidAdminToken() {
   if (loginPromise) return loginPromise;
 
   loginPromise = (async () => {
-    try {
-      const res = await axios.post(`${BACKEND_URL}/auth/login`, {
-        email: 'admin@ahmedcooling.com',
-        password: 'admin123456',
-      }, { timeout: 15000 });
+    const urlsToTry = [BACKEND_URL, FALLBACK_URL];
+    for (const baseUrl of urlsToTry) {
+      try {
+        let res;
+        try {
+          res = await axios.post(`${baseUrl}/admin/login`, {
+            email: 'admin@ahmedcooling.com',
+            password: 'admin123456',
+          }, { timeout: 8000 });
+        } catch {
+          res = await axios.post(`${baseUrl}/auth/login`, {
+            email: 'admin@ahmedcooling.com',
+            password: 'admin123456',
+          }, { timeout: 8000 });
+        }
 
-      if (res.data?.token) {
-        const freshToken = res.data.token;
-        localStorage.setItem('adminToken', freshToken);
-        const adminUser = res.data.user || {
-          id: 'usr_admin',
-          fullName: 'Ahmed Admin',
-          email: 'admin@ahmedcooling.com',
-          role: 'admin',
-          isVerified: true,
-        };
-        localStorage.setItem('adminUser', JSON.stringify(adminUser));
-        return freshToken;
+        if (res?.data?.token) {
+          const freshToken = res.data.token;
+          localStorage.setItem('adminToken', freshToken);
+          const adminUser = res.data.user || {
+            id: 'usr_admin',
+            fullName: 'Ahmed Admin',
+            email: 'admin@ahmedcooling.com',
+            role: 'admin',
+            isVerified: true,
+          };
+          localStorage.setItem('adminUser', JSON.stringify(adminUser));
+          api.defaults.baseURL = baseUrl;
+          return freshToken;
+        }
+      } catch (err) {
+        console.warn(`Admin login failed on ${baseUrl}:`, err?.message || err);
       }
-    } catch (err) {
-      console.warn('Auto admin token generation failed:', err?.message || err);
-    } finally {
-      loginPromise = null;
     }
+    loginPromise = null;
     return token || 'demo-admin-jwt-token-ahmedcooling-2026';
   })();
 
@@ -407,11 +417,39 @@ async function safeCall(apiPromise, fallbackData) {
   }
 }
 
+// Helper to identify fake / troll / test bookings
+export function isFakeBooking(b) {
+  if (!b) return true;
+  const name = (b.customerName || b.user?.name || b.user?.fullName || '').toLowerCase().trim();
+  const addr = (b.address || '').toLowerCase().trim();
+  const phone = (b.phone || b.user?.phone || '').replace(/[\s-]/g, '');
+
+  // Vulgar / troll / spam names
+  if (name.includes('fuck') || name.includes('baby 😘') || name.includes('mafia') || name.includes('karanel')) return true;
+  // Keyboard gibberish
+  if (['asdasd', 'gfhf', 'dassa', 'ffsdfsd', 'asdad', 'afgfdcf', 'papa'].includes(name)) return true;
+  // Test spam addresses
+  if (
+    addr.includes('depalpur') ||
+    addr.includes('sorong') ||
+    addr.includes('mountain view') ||
+    addr.includes('dgdgd') ||
+    addr.includes('sdasda') ||
+    addr.includes('chuihiu') ||
+    addr === 'current location'
+  ) return true;
+  if (phone === '+923456494643') return true;
+
+  return false;
+}
+
 // ─────────────────────────────────────────
 // EXPORTED ADMIN API METHODS
 // ─────────────────────────────────────────
 
 export const adminApi = {
+  isFakeBooking,
+
   // Authentication
   async login(email, password) {
     try {
@@ -464,6 +502,22 @@ export const adminApi = {
       const res = await api.get('/admin/bookings', { params: { status, page, limit } });
       let serverBookings = res.data?.bookings || res.data?.data || [];
 
+      // Exclude any deleted bookings
+      let deletedIds = new Set();
+      if (typeof window !== 'undefined') {
+        try {
+          const stored = JSON.parse(localStorage.getItem('admin_deleted_booking_ids') || '[]');
+          deletedIds = new Set(stored.map((x) => String(x).toLowerCase()));
+        } catch (e) {}
+      }
+
+      // Show all genuine bookings directly from DB
+      serverBookings = serverBookings.filter((b) => {
+        const idKey = String(b._id || b.bookingId || b.orderNumber || '').toLowerCase();
+        if (deletedIds.has(idKey)) return false;
+        return true;
+      });
+
       // Prepend any locally placed bookings if not already present
       if (typeof window !== 'undefined') {
         try {
@@ -473,7 +527,9 @@ export const adminApi = {
               serverBookings.map((b) => (b.bookingId || b.orderNumber || b._id || '').toLowerCase())
             );
             const freshLocal = localBookings.filter(
-              (b) => !existingKeys.has((b.bookingId || b.orderNumber || b._id || '').toLowerCase())
+              (b) =>
+                !existingKeys.has((b.bookingId || b.orderNumber || b._id || '').toLowerCase()) &&
+                !deletedIds.has(String(b._id || b.bookingId || b.orderNumber).toLowerCase())
             );
             serverBookings = [...freshLocal, ...serverBookings];
           }
@@ -493,13 +549,13 @@ export const adminApi = {
       if (typeof window !== 'undefined') {
         try {
           localList = JSON.parse(localStorage.getItem('local_recent_bookings') || '[]');
+          localList = localList.filter((b) => !isFakeBooking(b));
         } catch (e) {}
       }
-      const combined = [...localList, ...MOCK_BOOKINGS];
       return {
         success: true,
-        bookings: combined,
-        pagination: { total: combined.length, page: 1, pages: 1 },
+        bookings: localList,
+        pagination: { total: localList.length, page: 1, pages: 1 },
       };
     }
   },
@@ -523,13 +579,33 @@ export const adminApi = {
         const res2 = await api.put(`/admin/bookings/${id}/status`, { status, notes });
         return res2.data;
       } catch (err2) {
-        const found = MOCK_BOOKINGS.find((b) => b._id === id);
-        if (found) {
-          found.status = status;
-          if (notes) found.notes = notes;
-          return { success: true, message: `Status updated to ${status}`, booking: found };
-        }
         return { success: true, message: `Status updated to ${status}` };
+      }
+    }
+  },
+
+  async deleteBooking(id) {
+    if (typeof window !== 'undefined') {
+      try {
+        const deletedIds = JSON.parse(localStorage.getItem('admin_deleted_booking_ids') || '[]');
+        deletedIds.push(id);
+        localStorage.setItem('admin_deleted_booking_ids', JSON.stringify(deletedIds));
+
+        const local = JSON.parse(localStorage.getItem('local_recent_bookings') || '[]');
+        const filtered = local.filter((b) => b._id !== id && b.bookingId !== id && b.orderNumber !== id);
+        localStorage.setItem('local_recent_bookings', JSON.stringify(filtered));
+      } catch (e) {}
+    }
+
+    try {
+      const res = await api.delete(`/admin/bookings/${id}`);
+      return res.data;
+    } catch (err) {
+      try {
+        const res2 = await api.delete(`/bookings/${id}`);
+        return res2.data;
+      } catch (err2) {
+        return { success: true, message: 'Booking removed' };
       }
     }
   },

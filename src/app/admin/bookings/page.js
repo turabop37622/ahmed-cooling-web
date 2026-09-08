@@ -32,6 +32,7 @@ import {
   Wind,
   Zap,
   ShieldCheck,
+  Trash2,
 } from 'lucide-react';
 
 function renderServiceOutlineIcon(service, serviceName, size = 'sm') {
@@ -222,6 +223,28 @@ export default function AdminBookingsPage() {
     } catch (err) {
       console.error('Error updating booking status:', err);
       alert('Failed to update status. Please check backend connection.');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleDeleteBooking = async (booking, e) => {
+    if (e) e.stopPropagation();
+    const id = booking._id || booking.bookingId || booking.orderNumber;
+    const name = booking.customerName || booking.user?.fullName || booking.user?.name || 'this booking';
+    if (!window.confirm(`Are you sure you want to delete order for "${name}"?`)) {
+      return;
+    }
+    setUpdatingId(booking._id);
+    try {
+      await adminApi.deleteBooking(booking._id || id);
+      setBookings((prev) => prev.filter((b) => (b._id || b.bookingId || b.orderNumber) !== id));
+      if (selectedBooking?._id === booking._id || selectedBooking?.bookingId === id) {
+        setSelectedBooking(null);
+      }
+    } catch (err) {
+      console.error('Error deleting booking:', err);
+      alert('Failed to delete booking.');
     } finally {
       setUpdatingId(null);
     }
@@ -448,6 +471,13 @@ export default function AdminBookingsPage() {
                             title="View Full Details"
                           >
                             <ChevronRight className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={(e) => handleDeleteBooking(bkg, e)}
+                            className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 transition cursor-pointer"
+                            title="Delete Booking"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </td>
@@ -693,6 +723,17 @@ export default function AdminBookingsPage() {
                       <span>Cancel</span>
                     </button>
                   )}
+                </div>
+
+                <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <button
+                    onClick={() => handleDeleteBooking(selectedBooking)}
+                    disabled={updatingId === selectedBooking._id}
+                    className="w-full py-2.5 px-3 rounded-xl border border-rose-200 dark:border-rose-900/40 bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>Delete Booking Record</span>
+                  </button>
                 </div>
               </div>
             </div>
