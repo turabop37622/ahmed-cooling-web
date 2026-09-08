@@ -347,8 +347,13 @@ export default function AdminBookingsPage() {
                       </td>
 
                       {/* Total */}
-                      <td className="py-3 px-2 sm:px-3 text-right font-black text-slate-900 dark:text-white whitespace-nowrap text-xs sm:text-sm">
-                        {bkg.totalAmount ?? 150} SAR
+                      <td className="py-3 px-2 sm:px-3 text-right whitespace-nowrap text-xs sm:text-sm">
+                        <span className="font-semibold text-slate-800 dark:text-slate-200">
+                          {bkg.totalAmount ?? 150}
+                        </span>{' '}
+                        <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                          SAR
+                        </span>
                       </td>
 
                       {/* Actions */}
@@ -556,9 +561,9 @@ export default function AdminBookingsPage() {
                         <span>{selectedBooking.visitCharges ?? selectedBooking.visitFee ?? 50} SAR</span>
                       </div>
                     )}
-                    <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex justify-between font-black text-slate-900 dark:text-white text-base">
+                    <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex justify-between font-bold text-slate-900 dark:text-white text-base">
                       <span>Total Amount</span>
-                      <span className="text-blue-600 dark:text-blue-400">
+                      <span className="text-blue-600 dark:text-blue-400 font-bold">
                         {selectedBooking.totalAmount ?? 200} SAR
                       </span>
                     </div>
