@@ -125,8 +125,8 @@ export default function AdminBookingsPage() {
         const q = searchQuery.toLowerCase();
         const name = (b.customerName || b.user?.name || b.user?.fullName || '').toLowerCase();
         const phone = (b.phone || b.user?.phone || '').toLowerCase();
-        const srv = (b.service?.name || b.serviceName || '').toLowerCase();
-        const id = (b.orderNumber || b._id || '').toLowerCase();
+        const srv = (b.service?.name || b.serviceDetails?.name || b.serviceName || '').toLowerCase();
+        const id = (b.orderNumber || b.bookingId || b._id || '').toLowerCase();
         const addr = (b.address || '').toLowerCase();
         return name.includes(q) || phone.includes(q) || srv.includes(q) || id.includes(q) || addr.includes(q);
       }
@@ -516,13 +516,13 @@ export default function AdminBookingsPage() {
                 </div>
 
                 {/* Customer Notes */}
-                {selectedBooking.notes && (
+                {(selectedBooking.notes || selectedBooking.comments || selectedBooking.problemDescription) && (
                   <div className="space-y-2">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
                       Issue Description / Notes
                     </h4>
                     <div className="p-3.5 rounded-2xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 text-xs font-medium text-amber-900 dark:text-amber-200 leading-relaxed">
-                      {selectedBooking.notes}
+                      {selectedBooking.notes || selectedBooking.comments || selectedBooking.problemDescription}
                     </div>
                   </div>
                 )}
@@ -535,18 +535,20 @@ export default function AdminBookingsPage() {
                   <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800 space-y-2 text-sm">
                     <div className="flex justify-between text-slate-600 dark:text-slate-400">
                       <span>Service Diagnostic / Repair</span>
-                      <span>{selectedBooking.serviceCharge ?? 150} SAR</span>
+                      <span>
+                        {selectedBooking.servicePrice ?? selectedBooking.serviceCharge ?? (selectedBooking.totalAmount ? selectedBooking.totalAmount - (selectedBooking.visitCharges ?? selectedBooking.visitFee ?? 50) : 150)} SAR
+                      </span>
                     </div>
-                    {selectedBooking.visitFee !== undefined && selectedBooking.visitFee > 0 && (
+                    {((selectedBooking.visitCharges !== undefined && selectedBooking.visitCharges > 0) || (selectedBooking.visitFee !== undefined && selectedBooking.visitFee > 0)) && (
                       <div className="flex justify-between text-slate-600 dark:text-slate-400">
                         <span>Technician Visit Fee</span>
-                        <span>{selectedBooking.visitFee} SAR</span>
+                        <span>{selectedBooking.visitCharges ?? selectedBooking.visitFee ?? 50} SAR</span>
                       </div>
                     )}
                     <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex justify-between font-black text-slate-900 dark:text-white text-base">
                       <span>Total Amount</span>
                       <span className="text-blue-600 dark:text-blue-400">
-                        {selectedBooking.totalAmount ?? 150} SAR
+                        {selectedBooking.totalAmount ?? 200} SAR
                       </span>
                     </div>
                   </div>

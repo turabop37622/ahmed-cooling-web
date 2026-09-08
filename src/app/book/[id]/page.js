@@ -491,6 +491,36 @@ export default function BookingPage() {
         } catch {
           // If profile update fails, booking still succeeded; keep silent.
         }
+        // Save booking to localStorage so Admin panel reflects it instantly
+        try {
+          const rawBkg = res?.data?.booking || res?.booking || res?.data || {};
+          const localEntry = {
+            _id: rawBkg._id || ('bkg_' + Date.now()),
+            bookingId: res?.data?.bookingId || rawBkg.bookingId || ('BK' + Date.now()),
+            orderNumber: rawBkg.orderNumber || res?.data?.orderNumber || ('ORD-' + Date.now()),
+            customerName: fullName.trim(),
+            phone: `${countryCode}${phoneNumber.trim()}`,
+            email: user?.email || '',
+            service: {
+              id: service?._id || service?.id || params.id,
+              name: svcName || service?.name || 'Service',
+              icon: service?.icon || '❄️',
+              basePrice: parseInt(service?.basePrice || service?.price || 0),
+            },
+            date: selectedDate.toISOString().split('T')[0],
+            time: selectedTime,
+            address: getFullAddress(),
+            status: 'pending',
+            totalAmount,
+            createdAt: new Date().toISOString(),
+          };
+          const existing = JSON.parse(localStorage.getItem('local_recent_bookings') || '[]');
+          existing.unshift(localEntry);
+          localStorage.setItem('local_recent_bookings', JSON.stringify(existing.slice(0, 50)));
+        } catch (storageErr) {
+          console.warn('Failed to cache booking locally:', storageErr);
+        }
+
         setBookingSuccess({
           orderId: res?.data?.bookingId || res?.data?.booking?.orderNumber || res?.data?.booking?.bookingId || '',
           serviceName: svcName,
