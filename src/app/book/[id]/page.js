@@ -434,12 +434,39 @@ export default function BookingPage() {
     if (!fullName.trim()) e.fullName = t.enterNameMsg || 'Name is required';
     if (!phoneNumber.trim()) e.phone = t.enterPhoneMsg || 'Phone is required';
     if (!selectedDate) e.date = t.selectDateMsg || 'Select a date';
-    if (!selectedTime) e.time = t.selectTimeMsg || 'Select a time';
     if (!selectedCity) e.city = language === 'ar' ? 'اختر المدينة' : 'City is required';
     if (selectedCity && !selectedArea) e.area = language === 'ar' ? 'اختر المنطقة' : 'Area is required';
     if (selectedArea && !subLocation.trim()) e.subLocation = language === 'ar' ? 'أدخل العنوان التفصيلي' : 'Street/House details required';
     setErrors(e);
-    return Object.keys(e).length === 0;
+
+    const keys = Object.keys(e);
+    if (keys.length > 0) {
+      const elementIdMap = {
+        fullName: 'field-fullName',
+        phone: 'field-phone',
+        date: 'field-date',
+        city: 'field-city',
+        area: 'field-area',
+        subLocation: 'field-subLocation',
+      };
+      const targetId = elementIdMap[keys[0]];
+      if (typeof window !== 'undefined' && targetId) {
+        const el = document.getElementById(targetId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(() => {
+            if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
+              el.focus();
+            } else {
+              const input = el.querySelector('input, select, textarea, button');
+              if (input) input.focus();
+            }
+          }, 350);
+        }
+      }
+      return false;
+    }
+    return true;
   };
 
   const handleSubmit = async () => {
@@ -463,7 +490,7 @@ export default function BookingPage() {
         phone: `${countryCode}${phoneNumber.trim()}`,
         email: user?.email || '',
         date: selectedDate.toISOString().split('T')[0],
-        time: selectedTime,
+        time: selectedTime || 'Anytime',
         address: getFullAddress(),
         coordinates: { latitude: 0, longitude: 0 },
         comments: notes.trim(),
@@ -617,7 +644,9 @@ export default function BookingPage() {
             {/* Details */}
             <div className="space-y-0 divide-y divide-border dark:divide-slate-700">
               <DetailRow icon={<Calendar className="h-4 w-4" />} label={language === 'ar' ? 'التاريخ' : 'Date'} value={bookingSuccess.date} />
-              <DetailRow icon={<Clock className="h-4 w-4" />} label={language === 'ar' ? 'الوقت' : 'Time'} value={bookingSuccess.time} />
+              {bookingSuccess.time && bookingSuccess.time !== 'Anytime' && (
+                <DetailRow icon={<Clock className="h-4 w-4" />} label={language === 'ar' ? 'الوقت' : 'Time'} value={bookingSuccess.time} />
+              )}
               <DetailRow icon={<MapPin className="h-4 w-4" />} label={language === 'ar' ? 'العنوان' : 'Address'} value={bookingSuccess.address} />
             </div>
 
@@ -712,6 +741,7 @@ export default function BookingPage() {
             <div className="relative">
               <User className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-sub dark:text-slate-500" />
               <input
+                id="field-fullName"
                 type="text" value={fullName} onChange={(e) => setFullName(e.target.value)}
                 placeholder={t.enterFullName || 'John Doe'}
                 className={`w-full rounded-xl border py-3 pr-4 pl-10 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${errors.fullName ? 'border-red-400' : 'border-border dark:border-slate-600'}`}
@@ -731,6 +761,7 @@ export default function BookingPage() {
               <div className="relative flex-1">
                 <Phone className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-sub dark:text-slate-500" />
                 <input
+                  id="field-phone"
                   type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
                   placeholder="5XXXXXXXX"
                   className={`w-full rounded-xl border py-3 pr-4 pl-10 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${errors.phone ? 'border-red-400' : 'border-border dark:border-slate-600'}`}
@@ -757,9 +788,9 @@ export default function BookingPage() {
           )}
         </div>
 
-        {/* Date & Time Section */}
-        <SectionTitle icon={<Calendar className="h-5 w-5" />} title={t.selectDateTime || 'Select Date & Time'} />
-        <div className="mb-6 rounded-2xl border border-border bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        {/* Date Section */}
+        <SectionTitle icon={<Calendar className="h-5 w-5" />} title={t.selectDate || (language === 'ar' ? 'تحديد التاريخ' : 'Select Date')} />
+        <div id="field-date" className="mb-6 rounded-2xl border border-border bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
           {/* Quick date buttons */}
           <div className="mb-4 flex gap-2">
             {[
@@ -778,7 +809,7 @@ export default function BookingPage() {
           </div>
 
           {/* Calendar grid */}
-          <div className="mb-5 rounded-xl border border-border bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/50">
+          <div className="rounded-xl border border-border bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/50">
             <div className="mb-3 flex items-center justify-between">
               <button onClick={prevMonth} className="rounded-lg p-1.5 transition hover:bg-slate-200 dark:hover:bg-slate-700">
                 <ChevronLeft className="h-4 w-4 text-text dark:text-white" />
@@ -818,29 +849,7 @@ export default function BookingPage() {
               </div>
             ))}
           </div>
-          {errors.date && <p className="mb-3 text-xs font-semibold text-red-500">{errors.date}</p>}
-
-          {/* Time slots */}
-          <p className="mb-2 text-xs font-black tracking-wide text-sub uppercase dark:text-slate-400">{t.selectTime || 'SELECT TIME'}</p>
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-            {TIME_SLOTS.map(({ time, busy }) => {
-              const active = selectedTime === time;
-              return (
-                <button key={time} disabled={busy}
-                  onClick={() => setSelectedTime(time)}
-                  className={`rounded-xl border px-2 py-2.5 text-xs font-bold transition
-                    ${busy ? 'cursor-not-allowed border-border bg-slate-100 text-slate-400 line-through dark:border-slate-700 dark:bg-slate-800 dark:text-slate-600' : ''}
-                    ${active ? 'border-primary bg-primary text-white shadow-md' : ''}
-                    ${!busy && !active ? 'border-border bg-white text-text hover:border-primary/40 dark:border-slate-600 dark:bg-slate-800 dark:text-white' : ''}
-                  `}
-                >
-                  {language === 'ar' ? toAr(time) : time}
-                  {busy && <span className="mt-0.5 block text-[9px] font-semibold">{language === 'ar' ? 'مشغول' : 'Busy'}</span>}
-                </button>
-              );
-            })}
-          </div>
-          {errors.time && <p className="mt-2 text-xs font-semibold text-red-500">{errors.time}</p>}
+          {errors.date && <p className="mt-2 text-xs font-semibold text-red-500">{errors.date}</p>}
         </div>
 
         {/* Location Section */}
@@ -852,6 +861,7 @@ export default function BookingPage() {
                 {language === 'ar' ? 'المدينة' : 'City'} <span className="text-red-500">*</span>
               </label>
               <select
+                id="field-city"
                 value={selectedCity}
                 onChange={(e) => { setSelectedCity(e.target.value); setSelectedArea(''); setSubLocation(''); }}
                 className={`w-full rounded-xl border bg-white py-3 px-4 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${errors.city ? 'border-red-400' : selectedCity ? 'border-primary dark:border-blue-500' : 'border-border dark:border-slate-600'}`}
@@ -870,6 +880,7 @@ export default function BookingPage() {
                   {language === 'ar' ? 'الموقع الرئيسي' : 'Main Location'} <span className="text-red-500">*</span>
                 </label>
                 <select
+                  id="field-area"
                   value={selectedArea}
                   onChange={(e) => { setSelectedArea(e.target.value); setSubLocation(''); }}
                   className={`w-full rounded-xl border bg-white py-3 px-4 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${errors.area ? 'border-red-400' : selectedArea ? 'border-primary dark:border-blue-500' : 'border-border dark:border-slate-600'}`}
@@ -889,6 +900,7 @@ export default function BookingPage() {
                   {language === 'ar' ? 'العنوان التفصيلي' : 'Street / Block / House No'} <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="field-subLocation"
                   type="text" value={subLocation} onChange={(e) => setSubLocation(e.target.value)}
                   placeholder={language === 'ar' ? 'مثال: شارع ٥، بلوك B، منزل ١٢' : 'e.g., Street 5, Block B, House 12'}
                   className={`w-full rounded-xl border py-3 px-4 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${errors.subLocation ? 'border-red-400' : subLocation ? 'border-primary dark:border-blue-500' : 'border-border dark:border-slate-600'}`}
