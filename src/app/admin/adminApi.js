@@ -413,18 +413,18 @@ export const adminApi = {
   // Authentication
   async login(email, password) {
     try {
-      // Try /admin/login first
-      const res = await api.post('/admin/login', { email, password });
+      // Try /auth/login first
+      const res = await api.post('/auth/login', { email, password });
       return res.data;
     } catch (err) {
-      // Try /auth/login as fallback
+      // Try /admin/login as fallback
       try {
-        const res2 = await api.post('/auth/login', { email, password });
+        const res2 = await api.post('/admin/login', { email, password });
         return res2.data;
       } catch (err2) {
         const message =
-          err2?.response?.data?.message ||
           err?.response?.data?.message ||
+          err2?.response?.data?.message ||
           'Authentication failed. Please check your credentials.';
         throw new Error(message);
       }
