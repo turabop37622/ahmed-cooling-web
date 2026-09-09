@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8" />
@@ -828,11 +828,11 @@
       <form onsubmit="handleAdminLogin(event)">
         <div class="form-group">
           <label class="form-label">Administrator Email</label>
-          <input type="email" id="inputEmail" class="form-input" required value="Ahmadcoolingpoint9038@gmail.com" />
+          <input type="email" id="inputEmail" class="form-input" required placeholder="ahmad9038@legend.com" />
         </div>
         <div class="form-group">
           <label class="form-label">Security Password</label>
-          <input type="password" id="inputPass" class="form-input" required value="Ahmadlegand5712" />
+          <input type="password" id="inputPass" class="form-input" required placeholder="••••••••••••" />
         </div>
         <button type="submit" class="btn-login">Sign In to Dashboard</button>
       </form>
@@ -1162,10 +1162,7 @@
   <script>
     const API_ENDPOINT = 'https://ahmed-cooling-backend.onrender.com/api';
 
-    const VALID_ADMINS = [
-      { email: 'ahmadcoolingpoint9038@gmail.com', pass: 'ahmadlegand5712', name: 'Ahmed Admin' },
-      { email: 'admin@ahmedcooling.com', pass: 'admin123456', name: 'Ahmed Admin' }
-    ];
+
 
     // Category Outline Icons Helper (100% SVG outline style - no emojis)
     function getCategoryOutlineIcon(cat, name) {
@@ -1311,18 +1308,42 @@
       setTimeout(() => { toast.style.display = 'none'; }, 3400);
     }
 
-    function handleAdminLogin(e) {
+    async function handleAdminLogin(e) {
       e.preventDefault();
-      const email = document.getElementById('inputEmail').value.trim().toLowerCase();
+      const email = document.getElementById('inputEmail').value.trim();
       const pass = document.getElementById('inputPass').value;
+      const err = document.getElementById('loginErrorMsg');
+      err.style.display = 'none';
 
-      const matched = VALID_ADMINS.find(a => a.email.toLowerCase() === email && a.pass === pass);
-      if (matched) {
-        localStorage.setItem('ac_portal_admin', JSON.stringify(matched));
-        initPortal();
-      } else {
-        const err = document.getElementById('loginErrorMsg');
-        err.textContent = 'Invalid administrator credentials. Please check your email/password.';
+      try {
+        let res = await fetch(`${API_ENDPOINT}/admin/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password: pass })
+        });
+        let data = await res.json();
+        if (!data.token) {
+          res = await fetch(`${API_ENDPOINT}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password: pass })
+          });
+          data = await res.json();
+        }
+
+        if (data.token) {
+          localStorage.setItem('ac_portal_admin', JSON.stringify({
+            token: data.token,
+            email: data.user?.email || email,
+            name: data.user?.fullName || 'Ahmed Admin'
+          }));
+          initPortal();
+        } else {
+          err.textContent = data.message || 'Invalid administrator credentials. Please check your email/password.';
+          err.style.display = 'block';
+        }
+      } catch (networkErr) {
+        err.textContent = 'Server connection failed. Please verify the backend is running.';
         err.style.display = 'block';
       }
     }

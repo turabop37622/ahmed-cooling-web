@@ -163,7 +163,7 @@ function AdminShell({ children }) {
                     {user?.fullName || user?.name || 'Admin'}
                   </p>
                   <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate">
-                    {user?.email || 'admin@ahmedcooling.com'}
+                    {user?.email || 'Administrator'}
                   </p>
                 </div>
               )}

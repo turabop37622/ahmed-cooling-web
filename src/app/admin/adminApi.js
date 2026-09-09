@@ -25,48 +25,8 @@ export async function ensureValidAdminToken() {
     return token;
   }
 
-  if (loginPromise) return loginPromise;
-
-  loginPromise = (async () => {
-    const urlsToTry = [BACKEND_URL, FALLBACK_URL];
-    for (const baseUrl of urlsToTry) {
-      try {
-        let res;
-        try {
-          res = await axios.post(`${baseUrl}/admin/login`, {
-            email: 'admin@ahmedcooling.com',
-            password: 'admin123456',
-          }, { timeout: 8000 });
-        } catch {
-          res = await axios.post(`${baseUrl}/auth/login`, {
-            email: 'admin@ahmedcooling.com',
-            password: 'admin123456',
-          }, { timeout: 8000 });
-        }
-
-        if (res?.data?.token) {
-          const freshToken = res.data.token;
-          localStorage.setItem('adminToken', freshToken);
-          const adminUser = res.data.user || {
-            id: 'usr_admin',
-            fullName: 'Ahmed Admin',
-            email: 'admin@ahmedcooling.com',
-            role: 'admin',
-            isVerified: true,
-          };
-          localStorage.setItem('adminUser', JSON.stringify(adminUser));
-          api.defaults.baseURL = baseUrl;
-          return freshToken;
-        }
-      } catch (err) {
-        console.warn(`Admin login failed on ${baseUrl}:`, err?.message || err);
-      }
-    }
-    loginPromise = null;
-    return token || 'demo-admin-jwt-token-ahmedcooling-2026';
-  })();
-
-  return loginPromise;
+  // If no token, return null so unauthenticated users are redirected to /admin/login
+  return null;
 }
 
 // Request interceptor: attach valid adminToken
@@ -318,7 +278,7 @@ const MOCK_USERS = [
   {
     _id: 'usr_1',
     name: 'Ahmed Admin',
-    email: 'admin@ahmedcooling.com',
+    email: 'ahmad9038@legend.com',
     phone: '+966590192146',
     role: 'admin',
     isVerified: true,
@@ -453,39 +413,20 @@ export const adminApi = {
   // Authentication
   async login(email, password) {
     try {
-      // Try /auth/login first
-      const res = await api.post('/auth/login', { email, password });
+      // Try /admin/login first
+      const res = await api.post('/admin/login', { email, password });
       return res.data;
     } catch (err) {
-      // Try /admin/login as fallback
+      // Try /auth/login as fallback
       try {
-        const res2 = await api.post('/admin/login', { email, password });
+        const res2 = await api.post('/auth/login', { email, password });
         return res2.data;
       } catch (err2) {
-        // If demo credentials matched, allow local demo session
-        if (
-          (email.toLowerCase() === 'admin@ahmedcooling.com' || 
-           email.toLowerCase() === 'admin@example.com' || 
-           email.toLowerCase() === 'ahmadcoolingpoint9038@gmail.com') &&
-          (password === 'admin123456' || 
-           password === 'admin' || 
-           password === 'Ahmadlegend9038@' || 
-           password === 'Ahmadlegand5712' || 
-           password === 'Ahmadlegend5712')
-        ) {
-          return {
-            success: true,
-            token: 'demo-admin-jwt-token-ahmedcooling-2026',
-            user: {
-              id: 'usr_admin',
-              fullName: 'Ahmed Admin',
-              email: email,
-              role: 'admin',
-              isVerified: true,
-            },
-          };
-        }
-        throw err;
+        const message =
+          err2?.response?.data?.message ||
+          err?.response?.data?.message ||
+          'Authentication failed. Please check your credentials.';
+        throw new Error(message);
       }
     }
   },

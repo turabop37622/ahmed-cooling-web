@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAdminAuth } from '../AdminAuthContext';
 import { adminApi } from '../adminApi';
-import { Snowflake, Mail, Lock, Loader2, ShieldCheck, ArrowRight, Sparkles } from 'lucide-react';
+import { Snowflake, Mail, Lock, Loader2, ShieldCheck, ArrowRight } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -41,12 +41,6 @@ export default function AdminLoginPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleQuickFill = () => {
-    setEmail('admin@ahmedcooling.com');
-    setPassword('admin123456');
-    setError('');
   };
 
   return (
@@ -96,7 +90,7 @@ export default function AdminLoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@ahmedcooling.com"
+                  placeholder="admin@example.com"
                   className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
                 />
               </div>
@@ -137,18 +131,6 @@ export default function AdminLoginPage() {
               )}
             </button>
           </form>
-
-          {/* Quick Demo Access button for testing convenience */}
-          <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800 text-center">
-            <button
-              type="button"
-              onClick={handleQuickFill}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>Fill Default Admin Credentials</span>
-            </button>
-          </div>
         </div>
 
         {/* Footer info */}
