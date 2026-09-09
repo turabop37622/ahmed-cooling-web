@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import {
   Loader2, MapPin, Calendar, Clock, FileText,
   ChevronLeft, ChevronRight, User, Phone, CheckCircle2, Shield,
-  Sparkles, AlertCircle, Mail,
+  Sparkles, AlertCircle, Mail, Navigation, Edit3, Building2,
 } from 'lucide-react';
 import { useTranslation } from '@/contexts/TranslationContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -259,8 +259,69 @@ export default function BookingPage() {
   const [notes, setNotes] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
   const [selectedArea, setSelectedArea] = useState('');
+  const [customArea, setCustomArea] = useState('');
   const [subLocation, setSubLocation] = useState('');
+  const [isManualAddress, setIsManualAddress] = useState(false);
+  const [manualAddress, setManualAddress] = useState('');
+  const [locating, setLocating] = useState(false);
   const [errors, setErrors] = useState({});
+
+  const handleSelectCity = (cityKey) => {
+    setSelectedCity(cityKey);
+    setSelectedArea('');
+    setCustomArea('');
+    setSubLocation('');
+    setErrors((prev) => ({ ...prev, city: null, area: null }));
+    setTimeout(() => {
+      const areaEl = document.getElementById('field-area');
+      if (areaEl) {
+        areaEl.focus();
+        areaEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 150);
+  };
+
+  const handlePhoneChange = (e) => {
+    let val = e.target.value.replace(/\D/g, '');
+    if (val.startsWith('05')) val = val.substring(1);
+    setPhoneNumber(val.slice(0, 9));
+    if (errors.phone) setErrors((prev) => ({ ...prev, phone: null }));
+  };
+
+  const handleDetectLocation = () => {
+    if (typeof window === 'undefined' || !navigator.geolocation) {
+      alert(language === 'ar' ? 'المتصفح لا يدعم تحديد الموقع التلقائي' : 'Geolocation is not supported by your browser');
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://ahmed-cooling-backend.onrender.com/api';
+          const res = await fetch(`${backendUrl}/geocode/reverse?lat=${latitude}&lng=${longitude}&lang=${language || 'en'}`);
+          const data = await res.json();
+          if (data?.address) {
+            setIsManualAddress(true);
+            setManualAddress(data.address);
+          } else {
+            setIsManualAddress(true);
+            setManualAddress(`GPS: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`);
+          }
+        } catch {
+          setIsManualAddress(true);
+          setManualAddress(`GPS: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`);
+        } finally {
+          setLocating(false);
+        }
+      },
+      () => {
+        setLocating(false);
+        alert(language === 'ar' ? 'يرجى تفعيل صلاحية الموقع أو كتابة العنوان يدوياً.' : 'Location permission denied or unavailable. Please enter address manually.');
+      },
+      { timeout: 10000, enableHighAccuracy: true }
+    );
+  };
 
   const today = useMemo(() => {
     const d = new Date(); d.setHours(0, 0, 0, 0); return d;
@@ -410,20 +471,37 @@ export default function BookingPage() {
   };
 
   const getFullAddress = () => {
-    if (!selectedCity || !selectedArea || !subLocation.trim()) return '';
+    if (isManualAddress) {
+      return manualAddress.trim();
+    }
+    if (!selectedCity) return '';
     const city = LOCATION_DATA[selectedCity];
-    const area = city?.areas.find(a => a.en === selectedArea);
     const cityName = language === 'ar' ? city?.ar : city?.en;
-    const areaName = language === 'ar' ? area?.ar : area?.en;
+
+    let areaName = '';
+    if (selectedArea === 'OTHER') {
+      areaName = customArea.trim();
+    } else if (selectedArea) {
+      const area = city?.areas.find((a) => a.en === selectedArea);
+      areaName = language === 'ar' ? area?.ar : area?.en;
+    }
+
+    if (!areaName && !subLocation.trim()) return cityName || '';
+    if (!subLocation.trim()) return `${areaName}, ${cityName}`;
     return `${subLocation.trim()}, ${areaName}, ${cityName}`;
   };
 
   const getCanonicalAddress = () => {
-    if (!selectedCity || !selectedArea || !subLocation.trim()) return '';
+    if (isManualAddress) {
+      return manualAddress.trim();
+    }
+    if (!selectedCity) return '';
     const city = LOCATION_DATA[selectedCity];
-    const area = city?.areas.find((a) => a.en === selectedArea);
-    if (!city?.en || !area?.en) return '';
-    return `${subLocation.trim()}, ${area.en}, ${city.en}`;
+    const area = selectedArea === 'OTHER' ? { en: customArea.trim() } : city?.areas.find((a) => a.en === selectedArea);
+    const areaEn = area?.en || customArea.trim() || 'General';
+    const cityEn = city?.en || 'Jeddah';
+    if (!subLocation.trim()) return `${areaEn}, ${cityEn}`;
+    return `${subLocation.trim()}, ${areaEn}, ${cityEn}`;
   };
 
   const servicePrice = service?.basePrice || service?.price || 0;
@@ -432,11 +510,18 @@ export default function BookingPage() {
   const validate = () => {
     const e = {};
     if (!fullName.trim()) e.fullName = t.enterNameMsg || 'Name is required';
-    if (!phoneNumber.trim()) e.phone = t.enterPhoneMsg || 'Phone is required';
+    if (!phoneNumber.trim() || phoneNumber.length < 8) e.phone = t.enterPhoneMsg || 'Valid 9-digit mobile number required (5XXXXXXXX)';
     if (!selectedDate) e.date = t.selectDateMsg || 'Select a date';
-    if (!selectedCity) e.city = language === 'ar' ? 'اختر المدينة' : 'City is required';
-    if (selectedCity && !selectedArea) e.area = language === 'ar' ? 'اختر المنطقة' : 'Area is required';
-    if (selectedArea && !subLocation.trim()) e.subLocation = language === 'ar' ? 'أدخل العنوان التفصيلي' : 'Street/House details required';
+
+    if (isManualAddress) {
+      if (!manualAddress.trim()) e.manualAddress = language === 'ar' ? 'أدخل عنوانك بالتفصيل' : 'Please enter your full address';
+    } else {
+      if (!selectedCity) e.city = language === 'ar' ? 'اختر المدينة' : 'City is required';
+      if (selectedCity && !selectedArea) e.area = language === 'ar' ? 'اختر المنطقة' : 'Area is required';
+      if (selectedArea === 'OTHER' && !customArea.trim()) e.customArea = language === 'ar' ? 'أدخل اسم الحي' : 'District name required';
+      if (selectedArea && !subLocation.trim()) e.subLocation = language === 'ar' ? 'أدخل العنوان التفصيلي' : 'Street/House details required';
+    }
+
     setErrors(e);
 
     const keys = Object.keys(e);
@@ -445,8 +530,10 @@ export default function BookingPage() {
         fullName: 'field-fullName',
         phone: 'field-phone',
         date: 'field-date',
+        manualAddress: 'field-manualAddress',
         city: 'field-city',
         area: 'field-area',
+        customArea: 'field-customArea',
         subLocation: 'field-subLocation',
       };
       const targetId = elementIdMap[keys[0]];
@@ -762,12 +849,17 @@ export default function BookingPage() {
                 <Phone className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-sub dark:text-slate-500" />
                 <input
                   id="field-phone"
-                  type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={handlePhoneChange}
                   placeholder="5XXXXXXXX"
                   className={`w-full rounded-xl border py-3 pr-4 pl-10 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${errors.phone ? 'border-red-400' : 'border-border dark:border-slate-600'}`}
                 />
               </div>
             </div>
+            <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
+              {language === 'ar' ? 'أدخل 9 أرقام تبدأ بـ 5 (مثال: 501234567)' : 'Enter 9 digits starting with 5 (e.g. 501234567)'}
+            </p>
             {errors.phone && <p className="mt-1 text-xs font-semibold text-red-500">{errors.phone}</p>}
           </div>
           {user?.email && (
@@ -849,76 +941,219 @@ export default function BookingPage() {
               </div>
             ))}
           </div>
+          {selectedDate && (
+            <div className="mt-3 flex items-center gap-2 rounded-xl bg-blue-50/80 px-3.5 py-2.5 text-xs font-bold text-primary dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200/60 dark:border-blue-900/50">
+              <Calendar className="h-4 w-4 shrink-0 text-primary dark:text-blue-400" />
+              <span>
+                {language === 'ar' ? 'الموعد المختار:' : 'Scheduled Date:'}{' '}
+                {selectedDate.toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                })}
+              </span>
+            </div>
+          )}
           {errors.date && <p className="mt-2 text-xs font-semibold text-red-500">{errors.date}</p>}
         </div>
 
         {/* Location Section */}
-        <SectionTitle icon={<MapPin className="h-5 w-5" />} title={t.serviceLocation || 'Service Location'} />
+        <div className="mb-2 flex items-center justify-between">
+          <SectionTitle icon={<MapPin className="h-5 w-5" />} title={t.serviceLocation || 'Service Location'} />
+          <button
+            type="button"
+            onClick={() => {
+              setIsManualAddress((prev) => !prev);
+              setErrors((prev) => ({ ...prev, city: null, area: null, customArea: null, subLocation: null, manualAddress: null }));
+            }}
+            className="inline-flex items-center gap-1.5 text-xs font-extrabold text-primary hover:underline dark:text-blue-400"
+          >
+            {isManualAddress ? (
+              <>
+                <Building2 className="h-3.5 w-3.5" />
+                <span>{language === 'ar' ? '📋 اختيار بالمدينة والحي' : '📋 Choose City & District'}</span>
+              </>
+            ) : (
+              <>
+                <Edit3 className="h-3.5 w-3.5" />
+                <span>{language === 'ar' ? '✍️ كتابة العنوان يدوياً' : '✍️ Type Full Address Manually'}</span>
+              </>
+            )}
+          </button>
+        </div>
+
         <div className="mb-6 rounded-2xl border border-border bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-          <div className="space-y-3">
-            <div>
-              <label className="mb-1.5 block text-xs font-bold text-sub dark:text-slate-400">
-                {language === 'ar' ? 'المدينة' : 'City'} <span className="text-red-500">*</span>
-              </label>
-              <select
-                id="field-city"
-                value={selectedCity}
-                onChange={(e) => { setSelectedCity(e.target.value); setSelectedArea(''); setSubLocation(''); }}
-                className={`w-full rounded-xl border bg-white py-3 px-4 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${errors.city ? 'border-red-400' : selectedCity ? 'border-primary dark:border-blue-500' : 'border-border dark:border-slate-600'}`}
-              >
-                <option value="">{language === 'ar' ? 'اختر المدينة' : 'Select City'}</option>
-                {Object.entries(LOCATION_DATA).map(([key, city]) => (
-                  <option key={key} value={key}>{language === 'ar' ? city.ar : city.en}</option>
-                ))}
-              </select>
-              {errors.city && <p className="mt-1 text-xs font-semibold text-red-500">{errors.city}</p>}
+          {/* Quick GPS auto-detect bar */}
+          <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-blue-100 bg-blue-50/60 p-3 dark:border-blue-950/60 dark:bg-blue-950/30">
+            <div className="flex items-center gap-2 min-w-0">
+              <Navigation className="h-4 w-4 shrink-0 text-primary dark:text-blue-400" />
+              <p className="truncate text-xs font-bold text-slate-700 dark:text-slate-300">
+                {language === 'ar' ? 'تحديد العنوان تلقائياً بواسطة الـ GPS' : 'Auto-detect address with GPS'}
+              </p>
             </div>
-
-            {selectedCity && (
-              <div>
-                <label className="mb-1.5 block text-xs font-bold text-sub dark:text-slate-400">
-                  {language === 'ar' ? 'الموقع الرئيسي' : 'Main Location'} <span className="text-red-500">*</span>
-                </label>
-                <select
-                  id="field-area"
-                  value={selectedArea}
-                  onChange={(e) => { setSelectedArea(e.target.value); setSubLocation(''); }}
-                  className={`w-full rounded-xl border bg-white py-3 px-4 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${errors.area ? 'border-red-400' : selectedArea ? 'border-primary dark:border-blue-500' : 'border-border dark:border-slate-600'}`}
-                >
-                  <option value="">{language === 'ar' ? 'اختر المنطقة' : 'Select Area'}</option>
-                  {LOCATION_DATA[selectedCity]?.areas.map((area, i) => (
-                    <option key={i} value={area.en}>{language === 'ar' ? area.ar : area.en}</option>
-                  ))}
-                </select>
-                {errors.area && <p className="mt-1 text-xs font-semibold text-red-500">{errors.area}</p>}
-              </div>
-            )}
-
-            {selectedArea && (
-              <div>
-                <label className="mb-1.5 block text-xs font-bold text-sub dark:text-slate-400">
-                  {language === 'ar' ? 'العنوان التفصيلي' : 'Street / Block / House No'} <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="field-subLocation"
-                  type="text" value={subLocation} onChange={(e) => setSubLocation(e.target.value)}
-                  placeholder={language === 'ar' ? 'مثال: شارع ٥، بلوك B، منزل ١٢' : 'e.g., Street 5, Block B, House 12'}
-                  className={`w-full rounded-xl border py-3 px-4 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${errors.subLocation ? 'border-red-400' : subLocation ? 'border-primary dark:border-blue-500' : 'border-border dark:border-slate-600'}`}
-                />
-                {errors.subLocation && <p className="mt-1 text-xs font-semibold text-red-500">{errors.subLocation}</p>}
-              </div>
-            )}
-
-            {selectedCity && selectedArea && subLocation.trim() && (
-              <div className="flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 p-3 dark:border-slate-600 dark:bg-slate-700">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary dark:text-blue-400" />
-                <div className="flex-1">
-                  <p className="text-[10px] font-bold uppercase text-sub dark:text-slate-400">{language === 'ar' ? 'العنوان الكامل' : 'Full Address'}</p>
-                  <p className="text-xs font-semibold text-text dark:text-white">{getFullAddress()}</p>
-                </div>
-              </div>
-            )}
+            <button
+              type="button"
+              onClick={handleDetectLocation}
+              disabled={locating}
+              className="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-primary/20 bg-white px-3 py-1.5 text-xs font-black text-primary shadow-xs hover:bg-blue-50/50 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-800 dark:text-blue-400 dark:hover:bg-slate-700 transition"
+            >
+              {locating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MapPin className="h-3.5 w-3.5" />}
+              <span>{locating ? (language === 'ar' ? 'جارٍ التحديد...' : 'Locating...') : (language === 'ar' ? '📍 حدد موقعي' : '📍 Detect')}</span>
+            </button>
           </div>
+
+          {isManualAddress ? (
+            /* Mode B: Full Manual Address Entry */
+            <div id="field-manualAddress" className="space-y-2">
+              <label className="block text-xs font-bold text-sub dark:text-slate-400">
+                {language === 'ar' ? 'العنوان الكامل بالتفصيل' : 'Full Detailed Address'} <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                rows={3}
+                value={manualAddress}
+                onChange={(e) => {
+                  setManualAddress(e.target.value);
+                  if (errors.manualAddress) setErrors((prev) => ({ ...prev, manualAddress: null }));
+                }}
+                placeholder={
+                  language === 'ar'
+                    ? 'مثال: جدة، حي الروضة، شارع صاري، عمارة ٤، الدور الثاني، شقة ٦'
+                    : 'e.g., Jeddah, Al Rawdah, Sari Street, Building 4, 2nd Floor, Apt 6'
+                }
+                className={`w-full resize-none rounded-xl border py-3 px-4 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${
+                  errors.manualAddress ? 'border-red-400' : manualAddress ? 'border-primary dark:border-blue-500' : 'border-border dark:border-slate-600'
+                }`}
+              />
+              {errors.manualAddress && <p className="text-xs font-semibold text-red-500">{errors.manualAddress}</p>}
+            </div>
+          ) : (
+            /* Mode A: Guided City & District Selection */
+            <div className="space-y-4">
+              {/* City Selection: 1-Click Buttons */}
+              <div>
+                <label className="mb-2 block text-xs font-bold text-sub dark:text-slate-400">
+                  {language === 'ar' ? 'المدينة' : 'City'} <span className="text-red-500">*</span>
+                </label>
+                <div id="field-city" className="grid grid-cols-2 gap-2.5">
+                  {Object.entries(LOCATION_DATA).map(([key, city]) => {
+                    const active = selectedCity === key;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => handleSelectCity(key)}
+                        className={`flex items-center justify-center gap-2 rounded-xl border py-3 px-4 text-sm font-black transition-all duration-200 ${
+                          active
+                            ? 'border-primary bg-primary text-white shadow-md shadow-primary/25 ring-2 ring-primary/20'
+                            : 'border-border bg-white text-text hover:border-primary/50 hover:bg-blue-50/30 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700'
+                        }`}
+                      >
+                        <span className="text-lg">{key === 'jeddah' ? '🏙️' : '🕋'}</span>
+                        <span>{language === 'ar' ? city.ar : city.en}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {errors.city && <p className="mt-1 text-xs font-semibold text-red-500">{errors.city}</p>}
+              </div>
+
+              {/* Area Selection: Automatically revealed once city is selected! */}
+              {selectedCity && (
+                <div className="space-y-1.5 transition-all duration-300">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-sub dark:text-slate-400">
+                      {language === 'ar' ? 'الحي / المنطقة' : 'District / Area'} <span className="text-red-500">*</span>
+                    </label>
+                    <span className="text-[11px] font-bold text-primary dark:text-blue-400">
+                      {LOCATION_DATA[selectedCity]?.areas?.length || 0} {language === 'ar' ? 'حي متاح' : 'districts available'}
+                    </span>
+                  </div>
+                  <select
+                    id="field-area"
+                    value={selectedArea}
+                    onChange={(e) => {
+                      setSelectedArea(e.target.value);
+                      if (e.target.value !== 'OTHER') setCustomArea('');
+                      setSubLocation('');
+                      if (errors.area) setErrors((prev) => ({ ...prev, area: null }));
+                    }}
+                    className={`w-full rounded-xl border bg-white py-3 px-4 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${
+                      errors.area ? 'border-red-400' : selectedArea ? 'border-primary dark:border-blue-500' : 'border-border dark:border-slate-600'
+                    }`}
+                  >
+                    <option value="">{language === 'ar' ? '🔍 اختر الحي من القائمة...' : '🔍 Select district from list...'}</option>
+                    {LOCATION_DATA[selectedCity]?.areas.map((area, i) => (
+                      <option key={i} value={area.en}>{language === 'ar' ? area.ar : area.en}</option>
+                    ))}
+                    <option value="OTHER">✍️ {language === 'ar' ? 'حي آخر (كتابة اسم الحي يدوياً)' : 'Other District (Type Manually)'}</option>
+                  </select>
+                  {errors.area && <p className="text-xs font-semibold text-red-500">{errors.area}</p>}
+                </div>
+              )}
+
+              {/* Custom Area if user chooses OTHER */}
+              {selectedCity && selectedArea === 'OTHER' && (
+                <div className="space-y-1.5 transition-all duration-300">
+                  <label className="block text-xs font-bold text-sub dark:text-slate-400">
+                    {language === 'ar' ? 'اسم الحي يدوياً' : 'District Name (Manual)'} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="field-customArea"
+                    type="text"
+                    value={customArea}
+                    onChange={(e) => {
+                      setCustomArea(e.target.value);
+                      if (errors.customArea) setErrors((prev) => ({ ...prev, customArea: null }));
+                    }}
+                    placeholder={language === 'ar' ? 'أدخل اسم الحي أو المعلم القريب' : 'Enter district or landmark name'}
+                    className={`w-full rounded-xl border py-3 px-4 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${
+                      errors.customArea ? 'border-red-400' : customArea ? 'border-primary dark:border-blue-500' : 'border-border dark:border-slate-600'
+                    }`}
+                  />
+                  {errors.customArea && <p className="text-xs font-semibold text-red-500">{errors.customArea}</p>}
+                </div>
+              )}
+
+              {/* SubLocation / Detailed Street details */}
+              {selectedCity && selectedArea && (
+                <div className="space-y-1.5 transition-all duration-300">
+                  <label className="block text-xs font-bold text-sub dark:text-slate-400">
+                    {language === 'ar' ? 'العنوان التفصيلي (الشارع / رقم المبنى / الشقة)' : 'Street / Building / Apt Details'} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="field-subLocation"
+                    type="text"
+                    value={subLocation}
+                    onChange={(e) => {
+                      setSubLocation(e.target.value);
+                      if (errors.subLocation) setErrors((prev) => ({ ...prev, subLocation: null }));
+                    }}
+                    placeholder={language === 'ar' ? 'مثال: شارع صاري، مبنى ٤، شقة ١٢' : 'e.g., Sari St, Building 4, Apt 12'}
+                    className={`w-full rounded-xl border py-3 px-4 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${
+                      errors.subLocation ? 'border-red-400' : subLocation ? 'border-primary dark:border-blue-500' : 'border-border dark:border-slate-600'
+                    }`}
+                  />
+                  {errors.subLocation && <p className="text-xs font-semibold text-red-500">{errors.subLocation}</p>}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Real-time Full Address Confirmation Box */}
+          {getFullAddress() && (
+            <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3.5 dark:border-emerald-900/40 dark:bg-emerald-950/20">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
+                  {language === 'ar' ? 'العنوان الذي سيصل للفني' : 'Confirmed Technician Address'}
+                </p>
+                <p className="text-xs font-bold text-text dark:text-white mt-0.5 break-words">
+                  {getFullAddress()}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Notes Section */}
@@ -933,9 +1168,39 @@ export default function BookingPage() {
 
         {/* Summary Card */}
         <div className="mb-6 overflow-hidden rounded-2xl border border-border bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
-          <div className="border-b border-border px-5 py-3 dark:border-slate-700">
+          <div className="border-b border-border px-5 py-3.5 dark:border-slate-700 flex items-center justify-between">
             <h3 className="text-sm font-black text-text dark:text-white">{t.bookingSummary || 'Booking Summary'}</h3>
+            <span className="text-xs font-bold text-primary dark:text-blue-400">{svcName}</span>
           </div>
+
+          {/* Quick Live Preview Rows */}
+          <div className="border-b border-border bg-slate-50/60 px-5 py-3 text-xs dark:border-slate-700 dark:bg-slate-800/40 space-y-1.5">
+            <div className="flex items-center justify-between text-sub dark:text-slate-400">
+              <span>{language === 'ar' ? 'العميل:' : 'Customer:'}</span>
+              <span className="font-bold text-text dark:text-white truncate max-w-[200px]">
+                {fullName.trim() || '—'} {phoneNumber ? `(${countryCode}${phoneNumber})` : ''}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-sub dark:text-slate-400">
+              <span>{language === 'ar' ? 'الموعد:' : 'Scheduled:'}</span>
+              <span className="font-bold text-text dark:text-white">
+                {selectedDate
+                  ? selectedDate.toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', {
+                      weekday: 'short',
+                      day: 'numeric',
+                      month: 'short',
+                    })
+                  : (language === 'ar' ? 'لم يحدد بعد' : 'Not selected')}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-sub dark:text-slate-400">
+              <span>{language === 'ar' ? 'الموقع:' : 'Location:'}</span>
+              <span className="font-bold text-text dark:text-white truncate max-w-[220px]">
+                {getFullAddress() || (language === 'ar' ? 'لم يحدد بعد' : 'Not specified')}
+              </span>
+            </div>
+          </div>
+
           <div className="space-y-3 px-5 py-4">
             <div className="flex items-center justify-between">
               <span className="text-sm text-sub dark:text-slate-400">{t.serviceCharge || 'Service Charge'}</span>
