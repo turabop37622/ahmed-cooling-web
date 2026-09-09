@@ -6,6 +6,7 @@ import {
   Loader2, MapPin, Calendar, Clock, FileText,
   ChevronLeft, ChevronRight, User, Phone, CheckCircle2, Shield,
   Sparkles, AlertCircle, Mail, Navigation, Edit3, Building2,
+  Refrigerator, WashingMachine, Snowflake, Wind, Flame, Wrench,
 } from 'lucide-react';
 import { useTranslation } from '@/contexts/TranslationContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -283,7 +284,9 @@ export default function BookingPage() {
 
   const handlePhoneChange = (e) => {
     let val = e.target.value.replace(/\D/g, '');
-    if (val.startsWith('05')) val = val.substring(1);
+    if (val.startsWith('0')) {
+      val = val.replace(/^0+/, '');
+    }
     setPhoneNumber(val.slice(0, 9));
     if (errors.phone) setErrors((prev) => ({ ...prev, phone: null }));
   };
@@ -509,8 +512,12 @@ export default function BookingPage() {
 
   const validate = () => {
     const e = {};
-    if (!fullName.trim()) e.fullName = t.enterNameMsg || 'Name is required';
-    if (!phoneNumber.trim() || phoneNumber.length < 8) e.phone = t.enterPhoneMsg || 'Valid 9-digit mobile number required (5XXXXXXXX)';
+    if (!fullName.trim()) e.fullName = t.enterNameMsg || (language === 'ar' ? 'الاسم مطلوب' : 'Full name is required');
+    if (!phoneNumber.trim()) {
+      e.phone = language === 'ar' ? 'رقم الجوال مطلوب' : 'Mobile number is required';
+    } else if (phoneNumber.length !== 9 || !phoneNumber.startsWith('5')) {
+      e.phone = language === 'ar' ? 'رقم الجوال السعودي يجب أن يتكون من 9 أرقام يبدأ بـ 5 (مثال: 501234567)' : 'Valid 9-digit Saudi mobile number required (5XXXXXXXX)';
+    }
     if (!selectedDate) e.date = t.selectDateMsg || 'Select a date';
 
     if (isManualAddress) {
@@ -719,8 +726,8 @@ export default function BookingPage() {
           <div className="mb-6 w-full overflow-hidden rounded-2xl border border-border bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
             {/* Service Header */}
             <div className="flex items-center gap-3 border-b border-border bg-slate-50 px-5 py-4 dark:border-slate-700 dark:bg-slate-800/50">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-xl dark:bg-blue-950/50">
-                {bookingSuccess.serviceIcon}
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-primary dark:bg-blue-950/50 dark:text-blue-400">
+                <ServiceIcon service={service} className="w-6 h-6 stroke-[2]" />
               </div>
               <div>
                 <p className="text-sm font-bold text-text dark:text-white">{bookingSuccess.serviceName}</p>
@@ -797,8 +804,8 @@ export default function BookingPage() {
         <div className="mb-6 overflow-hidden rounded-2xl border border-border bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-5 py-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/20 text-2xl backdrop-blur-sm">
-                {service.icon || '🔧'}
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/20 text-white backdrop-blur-sm shadow-inner">
+                <ServiceIcon service={service} className="w-6 h-6 stroke-[2]" />
               </div>
               <div className="min-w-0 flex-1">
                 <h1 className="truncate text-lg font-black text-white">{svcName}</h1>
@@ -824,20 +831,29 @@ export default function BookingPage() {
         </div>
         <div className="mb-6 space-y-3 rounded-2xl border border-border bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <div>
-            <label className="mb-1.5 block text-xs font-bold text-sub dark:text-slate-400">{t.fullNameInput || 'Full Name'}</label>
+            <label className="mb-1.5 block text-xs font-bold text-sub dark:text-slate-400">
+              {t.fullNameInput || (language === 'ar' ? 'الاسم الكامل' : 'Full Name')} <span className="text-red-500">*</span>
+            </label>
             <div className="relative">
               <User className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-sub dark:text-slate-500" />
               <input
                 id="field-fullName"
-                type="text" value={fullName} onChange={(e) => setFullName(e.target.value)}
-                placeholder={t.enterFullName || 'John Doe'}
+                type="text"
+                value={fullName}
+                onChange={(e) => {
+                  setFullName(e.target.value);
+                  if (errors.fullName) setErrors((prev) => ({ ...prev, fullName: null }));
+                }}
+                placeholder={language === 'ar' ? 'أدخل اسمك الكريم' : 'Enter your full name'}
                 className={`w-full rounded-xl border py-3 pr-4 pl-10 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${errors.fullName ? 'border-red-400' : 'border-border dark:border-slate-600'}`}
               />
             </div>
             {errors.fullName && <p className="mt-1 text-xs font-semibold text-red-500">{errors.fullName}</p>}
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-bold text-sub dark:text-slate-400">{t.mobileNumber || 'Mobile Number'}</label>
+            <label className="mb-1.5 block text-xs font-bold text-sub dark:text-slate-400">
+              {t.mobileNumber || (language === 'ar' ? 'رقم الجوال' : 'Mobile Number')} <span className="text-red-500">*</span>
+            </label>
             <div className="flex gap-2">
               <select
                 value={countryCode} onChange={(e) => setCountryCode(e.target.value)}
@@ -850,6 +866,8 @@ export default function BookingPage() {
                 <input
                   id="field-phone"
                   type="tel"
+                  inputMode="numeric"
+                  maxLength={9}
                   value={phoneNumber}
                   onChange={handlePhoneChange}
                   placeholder="5XXXXXXXX"
@@ -857,9 +875,12 @@ export default function BookingPage() {
                 />
               </div>
             </div>
-            <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
-              {language === 'ar' ? 'أدخل 9 أرقام تبدأ بـ 5 (مثال: 501234567)' : 'Enter 9 digits starting with 5 (e.g. 501234567)'}
-            </p>
+            <div className="mt-1.5 flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500">
+              <span>{language === 'ar' ? 'أدخل 9 أرقام تبدأ بـ 5 (مثال: 501234567)' : '9 digits starting with 5 (e.g. 501234567)'}</span>
+              <span className={`font-mono font-bold ${phoneNumber.length === 9 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}>
+                {phoneNumber.length}/9
+              </span>
+            </div>
             {errors.phone && <p className="mt-1 text-xs font-semibold text-red-500">{errors.phone}</p>}
           </div>
           {user?.email && (
@@ -1170,7 +1191,10 @@ export default function BookingPage() {
         <div className="mb-6 overflow-hidden rounded-2xl border border-border bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <div className="border-b border-border px-5 py-3.5 dark:border-slate-700 flex items-center justify-between">
             <h3 className="text-sm font-black text-text dark:text-white">{t.bookingSummary || 'Booking Summary'}</h3>
-            <span className="text-xs font-bold text-primary dark:text-blue-400">{svcName}</span>
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-primary dark:text-blue-400">
+              <ServiceIcon service={service} className="w-3.5 h-3.5 stroke-[2]" />
+              <span>{svcName}</span>
+            </span>
           </div>
 
           {/* Quick Live Preview Rows */}
@@ -1258,4 +1282,28 @@ function DetailRow({ icon, label, value }) {
       </div>
     </div>
   );
+}
+
+function ServiceIcon({ service, className = 'w-6 h-6' }) {
+  const text = `${service?.name || ''} ${service?.nameAr || ''} ${service?.name_en || ''} ${service?.name_ar || ''} ${service?.category || ''}`.toLowerCase();
+
+  if (text.includes('ref') || text.includes('fridge') || text.includes('freezer') || text.includes('ثلاج') || text.includes('ice')) {
+    return <Refrigerator className={className} />;
+  }
+  if (text.includes('wash') || text.includes('laundry') || text.includes('غسال')) {
+    return <WashingMachine className={className} />;
+  }
+  if (text.includes('clean') || text.includes('jet') || text.includes('sanitiz') || text.includes('غسيل') || text.includes('تنظيف')) {
+    return <Sparkles className={className} />;
+  }
+  if (text.includes('gas') || text.includes('freon') || text.includes('شحن') || text.includes('فريون')) {
+    return <Wind className={className} />;
+  }
+  if (text.includes('stove') || text.includes('oven') || text.includes('cook') || text.includes('فرن') || text.includes('بوتجاز') || text.includes('طباخ')) {
+    return <Flame className={className} />;
+  }
+  if (text.includes('ac') || text.includes('air') || text.includes('cool') || text.includes('مكيف') || text.includes('تبريد') || text.includes('سبليت')) {
+    return <Snowflake className={className} />;
+  }
+  return <Wrench className={className} />;
 }

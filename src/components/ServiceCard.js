@@ -13,6 +13,8 @@ import {
   Flame,
   CheckCircle2,
   ShieldCheck,
+  Refrigerator,
+  WashingMachine,
 } from 'lucide-react';
 import { useTranslation } from '../contexts/TranslationContext';
 import { getServiceImage } from '../lib/serviceImages';
@@ -25,7 +27,7 @@ const getCategoryMeta = (cat, serviceName, lang) => {
   if (c.includes('wash') || s.includes('wash') || s.includes('غسال')) {
     return {
       label: lang === 'ar' ? 'غسالات ومجففات' : 'Washing Machines',
-      icon: Wrench,
+      icon: WashingMachine,
       color: 'text-indigo-300',
     };
   }
@@ -42,7 +44,7 @@ const getCategoryMeta = (cat, serviceName, lang) => {
   ) {
     return {
       label: lang === 'ar' ? 'ثلاجات وتبريد' : 'Refrigerators',
-      icon: Sparkles,
+      icon: Refrigerator,
       color: 'text-cyan-300',
     };
   }
