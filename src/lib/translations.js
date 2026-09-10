@@ -135,7 +135,7 @@ export const translations = {
     serviceAreas: 'We Serve Across Saudi Arabia',
 
     // Home - Sections
-    ourServices: 'Our Services', seeAll: 'See All →',
+    ourServices: 'Our Services', seeAll: 'See All',
     emergencyStripTitle: '24/7 Emergency Repair',
     emergencyStripSub: 'Expert help, anytime you need it',
     emergencyStripCta: 'Call',
@@ -605,7 +605,7 @@ export const translations = {
 
     serviceAreas: 'نخدم في جميع أنحاء المملكة العربية السعودية',
 
-    ourServices: 'خدماتنا', seeAll: '← عرض الكل',
+    ourServices: 'خدماتنا', seeAll: 'عرض الكل',
     emergencyStripTitle: 'إصلاح طوارئ 24/7',
     emergencyStripSub: 'مساعدة الخبراء في أي وقت',
     emergencyStripCta: 'اتصل الآن',

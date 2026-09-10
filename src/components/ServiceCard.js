@@ -198,7 +198,7 @@ export default function ServiceCard({ service, onBook }) {
         </div>
 
         {/* ═══ Interactive Bottom Action Shelf ═══ */}
-        <div className="mt-5 pt-4 border-t border-slate-150/80 dark:border-slate-800 flex items-center justify-between gap-2">
+        <div className="mt-5 pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
           {/* Price Stack */}
           <div className="flex flex-col">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">

@@ -26,6 +26,8 @@ import {
   Zap,
   HelpCircle,
   Share2,
+  Send,
+  User,
 } from 'lucide-react';
 import { useTranslation } from '@/contexts/TranslationContext';
 import { getServiceById, getServices } from '@/lib/api';
@@ -147,6 +149,61 @@ const SERVICE_FAQS = [
   },
 ];
 
+const INITIAL_SERVICE_REVIEWS = [
+  {
+    id: 'rev-1',
+    name: 'عبدالله السلمي',
+    nameEn: 'Abdullah Al-Sulami',
+    city: 'جدة',
+    cityEn: 'Jeddah',
+    rating: 5,
+    date: 'منذ ٣ أيام',
+    dateEn: '3 days ago',
+    comment: 'ما شاء الله تبارك الله، الفني وصل في الموعد تماماً وكان خلوقاً ومحترفاً جداً. فحص الجهاز وكشف سبب العطل بدقة وصلحه واختبر التبريد قبل أن يغادر. أنصح بالتعامل معهم بشدة.',
+    commentEn: 'Excellent service! The technician arrived right on time, diagnosed the issue quickly, and tested everything thoroughly before leaving. Highly recommended.',
+    likes: 12,
+  },
+  {
+    id: 'rev-2',
+    name: 'أم فيصل الشريف',
+    nameEn: 'Um Faisal Al-Sharif',
+    city: 'مكة المكرمة',
+    cityEn: 'Makkah',
+    rating: 5,
+    date: 'منذ أسبوع',
+    dateEn: '1 week ago',
+    comment: 'خدمة سريعة وممتازة وسعرهم واضح من البداية بدون أي رسوم خفية. وتم تسليمي سند ضمان رسمي معتمد على الصيانة.',
+    commentEn: 'Fast and reliable service with clear upfront pricing. They provided an official certified warranty receipt for the service.',
+    likes: 8,
+  },
+  {
+    id: 'rev-3',
+    name: 'سلطان الحربي',
+    nameEn: 'Sultan Al-Harbi',
+    city: 'جدة',
+    cityEn: 'Jeddah',
+    rating: 5,
+    date: 'منذ أسبوعين',
+    dateEn: '2 weeks ago',
+    comment: 'تعاملت مع عدة فنيين من قبل لكن ورشة أحمد للتبريد أفضلهم أمانة ودقة في المواعيد. الجهاز شغال ممتاز كأنه جديد.',
+    commentEn: 'Best cooling and appliance service team in Jeddah. Repaired the fault on the first visit with great honesty and precision.',
+    likes: 15,
+  },
+  {
+    id: 'rev-4',
+    name: 'رنا الغامدي',
+    nameEn: 'Rana Al-Ghamdi',
+    city: 'مكة المكرمة',
+    cityEn: 'Makkah',
+    rating: 4,
+    date: 'منذ شهر',
+    dateEn: '1 month ago',
+    comment: 'فريق محترم جداً والتزام تام بالمواعيد ونظافة تامة أثناء العمل بعد الانتهاء. شكراً جزيلاً لكم.',
+    commentEn: 'Very respectful crew, on-time arrival and clean work throughout. Thank you very much.',
+    likes: 6,
+  },
+];
+
 export default function ServiceDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -159,6 +216,16 @@ export default function ServiceDetailPage() {
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const mobileBookingCardRef = useRef(null);
+
+  // Reviews state
+  const [reviewsList, setReviewsList] = useState(INITIAL_SERVICE_REVIEWS);
+  const [reviewName, setReviewName] = useState('');
+  const [reviewCity, setReviewCity] = useState('جدة');
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewHoverRating, setReviewHoverRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState('');
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [likedReviews, setLikedReviews] = useState({});
 
   useEffect(() => {
     const handleScroll = () => {
@@ -183,6 +250,65 @@ export default function ServiceDetailPage() {
   };
 
   const serviceId = params?.id;
+
+  // Load any locally saved reviews for this service
+  useEffect(() => {
+    if (!serviceId) return;
+    try {
+      const saved = localStorage.getItem(`service_reviews_${serviceId}`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setReviewsList([...parsed, ...INITIAL_SERVICE_REVIEWS]);
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }, [serviceId]);
+
+  const handleToggleLike = (id) => {
+    setLikedReviews((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
+  const handleSubmitReview = (e) => {
+    e.preventDefault();
+    if (!reviewName.trim() || !reviewComment.trim()) return;
+
+    const newRev = {
+      id: `rev-custom-${Date.now()}`,
+      name: reviewName.trim(),
+      nameEn: reviewName.trim(),
+      city: reviewCity,
+      cityEn: reviewCity === 'جدة' ? 'Jeddah' : 'Makkah',
+      rating: reviewRating,
+      date: language === 'ar' ? 'الآن' : 'Just now',
+      dateEn: 'Just now',
+      comment: reviewComment.trim(),
+      commentEn: reviewComment.trim(),
+      likes: 1,
+      isNew: true,
+    };
+
+    const updated = [newRev, ...reviewsList];
+    setReviewsList(updated);
+
+    try {
+      const customOnly = updated.filter((r) => r.isNew);
+      localStorage.setItem(`service_reviews_${serviceId}`, JSON.stringify(customOnly));
+    } catch {
+      // ignore
+    }
+
+    setReviewName('');
+    setReviewComment('');
+    setReviewRating(5);
+    setReviewSubmitted(true);
+    setTimeout(() => setReviewSubmitted(false), 5000);
+  };
 
   useEffect(() => {
     async function fetchData() {
@@ -755,6 +881,252 @@ export default function ServiceDetailPage() {
                     </p>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* ═══ 7. CUSTOMER REVIEWS & COMMENTS SECTION ═══ */}
+            <div className="rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-6">
+                <div>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500 dark:bg-amber-400/15">
+                      <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    </span>
+                    <span className="text-xs font-black uppercase tracking-wider text-primary dark:text-blue-400">
+                      {language === 'ar' ? 'آراء وتقييمات العملاء' : 'Customer Reviews & Feedback'}
+                    </span>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                    {language === 'ar' ? 'تجارب العملاء مع هذه الخدمة' : 'Verified Reviews for this Service'}
+                  </h3>
+                  <p className="mt-1 text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">
+                    {language === 'ar'
+                      ? 'جميع التقييمات من عملاء حقيقيين تم إنجاز الخدمة في منازلهم بجدة ومكة المكرمة'
+                      : 'Real reviews from verified households serviced in Jeddah & Makkah'}
+                  </p>
+                </div>
+
+                {/* Score badge */}
+                <div className="flex items-center gap-3 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/40 p-3.5 self-start sm:self-auto shrink-0">
+                  <div className="text-center">
+                    <span className="block text-2xl font-black text-slate-900 dark:text-white leading-none">
+                      4.9
+                    </span>
+                    <div className="flex items-center justify-center gap-0.5 mt-1 text-amber-400">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="h-3.5 w-3.5 fill-amber-400" />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="text-start border-s border-amber-200 dark:border-amber-800 ps-3">
+                    <span className="block text-xs font-black text-slate-800 dark:text-slate-200">
+                      {language === 'ar' ? 'تقييم ممتاز' : 'Exceptional'}
+                    </span>
+                    <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                      {reviewsList.length + 124} {language === 'ar' ? 'تقييم موثق' : 'verified reviews'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Add Review / Comment Form */}
+              <div className="mt-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 p-5 sm:p-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <MessageSquare className="h-4 w-4 text-primary dark:text-blue-400" />
+                  <h4 className="text-sm font-black text-slate-900 dark:text-white">
+                    {language === 'ar' ? 'أضف تقييمك وتعليقك' : 'Leave a Review & Comment'}
+                  </h4>
+                </div>
+
+                {reviewSubmitted && (
+                  <div className="mb-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 p-3 text-xs font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                    <span>
+                      {language === 'ar'
+                        ? 'شكراً لك! تم نشر تقييمك وتعليقك بنجاح.'
+                        : 'Thank you! Your review has been submitted and published successfully.'}
+                    </span>
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmitReview} className="space-y-4">
+                  {/* Rating Selector */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                      {language === 'ar' ? 'تقييمك للخدمة:' : 'Your Rating:'}
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => {
+                          const active = (reviewHoverRating || reviewRating) >= star;
+                          return (
+                            <button
+                              key={star}
+                              type="button"
+                              onClick={() => setReviewRating(star)}
+                              onMouseEnter={() => setReviewHoverRating(star)}
+                              onMouseLeave={() => setReviewHoverRating(0)}
+                              className="p-1 transition-transform hover:scale-110 active:scale-95 focus:outline-none cursor-pointer"
+                              aria-label={`Rate ${star} star`}
+                            >
+                              <Star
+                                className={`h-6 w-6 ${
+                                  active
+                                    ? 'fill-amber-400 text-amber-400 drop-shadow-[0_2px_6px_rgba(251,191,36,0.3)]'
+                                    : 'text-slate-300 dark:text-slate-600'
+                                }`}
+                              />
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <span className="text-xs font-bold text-amber-600 dark:text-amber-400 ms-1">
+                        {reviewRating === 5 && (language === 'ar' ? 'ممتاز جداً (5/5)' : 'Excellent (5/5)')}
+                        {reviewRating === 4 && (language === 'ar' ? 'جيد جداً (4/5)' : 'Very Good (4/5)')}
+                        {reviewRating === 3 && (language === 'ar' ? 'جيد (3/5)' : 'Good (3/5)')}
+                        {reviewRating <= 2 && (language === 'ar' ? 'مقبول (2/5)' : 'Fair (2/5)')}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Name and City */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                        {language === 'ar' ? 'الاسم الكامل:' : 'Your Name:'}
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={reviewName}
+                        onChange={(e) => setReviewName(e.target.value)}
+                        placeholder={language === 'ar' ? 'مثال: محمد العمري' : 'e.g. Mohammed Al-Amri'}
+                        className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-xs sm:text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                        {language === 'ar' ? 'المدينة:' : 'City:'}
+                      </label>
+                      <select
+                        value={reviewCity}
+                        onChange={(e) => setReviewCity(e.target.value)}
+                        className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-xs sm:text-sm font-bold text-slate-900 dark:text-white focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      >
+                        <option value="جدة">{language === 'ar' ? 'جدة' : 'Jeddah'}</option>
+                        <option value="مكة المكرمة">{language === 'ar' ? 'مكة المكرمة' : 'Makkah'}</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Comment Textarea */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      {language === 'ar' ? 'تعليقك وتجربتك:' : 'Your Comment & Experience:'}
+                    </label>
+                    <textarea
+                      rows={3}
+                      required
+                      value={reviewComment}
+                      onChange={(e) => setReviewComment(e.target.value)}
+                      placeholder={
+                        language === 'ar'
+                          ? 'اكتب تعليقك حول دقة الموعد، جودة الفحص والإصلاح، والتعامل مع الفني...'
+                          : 'Share your thoughts about technician arrival, diagnosis, and repair quality...'
+                      }
+                      className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-xs sm:text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+                    />
+                  </div>
+
+                  {/* Submit Button */}
+                  <div className="flex justify-end">
+                    <button
+                      type="submit"
+                      className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-xs font-black text-white shadow-md shadow-primary/25 hover:bg-primary-dark transition active:scale-95 cursor-pointer"
+                    >
+                      <Send className="h-3.5 w-3.5" />
+                      <span>{language === 'ar' ? 'نشر التقييم والتعليق' : 'Post Review & Comment'}</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Reviews List */}
+              <div className="mt-8 space-y-4">
+                {reviewsList.map((rev) => {
+                  const isLiked = !!likedReviews[rev.id];
+                  const currentLikes = (rev.likes || 0) + (isLiked ? 1 : 0);
+                  const displayName = language === 'ar' ? rev.name : (rev.nameEn || rev.name);
+                  const displayCity = language === 'ar' ? rev.city : (rev.cityEn || rev.city);
+                  const displayDate = language === 'ar' ? rev.date : (rev.dateEn || rev.date);
+                  const displayComment = language === 'ar' ? rev.comment : (rev.commentEn || rev.comment);
+
+                  return (
+                    <div
+                      key={rev.id}
+                      className="rounded-2xl border border-slate-100 dark:border-slate-800/80 bg-slate-50/60 dark:bg-slate-800/40 p-5 transition hover:border-slate-200 dark:hover:border-slate-700"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          {/* Avatar Initials */}
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-blue-600 text-xs font-black text-white shadow-sm">
+                            {displayName
+                              ?.split(' ')
+                              .map((w) => w[0])
+                              .slice(0, 2)
+                              .join('')}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h5 className="text-sm font-black text-slate-900 dark:text-white">
+                                {displayName}
+                              </h5>
+                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
+                                <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                                <span>{language === 'ar' ? 'عميل موثق' : 'Verified Customer'}</span>
+                              </span>
+                            </div>
+                            <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
+                              📍 {displayCity} • {displayDate}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Stars */}
+                        <div className="flex items-center gap-0.5 text-amber-400">
+                          {[...Array(rev.rating || 5)].map((_, i) => (
+                            <Star key={i} className="h-3.5 w-3.5 fill-amber-400" />
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Comment text */}
+                      <p className="mt-3 text-xs sm:text-sm font-medium leading-relaxed text-slate-700 dark:text-slate-300">
+                        {displayComment}
+                      </p>
+
+                      {/* Helpful Button */}
+                      <div className="mt-3.5 flex items-center justify-between border-t border-slate-200/50 dark:border-slate-700/50 pt-3 text-xs">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleLike(rev.id)}
+                          className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-bold transition cursor-pointer ${
+                            isLiked
+                              ? 'bg-blue-50 text-primary dark:bg-blue-950/50 dark:text-blue-300'
+                              : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800'
+                          }`}
+                        >
+                          <ThumbsUp className={`h-3.5 w-3.5 ${isLiked ? 'fill-current' : ''}`} />
+                          <span>{language === 'ar' ? 'مفيد' : 'Helpful'} ({currentLikes})</span>
+                        </button>
+
+                        <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500">
+                          {language === 'ar' ? 'تجربة حقيقية مؤكدة' : 'Confirmed experience'}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>

@@ -103,8 +103,8 @@ export default function ServicesPage() {
 
         {/* Category chips */}
         <div
-          className="-mx-1 mb-8 flex gap-2 overflow-x-auto px-1 pb-1 scrollbar-none"
-          style={{ scrollbarWidth: 'none' }}
+          className="-mx-1 mb-8 flex gap-2 overflow-x-auto px-1 pb-1 scrollbar-none no-scrollbar [&::-webkit-scrollbar]:hidden"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           dir={isRTL ? 'rtl' : 'ltr'}
         >
           {FILTERS.map((f) => {
