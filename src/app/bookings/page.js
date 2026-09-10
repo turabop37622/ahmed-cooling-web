@@ -151,7 +151,7 @@ export default function BookingsPage() {
     }
     setSubmittingReview(true);
     try {
-      const id = reviewBooking._id || reviewBooking.id;
+      const id = reviewBooking._id || reviewBooking.id || reviewBooking.bookingId || reviewBooking.orderNumber;
       await submitReview(id, {
         rating: reviewStars,
         comment: reviewText.trim(),
@@ -163,8 +163,9 @@ export default function BookingsPage() {
       setReviewStars(0);
       setReviewText('');
       loadBookings();
-    } catch {
-      alert(t.reviewErrorSubmit || 'Failed to submit review');
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || t.reviewErrorSubmit || 'Failed to submit review';
+      alert(msg);
     } finally {
       setSubmittingReview(false);
     }
