@@ -175,17 +175,17 @@ export default function ServiceCard({ service, onBook }) {
           </span>
         </div>
 
-        {/* Title */}
-        <h3 className="text-lg font-bold tracking-tight text-slate-900 transition-colors group-hover:text-primary dark:text-white dark:group-hover:text-blue-400">
+        {/* Title - uniform min-height so next items align */}
+        <h3 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 transition-colors group-hover:text-primary dark:text-white dark:group-hover:text-blue-400 line-clamp-1 min-h-[1.75rem] flex items-center">
           {name}
         </h3>
 
-        {/* Description */}
-        <p className="mt-1.5 line-clamp-2 text-xs sm:text-sm font-normal leading-relaxed text-slate-500 dark:text-slate-400">
+        {/* Description - uniform min-height for 2 lines so badges align horizontally */}
+        <p className="mt-1.5 line-clamp-2 text-xs sm:text-sm font-normal leading-relaxed text-slate-500 dark:text-slate-400 min-h-[2.5rem] sm:min-h-[2.75rem]">
           {desc}
         </p>
 
-        {/* Micro Trust Indicators */}
+        {/* Micro Trust Indicators - uniform position */}
         <div className="mt-4 flex items-center gap-2 flex-wrap">
           <div className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200/70 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-2.5 py-1 text-[11px] font-bold text-slate-700 dark:text-slate-300">
             <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
@@ -197,23 +197,23 @@ export default function ServiceCard({ service, onBook }) {
           </div>
         </div>
 
-        {/* ═══ Interactive Bottom Action Shelf ═══ */}
-        <div className="mt-5 pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
+        {/* ═══ Interactive Bottom Action Shelf - mt-auto locks it to bottom across all cards ═══ */}
+        <div className="mt-auto pt-5 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
           {/* Price Stack */}
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 truncate">
               {t.startingFrom || 'Starting from'}
             </span>
-            <div className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+            <div className="text-lg sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight truncate leading-tight">
               {formatPrice(price)}
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <Link
               href={detailUrl}
-              className="group/details inline-flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3.5 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-primary/50 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 transition-all"
+              className="group/details inline-flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 sm:px-3.5 sm:py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-primary/50 hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10 transition-all whitespace-nowrap"
               title={t.viewDetails || 'Details'}
             >
               <span>{t.viewDetails || 'Details'}</span>
@@ -222,7 +222,7 @@ export default function ServiceCard({ service, onBook }) {
             <button
               type="button"
               onClick={handleBookClick}
-              className="relative inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-primary via-blue-600 to-primary-dark px-4 py-2.5 text-xs font-black text-white shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/40 hover:scale-[1.02] active:scale-95 transition-all duration-200"
+              className="relative inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-primary via-blue-600 to-primary-dark px-3.5 py-2 sm:px-4 sm:py-2.5 text-xs font-black text-white shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/40 hover:scale-[1.02] active:scale-95 transition-all duration-200 whitespace-nowrap cursor-pointer"
             >
               <span>{t.bookNow}</span>
             </button>
