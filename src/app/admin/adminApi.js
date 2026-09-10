@@ -19,13 +19,12 @@ let loginPromise = null;
 export async function ensureValidAdminToken() {
   if (typeof window === 'undefined') return null;
 
-  let token = localStorage.getItem('adminToken');
-  // Check if token exists and is a genuine signed JWT (not the old demo dummy string)
-  if (token && !token.startsWith('demo-admin') && token.length > 35) {
+  const token = localStorage.getItem('adminToken');
+  if (token && token.length > 35) {
     return token;
   }
 
-  // If no token, return null so unauthenticated users are redirected to /admin/login
+  // No valid token — user will be redirected to /admin/login
   return null;
 }
 
@@ -33,7 +32,7 @@ export async function ensureValidAdminToken() {
 api.interceptors.request.use(async (config) => {
   if (typeof window !== 'undefined') {
     let token = localStorage.getItem('adminToken');
-    if (!token || token.startsWith('demo-admin') || token.length < 35) {
+    if (!token || token.length < 35) {
       token = await ensureValidAdminToken();
     }
     if (token) {
@@ -53,7 +52,7 @@ api.interceptors.response.use(
       try {
         localStorage.removeItem('adminToken');
         const freshToken = await ensureValidAdminToken();
-        if (freshToken && freshToken.length > 35 && !freshToken.startsWith('demo-admin')) {
+        if (freshToken && freshToken.length > 35) {
           originalRequest.headers.Authorization = `Bearer ${freshToken}`;
           return api(originalRequest);
         }
