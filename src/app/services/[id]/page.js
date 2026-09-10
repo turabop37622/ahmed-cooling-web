@@ -378,36 +378,36 @@ export default function ServiceDetailPage() {
               </div>
 
               {/* Quick Info Bar below Hero image */}
-              <div className="grid grid-cols-2 divide-x divide-slate-100 border-t border-slate-100 bg-slate-50/70 p-4 rtl:divide-x-reverse dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900/60 sm:grid-cols-4">
-                <div className="p-2 text-center">
-                  <span className="block text-[11px] font-bold text-slate-500 dark:text-slate-400">
+              <div className="grid grid-cols-4 divide-x divide-slate-100 border-t border-slate-100 bg-slate-50/70 p-2 sm:p-4 rtl:divide-x-reverse dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900/60">
+                <div className="p-1 sm:p-2 text-center min-w-0">
+                  <span className="block text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">
                     {t.startingFrom || 'Starting from'}
                   </span>
-                  <span className="text-base sm:text-lg font-bold text-primary dark:text-blue-400">
+                  <span className="text-xs sm:text-base lg:text-lg font-bold text-primary dark:text-blue-400 truncate block">
                     {formatPrice(price)}
                   </span>
                 </div>
-                <div className="p-2 text-center">
-                  <span className="block text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                <div className="p-1 sm:p-2 text-center min-w-0">
+                  <span className="block text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">
                     {language === 'ar' ? 'المدة التقديرية' : 'Estimated Time'}
                   </span>
-                  <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
+                  <span className="text-[11px] sm:text-sm font-bold text-slate-800 dark:text-slate-200 truncate block">
                     {toAr(duration)}
                   </span>
                 </div>
-                <div className="p-2 text-center">
-                  <span className="block text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                <div className="p-1 sm:p-2 text-center min-w-0">
+                  <span className="block text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">
                     {language === 'ar' ? 'الضمان' : 'Warranty'}
                   </span>
-                  <span className="text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                  <span className="text-[11px] sm:text-sm font-bold text-emerald-600 dark:text-emerald-400 truncate block">
                     {language === 'ar' ? 'شامل ومعتمد' : '100% Certified'}
                   </span>
                 </div>
-                <div className="p-2 text-center">
-                  <span className="block text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                <div className="p-1 sm:p-2 text-center min-w-0">
+                  <span className="block text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">
                     {language === 'ar' ? 'التغطية' : 'Coverage'}
                   </span>
-                  <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
+                  <span className="text-[11px] sm:text-sm font-bold text-slate-800 dark:text-slate-200 truncate block">
                     {language === 'ar' ? 'جدة ومكة' : 'Jeddah & Makkah'}
                   </span>
                 </div>

@@ -369,7 +369,7 @@ export default function Home() {
   return (
     <div className="bg-bg dark:bg-slate-950" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* ═══ 1. HERO SECTION (CONTAINER MATCHING USER MARKERS: mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-8) ═══ */}
-      <section className="relative min-h-[85vh] overflow-hidden bg-gradient-to-br from-[#1D4ED8] via-[#2563EB] to-[#3B82F6] flex items-center">
+      <section className="relative w-full aspect-video sm:aspect-auto sm:min-h-[85vh] overflow-hidden bg-gradient-to-br from-[#1D4ED8] via-[#2563EB] to-[#3B82F6] flex items-center">
         {/* Background Video */}
         <video
           autoPlay
@@ -384,45 +384,45 @@ export default function Home() {
         {/* Dark overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-[#0F172A]/85 via-[#1D4ED8]/65 to-[#2563EB]/40" />
 
-        <div className="relative mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-8 py-20 sm:py-28 w-full">
+        <div className="relative mx-auto max-w-[1560px] px-3.5 sm:px-6 lg:px-8 py-3 sm:py-28 w-full">
           <div className="max-w-3xl">
             {/* Top Badge */}
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/15 px-4 py-1.5 backdrop-blur-md shadow-sm">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-xs font-black text-white">{t.heroAvailable}</span>
+            <div className="mb-1.5 sm:mb-5 inline-flex items-center gap-1.5 sm:gap-2 rounded-full border border-white/20 bg-white/15 px-2.5 py-0.5 sm:px-4 sm:py-1.5 backdrop-blur-md shadow-sm">
+              <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-[10px] sm:text-xs font-black text-white">{t.heroAvailable}</span>
             </div>
 
-            <h1 className="text-4xl font-black leading-[1.15] tracking-tight text-white sm:text-6xl lg:text-7xl">
+            <h1 className="text-lg sm:text-6xl lg:text-7xl font-black leading-tight sm:leading-[1.15] tracking-tight text-white">
               {(t.heroTitle || '').split('\n').map((line, i) => (
                 <span key={i}>
-                  {i === 0 ? line : <><br /><span className="text-blue-200">{line}</span></>}
+                  {i === 0 ? line : <><br className="hidden sm:inline" />{' '}<span className="text-blue-200">{line}</span></>}
                 </span>
               ))}
             </h1>
 
-            <p className="mt-6 max-w-2xl text-base font-medium leading-relaxed text-white/85 sm:text-xl">
+            <p className="mt-1 sm:mt-6 max-w-2xl text-[10px] sm:text-base lg:text-xl font-medium leading-snug sm:leading-relaxed text-white/85 line-clamp-2 sm:line-clamp-none">
               {t.heroSubtitle}
             </p>
 
             {/* CTA Buttons */}
-            <div className="mt-8 flex flex-wrap gap-4">
+            <div className="mt-2 sm:mt-8 flex flex-wrap gap-2 sm:gap-4">
               <Link
                 href="/services"
-                className="group inline-flex items-center gap-2 rounded-2xl bg-white px-8 py-4 text-sm sm:text-base font-black text-primary shadow-2xl transition-all hover:scale-105 hover:bg-blue-50"
+                className="group inline-flex items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl bg-white px-3 py-1.5 sm:px-8 sm:py-4 text-xs sm:text-base font-black text-primary shadow-lg transition-all hover:scale-105 hover:bg-blue-50"
               >
                 <span>{t.ourServices}</span>
                 {isRTL ? (
-                  <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+                  <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4 transition-transform group-hover:-translate-x-1" />
                 ) : (
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 transition-transform group-hover:translate-x-1" />
                 )}
               </Link>
 
               <button
                 onClick={handleEmergency}
-                className="inline-flex items-center gap-2 rounded-2xl border-2 border-white/30 bg-white/10 px-8 py-4 text-sm sm:text-base font-extrabold text-white backdrop-blur-md transition-all hover:bg-white/20 hover:border-white/50"
+                className="inline-flex items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl border border-white/30 sm:border-2 bg-white/10 px-3 py-1.5 sm:px-8 sm:py-4 text-xs sm:text-base font-extrabold text-white backdrop-blur-md transition-all hover:bg-white/20 hover:border-white/50"
               >
-                <Phone className="h-4 w-4 text-red-300" />
+                <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-300" />
                 <span>{t.heroEmergencyCta}</span>
               </button>
             </div>
@@ -430,31 +430,31 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══ 2. KEY STATS IMPACT COUNTERS (mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-8) ═══ */}
-      <section className="relative z-10 -mt-8 mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 rounded-3xl border border-slate-200/90 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900">
-          <div className="text-center p-3 border-b sm:border-b-0 border-slate-100 dark:border-slate-800">
-            <span className="text-2xl sm:text-4xl font-black text-primary dark:text-blue-400">10+</span>
-            <p className="mt-1 text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300">
-              {language === 'ar' ? 'سنوات خبرة في المملكة' : 'Years Experience in KSA'}
+      {/* ═══ 2. KEY STATS IMPACT COUNTERS (mx-auto max-w-[1560px] px-2 sm:px-6 lg:px-8) ═══ */}
+      <section className="relative z-10 mt-3 sm:-mt-8 mx-auto max-w-[1560px] px-2.5 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-4 divide-x divide-slate-100 dark:divide-slate-800 rtl:divide-x-reverse rounded-2xl sm:rounded-3xl border border-slate-200/90 bg-white py-3 px-1 sm:p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900">
+          <div className="text-center px-1 sm:px-3 min-w-0">
+            <span className="block text-base sm:text-3xl lg:text-4xl font-black text-primary dark:text-blue-400 truncate">10+</span>
+            <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs lg:text-sm font-bold text-slate-600 dark:text-slate-300 leading-tight truncate">
+              {language === 'ar' ? 'سنوات خبرة' : 'Years Exp.'}
             </p>
           </div>
-          <div className="text-center p-3 border-b sm:border-b-0 border-slate-100 dark:border-slate-800">
-            <span className="text-2xl sm:text-4xl font-black text-emerald-600 dark:text-emerald-400">2,500+</span>
-            <p className="mt-1 text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300">
-              {language === 'ar' ? 'عميل راضٍ ومستمر' : 'Happy Homes Served'}
+          <div className="text-center px-1 sm:px-3 min-w-0">
+            <span className="block text-base sm:text-3xl lg:text-4xl font-black text-emerald-600 dark:text-emerald-400 truncate">2,500+</span>
+            <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs lg:text-sm font-bold text-slate-600 dark:text-slate-300 leading-tight truncate">
+              {language === 'ar' ? 'عميل راضٍ' : 'Happy Homes'}
             </p>
           </div>
-          <div className="text-center p-3">
-            <span className="text-2xl sm:text-4xl font-black text-amber-500">100%</span>
-            <p className="mt-1 text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300">
-              {language === 'ar' ? 'قطع غيار أصلية ومضمونة' : 'Genuine Parts Guarantee'}
+          <div className="text-center px-1 sm:px-3 min-w-0">
+            <span className="block text-base sm:text-3xl lg:text-4xl font-black text-amber-500 truncate">100%</span>
+            <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs lg:text-sm font-bold text-slate-600 dark:text-slate-300 leading-tight truncate">
+              {language === 'ar' ? 'قطع أصلية' : 'Genuine Parts'}
             </p>
           </div>
-          <div className="text-center p-3">
-            <span className="text-2xl sm:text-4xl font-black text-purple-600 dark:text-purple-400">24/7</span>
-            <p className="mt-1 text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300">
-              {language === 'ar' ? 'خدمة طوارئ واستجابة' : 'Emergency Assistance'}
+          <div className="text-center px-1 sm:px-3 min-w-0">
+            <span className="block text-base sm:text-3xl lg:text-4xl font-black text-purple-600 dark:text-purple-400 truncate">24/7</span>
+            <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs lg:text-sm font-bold text-slate-600 dark:text-slate-300 leading-tight truncate">
+              {language === 'ar' ? 'خدمة طوارئ' : 'Emergency'}
             </p>
           </div>
         </div>
