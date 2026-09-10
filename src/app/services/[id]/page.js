@@ -748,7 +748,7 @@ export default function ServiceDetailPage() {
             <div className="rounded-3xl border border-slate-200/80 bg-white p-6 sm:p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div className="mb-6 flex items-center gap-3">
                 <div className="h-6 w-1 rounded-full bg-primary" />
-                <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
+                <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
                   {t.whatsIncluded || "What's Included in This Service"}
                 </h2>
               </div>
@@ -781,7 +781,7 @@ export default function ServiceDetailPage() {
             <div className="rounded-3xl border border-slate-200/80 bg-white p-6 sm:p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div className="mb-6 flex items-center gap-3">
                 <div className="h-6 w-1 rounded-full bg-primary" />
-                <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
+                <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
                   {t.commonIssues || 'Common Problems We Solve'}
                 </h2>
               </div>
@@ -807,7 +807,7 @@ export default function ServiceDetailPage() {
             <div className="rounded-3xl border border-slate-200/80 bg-white p-6 sm:p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div className="mb-6 flex items-center gap-3">
                 <div className="h-6 w-1 rounded-full bg-primary" />
-                <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
+                <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
                   {t.serviceProcess || 'Our Repair Process'}
                 </h2>
               </div>
@@ -859,7 +859,7 @@ export default function ServiceDetailPage() {
             <div className="rounded-3xl border border-slate-200/80 bg-white p-6 sm:p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div className="mb-6 flex items-center gap-3">
                 <div className="h-6 w-1 rounded-full bg-primary" />
-                <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
+                <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
                   {language === 'ar' ? 'الأسئلة الشائعة حول الخدمة' : 'Frequently Asked Questions'}
                 </h2>
               </div>
@@ -888,17 +888,12 @@ export default function ServiceDetailPage() {
             <div className="rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-6">
                 <div>
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500 dark:bg-amber-400/15">
-                      <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                    </span>
-                    <span className="text-xs font-black uppercase tracking-wider text-primary dark:text-blue-400">
-                      {language === 'ar' ? 'آراء وتقييمات العملاء' : 'Customer Reviews & Feedback'}
-                    </span>
+                  <div className="flex items-center gap-3 mb-1">
+                    <div className="h-6 w-1 rounded-full bg-primary" />
+                    <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
+                      {language === 'ar' ? 'آراء وتقييمات العملاء' : 'Customer Reviews & Comments'}
+                    </h2>
                   </div>
-                  <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-                    {language === 'ar' ? 'تجارب العملاء مع هذه الخدمة' : 'Verified Reviews for this Service'}
-                  </h3>
                   <p className="mt-1 text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">
                     {language === 'ar'
                       ? 'جميع التقييمات من عملاء حقيقيين تم إنجاز الخدمة في منازلهم بجدة ومكة المكرمة'
@@ -1171,7 +1166,7 @@ export default function ServiceDetailPage() {
             <div className="mb-8 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="h-6 w-1 rounded-full bg-primary" />
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
                   {t.relatedServices || 'Related Services'}
                 </h2>
               </div>
