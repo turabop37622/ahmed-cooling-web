@@ -271,7 +271,6 @@ export default function BookingsPage() {
                         className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-primary/30 bg-primary-light py-2 text-xs font-bold text-primary transition hover:bg-blue-100 dark:border-blue-500/30 dark:bg-blue-950/30 dark:text-blue-400"
                       >
                         {t.viewDetails || 'View Details'}
-                        <ChevronRight className="h-3.5 w-3.5" />
                       </button>
                       {status === 'completed' && !booking.reviewed && (
                         <button onClick={() => { setReviewBooking(booking); setReviewStars(0); setReviewText(''); }}

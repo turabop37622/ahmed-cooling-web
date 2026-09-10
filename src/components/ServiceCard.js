@@ -217,11 +217,6 @@ export default function ServiceCard({ service, onBook }) {
               title={t.viewDetails || 'Details'}
             >
               <span>{t.viewDetails || 'Details'}</span>
-              {isRTL ? (
-                <ArrowLeft className="h-3.5 w-3.5 ms-1 transition-transform group-hover/details:-translate-x-1" />
-              ) : (
-                <ArrowRight className="h-3.5 w-3.5 ms-1 transition-transform group-hover/details:translate-x-1" />
-              )}
             </Link>
 
             <button

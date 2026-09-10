@@ -138,7 +138,7 @@ export const translations = {
     ourServices: 'Our Services', seeAll: 'See All →',
     emergencyStripTitle: '24/7 Emergency Repair',
     emergencyStripSub: 'Expert help, anytime you need it',
-    emergencyStripCta: 'Call →',
+    emergencyStripCta: 'Call',
 
     // Bottom Nav
     home: 'Home', services: 'Services', bookings: 'Bookings', profile: 'Profile',
@@ -608,7 +608,7 @@ export const translations = {
     ourServices: 'خدماتنا', seeAll: '← عرض الكل',
     emergencyStripTitle: 'إصلاح طوارئ 24/7',
     emergencyStripSub: 'مساعدة الخبراء في أي وقت',
-    emergencyStripCta: '← اتصل',
+    emergencyStripCta: 'اتصل الآن',
 
     home: 'الرئيسية', services: 'الخدمات', bookings: 'حجوزاتي', profile: 'الملف الشخصي',
 

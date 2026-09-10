@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAdminAuth } from '../AdminAuthContext';
 import { adminApi } from '../adminApi';
-import { Snowflake, Mail, Lock, Loader2, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Snowflake, Mail, Lock, Loader2, ShieldCheck } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -124,10 +124,7 @@ export default function AdminLoginPage() {
                   <span>Verifying Credentials...</span>
                 </>
               ) : (
-                <>
-                  <span>Sign In to Dashboard</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
+                <span>Sign In to Dashboard</span>
               )}
             </button>
           </form>
