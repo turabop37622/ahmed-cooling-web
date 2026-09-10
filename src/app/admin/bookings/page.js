@@ -354,138 +354,238 @@ export default function AdminBookingsPage() {
           </p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden w-full">
-          <div className="w-full overflow-hidden">
-            <table className="w-full table-fixed text-left border-collapse">
-              <colgroup>
-                <col className="w-[26%]" />
-                <col className="w-[17%]" />
-                <col className="w-[15%]" />
-                <col className="w-[18%]" />
-                <col className="w-[11%]" />
-                <col className="w-[7%]" />
-                <col className="w-[6%]" />
-              </colgroup>
-              <thead>
-                <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                  <th className="py-3.5 px-3 lg:px-3.5">Order ID & Service</th>
-                  <th className="py-3.5 px-3 lg:px-3.5">Customer</th>
-                  <th className="py-3.5 px-3 lg:px-3.5">Date & Time</th>
-                  <th className="py-3.5 px-3 lg:px-3.5">Location</th>
-                  <th className="py-3.5 px-3 lg:px-3.5">Status</th>
-                  <th className="py-3.5 px-2 sm:px-3 text-right">Total</th>
-                  <th className="py-3.5 px-1 sm:px-2 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 text-sm">
-                {filteredBookings.map((bkg) => {
-                  const status = STATUS_CONFIG[normalizeStatus(bkg.status)] || STATUS_CONFIG.pending;
-                  const customerName = bkg.customerName || bkg.user?.name || bkg.user?.fullName || 'Guest Customer';
-                  const serviceName = bkg.service?.name || bkg.serviceDetails?.name || bkg.serviceName || 'Appliance Maintenance';
+        <div className="space-y-4">
+          {/* MOBILE CARD VIEW (Phones < 768px) */}
+          <div className="md:hidden space-y-3">
+            {filteredBookings.map((bkg) => {
+              const status = STATUS_CONFIG[normalizeStatus(bkg.status)] || STATUS_CONFIG.pending;
+              const customerName = bkg.customerName || bkg.user?.name || bkg.user?.fullName || 'Guest Customer';
+              const serviceName = bkg.service?.name || bkg.serviceDetails?.name || bkg.serviceName || 'Appliance Maintenance';
 
-                  return (
-                    <tr
-                      key={bkg._id}
-                      onClick={() => setSelectedBooking(bkg)}
-                      className="hover:bg-blue-50/40 dark:hover:bg-slate-800/40 transition cursor-pointer group"
-                    >
-                      {/* Order & Service */}
-                      <td className="py-3 px-3 lg:px-3.5 min-w-0">
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          {renderServiceOutlineIcon(bkg.service, serviceName, 'sm')}
-                          <div className="min-w-0 flex-1">
-                            <p className="font-bold text-slate-900 dark:text-white truncate text-xs sm:text-sm">
-                              {serviceName}
-                            </p>
-                            <span className="text-[10px] sm:text-[11px] font-mono text-slate-400 truncate block">
-                              #{bkg.orderNumber || bkg.bookingId || bkg._id?.slice(-6).toUpperCase()}
-                            </span>
-                          </div>
-                        </div>
-                      </td>
+              return (
+                <div
+                  key={bkg._id}
+                  onClick={() => setSelectedBooking(bkg)}
+                  className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm active:scale-[0.99] transition-all cursor-pointer space-y-3"
+                >
+                  {/* Top Header: Service & Status */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      {renderServiceOutlineIcon(bkg.service, serviceName, 'sm')}
+                      <div className="min-w-0">
+                        <h4 className="font-bold text-slate-900 dark:text-white text-sm truncate">
+                          {serviceName}
+                        </h4>
+                        <span className="text-[11px] font-mono text-slate-400">
+                          #{bkg.orderNumber || bkg.bookingId || bkg._id?.slice(-6).toUpperCase()}
+                        </span>
+                      </div>
+                    </div>
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${status.bg} shrink-0`}>
+                      {status.label}
+                    </span>
+                  </div>
 
-                      {/* Customer */}
-                      <td className="py-3 px-3 lg:px-3.5 min-w-0">
-                        <p className="font-semibold text-slate-800 dark:text-slate-200 truncate text-xs sm:text-sm">
-                          {customerName}
-                        </p>
-                        <p className="text-[11px] text-slate-400 font-mono truncate">
-                          {bkg.phone || 'No phone'}
-                        </p>
-                      </td>
-
-                      {/* Date & Time */}
-                      <td className="py-3 px-3 lg:px-3.5 min-w-0">
-                        <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-medium text-xs">
-                          <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                          <span className="truncate">{bkg.date ? new Date(bkg.date).toLocaleDateString('en-GB') : 'Immediate'}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mt-0.5">
-                          <Clock className="w-3 h-3 text-slate-400 shrink-0" />
-                          <span className="truncate">{bkg.time || 'Flexible'}</span>
-                        </div>
-                      </td>
-
-                      {/* Address */}
-                      <td className="py-3 px-3 lg:px-3.5 min-w-0">
-                        <p className="text-xs text-slate-600 dark:text-slate-300 truncate block" title={bkg.address}>
-                          {bkg.address || 'Jeddah / Makkah'}
-                        </p>
-                      </td>
-
-                      {/* Status */}
-                      <td className="py-3 px-3 lg:px-3.5">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${status.bg} whitespace-nowrap`}
+                  {/* Customer & Location */}
+                  <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-800 dark:text-slate-200 truncate">{customerName}</span>
+                      {bkg.phone && (
+                        <a
+                          href={`tel:${bkg.phone}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-primary dark:text-blue-400 font-mono font-semibold"
                         >
-                          <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
-                          {status.label}
-                        </span>
-                      </td>
+                          {bkg.phone}
+                        </a>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                      <MapPin className="w-3.5 h-3.5 shrink-0 text-slate-400" />
+                      <span className="truncate">{bkg.address || 'Jeddah / Makkah'}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                      <Calendar className="w-3.5 h-3.5 shrink-0 text-slate-400" />
+                      <span>{bkg.date ? new Date(bkg.date).toLocaleDateString('en-GB') : 'Immediate'}</span>
+                      <span className="text-slate-300 dark:text-slate-600">•</span>
+                      <Clock className="w-3.5 h-3.5 shrink-0 text-slate-400" />
+                      <span>{bkg.time || 'Flexible'}</span>
+                    </div>
+                  </div>
 
-                      {/* Total */}
-                      <td className="py-3 px-2 sm:px-3 text-right whitespace-nowrap text-xs sm:text-sm">
-                        <span className="font-semibold text-slate-800 dark:text-slate-200">
-                          {bkg.totalAmount ?? 150}
-                        </span>{' '}
-                        <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                          SAR
-                        </span>
-                      </td>
+                  {/* Footer: Price & Quick Actions */}
+                  <div className="flex items-center justify-between pt-1" onClick={(e) => e.stopPropagation()}>
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Total</span>
+                      <span className="font-mono font-black text-slate-900 dark:text-white text-sm">
+                        {bkg.totalAmount ?? 0} <span className="text-xs font-normal text-slate-500">SAR</span>
+                      </span>
+                    </div>
 
-                      {/* Actions */}
-                      <td className="py-3 px-1 sm:px-2 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-center gap-1.5">
-                          {bkg.phone && (
+                    <div className="flex items-center gap-2">
+                      {bkg.phone && (
+                        <button
+                          onClick={() => openWhatsApp(bkg.phone, customerName, serviceName)}
+                          className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 transition cursor-pointer"
+                          title="Chat on WhatsApp"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                        </button>
+                      )}
+                      <button
+                        onClick={(e) => handleDeleteBooking(bkg, e)}
+                        className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 transition cursor-pointer"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setSelectedBooking(bkg)}
+                        className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 font-bold text-xs transition cursor-pointer"
+                      >
+                        Manage
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* DESKTOP TABLE VIEW (Tablets & Desktops >= 768px) */}
+          <div className="hidden md:block bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden w-full">
+            <div className="w-full overflow-x-auto">
+              <table className="w-full min-w-[850px] table-fixed text-left border-collapse">
+                <colgroup>
+                  <col className="w-[26%]" />
+                  <col className="w-[17%]" />
+                  <col className="w-[15%]" />
+                  <col className="w-[18%]" />
+                  <col className="w-[11%]" />
+                  <col className="w-[7%]" />
+                  <col className="w-[6%]" />
+                </colgroup>
+                <thead>
+                  <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    <th className="py-3.5 px-3 lg:px-3.5">Order ID & Service</th>
+                    <th className="py-3.5 px-3 lg:px-3.5">Customer</th>
+                    <th className="py-3.5 px-3 lg:px-3.5">Date & Time</th>
+                    <th className="py-3.5 px-3 lg:px-3.5">Location</th>
+                    <th className="py-3.5 px-3 lg:px-3.5">Status</th>
+                    <th className="py-3.5 px-2 sm:px-3 text-right">Total</th>
+                    <th className="py-3.5 px-1 sm:px-2 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 text-sm">
+                  {filteredBookings.map((bkg) => {
+                    const status = STATUS_CONFIG[normalizeStatus(bkg.status)] || STATUS_CONFIG.pending;
+                    const customerName = bkg.customerName || bkg.user?.name || bkg.user?.fullName || 'Guest Customer';
+                    const serviceName = bkg.service?.name || bkg.serviceDetails?.name || bkg.serviceName || 'Appliance Maintenance';
+
+                    return (
+                      <tr
+                        key={bkg._id}
+                        onClick={() => setSelectedBooking(bkg)}
+                        className="hover:bg-blue-50/40 dark:hover:bg-slate-800/40 transition cursor-pointer group"
+                      >
+                        {/* Order & Service */}
+                        <td className="py-3 px-3 lg:px-3.5 min-w-0">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            {renderServiceOutlineIcon(bkg.service, serviceName, 'sm')}
+                            <div className="min-w-0 flex-1">
+                              <p className="font-bold text-slate-900 dark:text-white truncate text-xs sm:text-sm">
+                                {serviceName}
+                              </p>
+                              <span className="text-[10px] sm:text-[11px] font-mono text-slate-400 truncate block">
+                                #{bkg.orderNumber || bkg.bookingId || bkg._id?.slice(-6).toUpperCase()}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Customer */}
+                        <td className="py-3 px-3 lg:px-3.5 min-w-0">
+                          <p className="font-semibold text-slate-800 dark:text-slate-200 truncate text-xs sm:text-sm">
+                            {customerName}
+                          </p>
+                          <p className="text-[11px] text-slate-400 font-mono truncate">
+                            {bkg.phone || 'No phone'}
+                          </p>
+                        </td>
+
+                        {/* Date & Time */}
+                        <td className="py-3 px-3 lg:px-3.5 min-w-0">
+                          <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-medium text-xs">
+                            <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <span className="truncate">{bkg.date ? new Date(bkg.date).toLocaleDateString('en-GB') : 'Immediate'}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mt-0.5">
+                            <Clock className="w-3 h-3 text-slate-400 shrink-0" />
+                            <span className="truncate">{bkg.time || 'Flexible'}</span>
+                          </div>
+                        </td>
+
+                        {/* Address */}
+                        <td className="py-3 px-3 lg:px-3.5 min-w-0">
+                          <p className="text-xs text-slate-600 dark:text-slate-300 truncate block" title={bkg.address}>
+                            {bkg.address || 'Jeddah / Makkah'}
+                          </p>
+                        </td>
+
+                        {/* Status */}
+                        <td className="py-3 px-3 lg:px-3.5">
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${status.bg} whitespace-nowrap`}
+                          >
+                            <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
+                            {status.label}
+                          </span>
+                        </td>
+
+                        {/* Total */}
+                        <td className="py-3 px-2 sm:px-3 text-right whitespace-nowrap">
+                          <span className="font-mono font-bold text-slate-900 dark:text-white text-xs sm:text-sm">
+                            {bkg.totalAmount ?? 0}
+                          </span>{' '}
+                          <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                            SAR
+                          </span>
+                        </td>
+
+                        {/* Actions */}
+                        <td className="py-3 px-1 sm:px-2 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-center gap-1.5">
+                            {bkg.phone && (
+                              <button
+                                onClick={() => openWhatsApp(bkg.phone, customerName, serviceName)}
+                                className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 transition cursor-pointer"
+                                title="Chat on WhatsApp"
+                              >
+                                <MessageCircle className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                             <button
-                              onClick={() => openWhatsApp(bkg.phone, customerName, serviceName)}
-                              className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 transition cursor-pointer"
-                              title="Chat on WhatsApp"
+                              onClick={() => setSelectedBooking(bkg)}
+                              className="p-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-blue-600 transition cursor-pointer"
+                              title="View Full Details"
                             >
-                              <MessageCircle className="w-3.5 h-3.5" />
+                              <ChevronRight className="w-3.5 h-3.5" />
                             </button>
-                          )}
-                          <button
-                            onClick={() => setSelectedBooking(bkg)}
-                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-blue-600 transition cursor-pointer"
-                            title="View Full Details"
-                          >
-                            <ChevronRight className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={(e) => handleDeleteBooking(bkg, e)}
-                            className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 transition cursor-pointer"
-                            title="Delete Booking"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                            <button
+                              onClick={(e) => handleDeleteBooking(bkg, e)}
+                              className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 transition cursor-pointer"
+                              title="Delete Booking"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

@@ -19,7 +19,11 @@ let loginPromise = null;
 export async function ensureValidAdminToken() {
   if (typeof window === 'undefined') return null;
 
-  const token = localStorage.getItem('adminToken');
+  // Clear any persistent localStorage residue
+  try { localStorage.removeItem('adminToken'); } catch (e) {}
+
+  // Read only from current active browser tab session
+  const token = sessionStorage.getItem('adminToken');
   if (token && token.length > 35) {
     return token;
   }
@@ -28,10 +32,10 @@ export async function ensureValidAdminToken() {
   return null;
 }
 
-// Request interceptor: attach valid adminToken
+// Request interceptor: attach valid adminToken from sessionStorage
 api.interceptors.request.use(async (config) => {
   if (typeof window !== 'undefined') {
-    let token = localStorage.getItem('adminToken');
+    let token = sessionStorage.getItem('adminToken');
     if (!token || token.length < 35) {
       token = await ensureValidAdminToken();
     }
@@ -50,6 +54,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry && typeof window !== 'undefined') {
       originalRequest._retry = true;
       try {
+        sessionStorage.removeItem('adminToken');
         localStorage.removeItem('adminToken');
         const freshToken = await ensureValidAdminToken();
         if (freshToken && freshToken.length > 35) {

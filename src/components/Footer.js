@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Phone, Mail, MapPin, Snowflake, Lock } from 'lucide-react';
+import { Phone, Mail, MapPin, Snowflake } from 'lucide-react';
 import { useTranslation } from '../contexts/TranslationContext';
 
 export default function Footer() {
@@ -171,10 +171,6 @@ export default function Footer() {
 
           <div className="flex items-center gap-5">
             <span>{isAr ? 'جدة ومكة المكرمة 🇸🇦' : 'Jeddah & Makkah 🇸🇦'}</span>
-            <Link href="/admin/login" className="inline-flex items-center gap-1.5 hover:text-slate-400 transition">
-              <Lock className="w-3 h-3" />
-              <span>{isAr ? 'الإدارة' : 'Staff'}</span>
-            </Link>
           </div>
         </div>
       </div>

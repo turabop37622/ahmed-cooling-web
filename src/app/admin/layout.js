@@ -218,19 +218,19 @@ function AdminShell({ children }) {
             </button>
 
             {/* Region & Status Indicator */}
-            <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2 relative">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="flex h-2 w-2 relative shrink-0">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-                Jeddah / Makkah Workshop Live
+              <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 truncate">
+                <span className="hidden sm:inline">Jeddah / Makkah </span>Workshop Live
               </span>
             </div>
           </div>
 
           {/* Right Header Controls */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             {/* Theme Toggle */}
             <button
               onClick={toggleDarkMode}
@@ -240,13 +240,14 @@ function AdminShell({ children }) {
               {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
             </button>
 
-            {/* Header Logout for Mobile/Quick Access */}
+            {/* Header Logout */}
             <button
               onClick={logout}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-colors"
+              className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-colors"
+              title="Logout"
             >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Logout</span>
+              <LogOut className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+              <span className="hidden sm:inline">Logout</span>
             </button>
           </div>
         </header>
