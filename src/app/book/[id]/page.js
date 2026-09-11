@@ -306,59 +306,50 @@ export default function BookingPage() {
 
           let resolvedAddress = '';
 
-          // 1. Primary: High-accuracy OpenStreetMap reverse geocode for Saudi Arabia
+          // 1. Call high-speed internal Next.js geocoding API (runs on Vercel serverless)
           try {
-            const osmLang = language === 'ar' ? 'ar' : 'en';
-            const osmRes = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&accept-language=${osmLang}`,
-              { headers: { 'Accept-Language': osmLang } }
-            );
-            if (osmRes.ok) {
-              const osmData = await osmRes.json();
-              if (osmData?.address) {
-                const a = osmData.address;
-                const road = a.road || a.pedestrian || a.street || a.residential || '';
-                const district = a.neighbourhood || a.suburb || a.quarter || a.city_district || a.borough || '';
-                const city = a.city || a.town || a.municipality || (language === 'ar' ? 'جدة' : 'Jeddah');
-                const parts = [road, district, city].filter(Boolean);
-                if (parts.length >= 2) {
-                  resolvedAddress = parts.join(language === 'ar' ? '، ' : ', ');
-                } else if (osmData.display_name) {
-                  resolvedAddress = osmData.display_name
-                    .split(',')
-                    .slice(0, 4)
-                    .map((s) => s.trim())
-                    .join(language === 'ar' ? '، ' : ', ');
-                }
-              }
-            }
-          } catch (osmErr) {
-            console.warn('OSM reverse geocoding note:', osmErr);
-          }
-
-          // 2. Secondary fallback: Backend Google Geocode Proxy
-          if (!resolvedAddress) {
-            try {
-              const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://ahmed-cooling-backend.onrender.com/api';
-              const res = await fetch(`${backendUrl}/geocode/reverse?lat=${latitude}&lng=${longitude}&lang=${language || 'en'}`);
+            const res = await fetch(`/api/geocode?lat=${latitude}&lng=${longitude}&lang=${language || 'en'}`);
+            if (res.ok) {
               const data = await res.json();
-              if (data?.address) {
+              if (data?.success && data?.address) {
                 resolvedAddress = data.address;
               }
-            } catch (beErr) {
-              console.warn('Backend geocode note:', beErr);
+            }
+          } catch (apiErr) {
+            console.warn('Internal geocode API warning:', apiErr);
+          }
+
+          // 2. Direct client-side fallback via BigDataCloud (CORS-friendly, global, free)
+          if (!resolvedAddress) {
+            try {
+              const bdcLang = language === 'ar' ? 'ar' : 'en';
+              const bdcRes = await fetch(
+                `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=${bdcLang}`
+              );
+              if (bdcRes.ok) {
+                const bdc = await bdcRes.json();
+                const sep = language === 'ar' ? '، ' : ', ';
+                const parts = [
+                  bdc.locality,
+                  bdc.city !== bdc.locality ? bdc.city : null,
+                  bdc.principalSubdivision,
+                  bdc.countryName,
+                ].filter(Boolean);
+                if (parts.length > 0) {
+                  resolvedAddress = parts.join(sep);
+                }
+              }
+            } catch (bdcErr) {
+              console.warn('BigDataCloud fallback warning:', bdcErr);
             }
           }
 
-          // 3. Fallback: Clean human-readable city reference
+          // 3. Clean fallback without hardcoding any wrong city
           if (!resolvedAddress) {
-            let cityName = language === 'ar' ? 'جدة' : 'Jeddah';
-            if (latitude >= 21.35 && latitude <= 21.55 && longitude >= 39.75 && longitude <= 40.0) {
-              cityName = language === 'ar' ? 'مكة المكرمة' : 'Makkah';
-            }
-            resolvedAddress = language === 'ar'
-              ? `${cityName} (الموقع محدد بواسطة GPS)`
-              : `${cityName} (GPS Location Selected)`;
+            resolvedAddress =
+              language === 'ar'
+                ? `موقع GPS (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`
+                : `GPS Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`;
           }
 
           setIsManualAddress(true);
@@ -369,8 +360,8 @@ export default function BookingPage() {
           setIsManualAddress(true);
           setManualAddress(
             language === 'ar'
-              ? 'جدة (تم تحديد الموقع بواسطة GPS)'
-              : 'Jeddah (GPS Location Selected)'
+              ? `موقع GPS (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)})`
+              : `GPS Location (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)})`
           );
         } finally {
           setLocating(false);
