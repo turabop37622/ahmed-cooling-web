@@ -6,7 +6,7 @@ import {
   Loader2, MapPin, Calendar, Clock, FileText,
   ChevronLeft, ChevronRight, User, Phone, CheckCircle2, Shield,
   Sparkles, AlertCircle, Mail, Navigation, Edit3, Building2,
-  Refrigerator, WashingMachine, Snowflake, Wind, Flame, Wrench,
+  Refrigerator, WashingMachine, Snowflake, Wind, Flame, Wrench, Crosshair,
 } from 'lucide-react';
 import { useTranslation } from '@/contexts/TranslationContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -264,6 +264,7 @@ export default function BookingPage() {
   const [subLocation, setSubLocation] = useState('');
   const [isManualAddress, setIsManualAddress] = useState(false);
   const [manualAddress, setManualAddress] = useState('');
+  const [coords, setCoords] = useState(null);
   const [locating, setLocating] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -301,25 +302,83 @@ export default function BookingPage() {
       async (pos) => {
         try {
           const { latitude, longitude } = pos.coords;
-          const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://ahmed-cooling-backend.onrender.com/api';
-          const res = await fetch(`${backendUrl}/geocode/reverse?lat=${latitude}&lng=${longitude}&lang=${language || 'en'}`);
-          const data = await res.json();
-          if (data?.address) {
-            setIsManualAddress(true);
-            setManualAddress(data.address);
-          } else {
-            setIsManualAddress(true);
-            setManualAddress(`GPS: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`);
+          setCoords({ latitude, longitude });
+
+          let resolvedAddress = '';
+
+          // 1. Primary: High-accuracy OpenStreetMap reverse geocode for Saudi Arabia
+          try {
+            const osmLang = language === 'ar' ? 'ar' : 'en';
+            const osmRes = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&accept-language=${osmLang}`,
+              { headers: { 'Accept-Language': osmLang } }
+            );
+            if (osmRes.ok) {
+              const osmData = await osmRes.json();
+              if (osmData?.address) {
+                const a = osmData.address;
+                const road = a.road || a.pedestrian || a.street || a.residential || '';
+                const district = a.neighbourhood || a.suburb || a.quarter || a.city_district || a.borough || '';
+                const city = a.city || a.town || a.municipality || (language === 'ar' ? 'جدة' : 'Jeddah');
+                const parts = [road, district, city].filter(Boolean);
+                if (parts.length >= 2) {
+                  resolvedAddress = parts.join(language === 'ar' ? '، ' : ', ');
+                } else if (osmData.display_name) {
+                  resolvedAddress = osmData.display_name
+                    .split(',')
+                    .slice(0, 4)
+                    .map((s) => s.trim())
+                    .join(language === 'ar' ? '، ' : ', ');
+                }
+              }
+            }
+          } catch (osmErr) {
+            console.warn('OSM reverse geocoding note:', osmErr);
           }
-        } catch {
+
+          // 2. Secondary fallback: Backend Google Geocode Proxy
+          if (!resolvedAddress) {
+            try {
+              const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://ahmed-cooling-backend.onrender.com/api';
+              const res = await fetch(`${backendUrl}/geocode/reverse?lat=${latitude}&lng=${longitude}&lang=${language || 'en'}`);
+              const data = await res.json();
+              if (data?.address) {
+                resolvedAddress = data.address;
+              }
+            } catch (beErr) {
+              console.warn('Backend geocode note:', beErr);
+            }
+          }
+
+          // 3. Fallback: Clean human-readable city reference
+          if (!resolvedAddress) {
+            let cityName = language === 'ar' ? 'جدة' : 'Jeddah';
+            if (latitude >= 21.35 && latitude <= 21.55 && longitude >= 39.75 && longitude <= 40.0) {
+              cityName = language === 'ar' ? 'مكة المكرمة' : 'Makkah';
+            }
+            resolvedAddress = language === 'ar'
+              ? `${cityName} (الموقع محدد بواسطة GPS)`
+              : `${cityName} (GPS Location Selected)`;
+          }
+
           setIsManualAddress(true);
-          setManualAddress(`GPS: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`);
+          setManualAddress(resolvedAddress);
+          if (errors.manualAddress) setErrors((prev) => ({ ...prev, manualAddress: null }));
+        } catch (err) {
+          console.error('Location error:', err);
+          setIsManualAddress(true);
+          setManualAddress(
+            language === 'ar'
+              ? 'جدة (تم تحديد الموقع بواسطة GPS)'
+              : 'Jeddah (GPS Location Selected)'
+          );
         } finally {
           setLocating(false);
         }
       },
-      () => {
+      (err) => {
         setLocating(false);
+        console.warn('Geolocation denied or error:', err);
         alert(language === 'ar' ? 'يرجى تفعيل صلاحية الموقع أو كتابة العنوان يدوياً.' : 'Location permission denied or unavailable. Please enter address manually.');
       },
       { timeout: 10000, enableHighAccuracy: true }
@@ -586,7 +645,7 @@ export default function BookingPage() {
         date: selectedDate.toISOString().split('T')[0],
         time: selectedTime || 'Anytime',
         address: getFullAddress(),
-        coordinates: { latitude: 0, longitude: 0 },
+        coordinates: coords || { latitude: 0, longitude: 0 },
         comments: notes.trim(),
         language: language || 'en',
         platform: 'web',
@@ -631,6 +690,7 @@ export default function BookingPage() {
             date: selectedDate.toISOString().split('T')[0],
             time: selectedTime,
             address: getFullAddress(),
+            coordinates: coords || { latitude: 0, longitude: 0 },
             status: 'pending',
             totalAmount,
             createdAt: new Date().toISOString(),
@@ -1005,22 +1065,29 @@ export default function BookingPage() {
         </div>
 
         <div className="mb-6 rounded-2xl border border-border bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-          {/* Quick GPS auto-detect bar */}
+          {/* Quick GPS location bar */}
           <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-blue-100 bg-blue-50/60 p-3 dark:border-blue-950/60 dark:bg-blue-950/30">
             <div className="flex items-center gap-2 min-w-0">
-              <Navigation className="h-4 w-4 shrink-0 text-primary dark:text-blue-400" />
-              <p className="truncate text-xs font-bold text-slate-700 dark:text-slate-300">
-                {language === 'ar' ? 'تحديد العنوان تلقائياً بواسطة الـ GPS' : 'Auto-detect address with GPS'}
-              </p>
+              <Crosshair className="h-4 w-4 shrink-0 text-primary dark:text-blue-400" />
+              <div className="min-w-0">
+                <p className="truncate text-xs font-bold text-slate-700 dark:text-slate-300">
+                  {language === 'ar' ? 'تحديد العنوان عبر GPS' : 'Auto-detect address via GPS'}
+                </p>
+                {coords && (
+                  <p className="text-[10px] font-mono text-primary dark:text-blue-400 font-semibold">
+                    GPS: {coords.latitude.toFixed(4)}, {coords.longitude.toFixed(4)}
+                  </p>
+                )}
+              </div>
             </div>
             <button
               type="button"
               onClick={handleDetectLocation}
               disabled={locating}
-              className="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-primary/20 bg-white px-3 py-1.5 text-xs font-black text-primary shadow-xs hover:bg-blue-50/50 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-800 dark:text-blue-400 dark:hover:bg-slate-700 transition"
+              className="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-primary/20 bg-white px-3 py-1.5 text-xs font-bold text-primary shadow-xs hover:bg-blue-50/50 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-800 dark:text-blue-400 dark:hover:bg-slate-700 transition"
             >
-              {locating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MapPin className="h-3.5 w-3.5" />}
-              <span>{locating ? (language === 'ar' ? 'جارٍ التحديد...' : 'Locating...') : (language === 'ar' ? '📍 حدد موقعي' : '📍 Detect')}</span>
+              {locating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Crosshair className="h-3.5 w-3.5" />}
+              <span>{locating ? (language === 'ar' ? 'جارٍ التحديد...' : 'Locating...') : (language === 'ar' ? 'موقعي الحالي' : 'Current Location')}</span>
             </button>
           </div>
 

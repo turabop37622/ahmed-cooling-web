@@ -27,7 +27,40 @@ import {
   Wind,
   Zap,
   ShieldCheck,
+  MapPin,
+  Crosshair,
+  ExternalLink,
 } from 'lucide-react';
+
+function getBookingCoordinates(booking) {
+  if (!booking) return null;
+  let lat = null;
+  let lng = null;
+  if (booking.coordinates) {
+    if (typeof booking.coordinates.latitude === 'number' && booking.coordinates.latitude !== 0) {
+      lat = booking.coordinates.latitude;
+      lng = booking.coordinates.longitude;
+    } else if (Array.isArray(booking.coordinates) && booking.coordinates.length >= 2) {
+      lng = booking.coordinates[0];
+      lat = booking.coordinates[1];
+    }
+  }
+  if (!lat && typeof booking.latitude === 'number' && booking.latitude !== 0) {
+    lat = booking.latitude;
+    lng = booking.longitude;
+  }
+  if (!lat && typeof booking.address === 'string') {
+    const match = booking.address.match(/(-?\d+\.\d{3,})\s*,\s*(-?\d+\.\d{3,})/);
+    if (match) {
+      lat = parseFloat(match[1]);
+      lng = parseFloat(match[2]);
+    }
+  }
+  if (lat != null && lng != null && (lat !== 0 || lng !== 0)) {
+    return { latitude: Number(lat), longitude: Number(lng) };
+  }
+  return null;
+}
 
 function renderServiceOutlineIcon(service, serviceName) {
   const text = ((service?.name || '') + ' ' + (serviceName || '') + ' ' + (service?.category || '')).toLowerCase();
@@ -404,11 +437,36 @@ export default function AdminDashboardPage() {
                         </span>
                       </div>
 
-                      {bkg.address && (
-                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 truncate max-w-xl">
-                          📍 {bkg.address}
-                        </p>
-                      )}
+                      <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                        {bkg.address && (
+                          <span className="flex items-center gap-1 font-medium truncate max-w-md">
+                            <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                            <span>{bkg.address}</span>
+                          </span>
+                        )}
+                        {(() => {
+                          const coords = getBookingCoordinates(bkg);
+                          if (!coords) return null;
+                          const mapUrl = `https://www.google.com/maps?q=${coords.latitude},${coords.longitude}`;
+                          return (
+                            <div className="flex items-center gap-1.5">
+                              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded">
+                                <Crosshair className="w-2.5 h-2.5" />
+                                {coords.latitude.toFixed(4)}, {coords.longitude.toFixed(4)}
+                              </span>
+                              <a
+                                href={mapUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-0.5 text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                              >
+                                <span>Map</span>
+                                <ExternalLink className="w-2.5 h-2.5" />
+                              </a>
+                            </div>
+                          );
+                        })()}
+                      </div>
                     </div>
                   </div>
 

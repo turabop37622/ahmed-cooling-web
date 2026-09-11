@@ -33,6 +33,8 @@ import {
   Zap,
   ShieldCheck,
   Trash2,
+  Crosshair,
+  Navigation,
 } from 'lucide-react';
 
 function renderServiceOutlineIcon(service, serviceName, size = 'sm') {
@@ -257,9 +259,40 @@ export default function AdminBookingsPage() {
     window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
+  const getBookingCoordinates = (booking) => {
+    if (!booking) return null;
+    let lat = null;
+    let lng = null;
+    if (booking.coordinates) {
+      if (typeof booking.coordinates.latitude === 'number' && booking.coordinates.latitude !== 0) {
+        lat = booking.coordinates.latitude;
+        lng = booking.coordinates.longitude;
+      } else if (Array.isArray(booking.coordinates) && booking.coordinates.length >= 2) {
+        lng = booking.coordinates[0];
+        lat = booking.coordinates[1];
+      }
+    }
+    if (!lat && typeof booking.latitude === 'number' && booking.latitude !== 0) {
+      lat = booking.latitude;
+      lng = booking.longitude;
+    }
+    if (!lat && typeof booking.address === 'string') {
+      const match = booking.address.match(/(-?\d+\.\d{3,})\s*,\s*(-?\d+\.\d{3,})/);
+      if (match) {
+        lat = parseFloat(match[1]);
+        lng = parseFloat(match[2]);
+      }
+    }
+    if (lat != null && lng != null && (lat !== 0 || lng !== 0)) {
+      return { latitude: Number(lat), longitude: Number(lng) };
+    }
+    return null;
+  };
+
   const getMapLink = (address, booking) => {
-    if (booking?.latitude && booking?.longitude) {
-      return `https://www.google.com/maps?q=${booking.latitude},${booking.longitude}`;
+    const coords = getBookingCoordinates(booking);
+    if (coords) {
+      return `https://www.google.com/maps?q=${coords.latitude},${coords.longitude}`;
     }
     if (address) {
       return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address + ' Jeddah Saudi Arabia')}`;
@@ -400,9 +433,37 @@ export default function AdminBookingsPage() {
                         </a>
                       )}
                     </div>
-                    <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
-                      <MapPin className="w-3.5 h-3.5 shrink-0 text-slate-400" />
-                      <span className="truncate">{bkg.address || 'Jeddah / Makkah'}</span>
+                    <div className="space-y-1">
+                      <div className="flex items-start gap-1.5 text-slate-600 dark:text-slate-300">
+                        <MapPin className="w-3.5 h-3.5 shrink-0 text-slate-400 mt-0.5" />
+                        <span className="truncate font-medium">{bkg.address || 'Jeddah / Makkah'}</span>
+                      </div>
+                      {(() => {
+                        const coords = getBookingCoordinates(bkg);
+                        const mapUrl = getMapLink(bkg.address, bkg);
+                        return (
+                          <div className="flex items-center gap-2 pl-5 rtl:pr-5 rtl:pl-0">
+                            {coords ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded">
+                                <Crosshair className="w-2.5 h-2.5" />
+                                {coords.latitude.toFixed(4)}, {coords.longitude.toFixed(4)}
+                              </span>
+                            ) : null}
+                            {mapUrl && (
+                              <a
+                                href={mapUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-flex items-center gap-0.5 text-[10px] font-bold text-primary dark:text-blue-400 hover:underline"
+                              >
+                                <span>Google Maps</span>
+                                <ExternalLink className="w-2.5 h-2.5" />
+                              </a>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                     <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
                       <Calendar className="w-3.5 h-3.5 shrink-0 text-slate-400" />
@@ -525,11 +586,38 @@ export default function AdminBookingsPage() {
                           </div>
                         </td>
 
-                        {/* Address */}
+                        {/* Address & GPS */}
                         <td className="py-3 px-3 lg:px-3.5 min-w-0">
-                          <p className="text-xs text-slate-600 dark:text-slate-300 truncate block" title={bkg.address}>
+                          <p className="text-xs font-medium text-slate-700 dark:text-slate-200 truncate block" title={bkg.address}>
                             {bkg.address || 'Jeddah / Makkah'}
                           </p>
+                          {(() => {
+                            const coords = getBookingCoordinates(bkg);
+                            const mapUrl = getMapLink(bkg.address, bkg);
+                            return (
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                {coords && (
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-1.5 py-0.5 rounded">
+                                    <Crosshair className="w-2.5 h-2.5 shrink-0" />
+                                    {coords.latitude.toFixed(4)}, {coords.longitude.toFixed(4)}
+                                  </span>
+                                )}
+                                {mapUrl && (
+                                  <a
+                                    href={mapUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="inline-flex items-center gap-0.5 text-[10px] font-bold text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400"
+                                    title="View location in Google Maps"
+                                  >
+                                    <ExternalLink className="w-2.5 h-2.5" />
+                                    <span>Map</span>
+                                  </a>
+                                )}
+                              </div>
+                            );
+                          })()}
                         </td>
 
                         {/* Status */}
@@ -688,27 +776,62 @@ export default function AdminBookingsPage() {
                       </div>
                     )}
 
-                    {selectedBooking.address && (
-                      <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
-                        <div className="flex items-start gap-2.5 text-xs text-slate-600 dark:text-slate-300">
+                    {/* Location: Exact Address AND GPS */}
+                    <div className="pt-3 border-t border-slate-200/60 dark:border-slate-700/60 space-y-3">
+                      <div>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                          Exact Address (العنوان المفصل)
+                        </span>
+                        <div className="flex items-start gap-2.5 text-xs text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
                           <MapPin className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
-                          <div className="min-w-0">
-                            <p className="font-medium leading-relaxed">{selectedBooking.address}</p>
-                            {getMapLink(selectedBooking.address, selectedBooking) && (
-                              <a
-                                href={getMapLink(selectedBooking.address, selectedBooking)}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline mt-1"
-                              >
-                                <span>Open in Google Maps</span>
-                                <ExternalLink className="w-3 h-3" />
-                              </a>
-                            )}
-                          </div>
+                          <p className="font-semibold leading-relaxed">
+                            {selectedBooking.address || 'Address not specified'}
+                          </p>
                         </div>
                       </div>
-                    )}
+
+                      {(() => {
+                        const coords = getBookingCoordinates(selectedBooking);
+                        const mapUrl = getMapLink(selectedBooking.address, selectedBooking);
+                        return (
+                          <div>
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                              GPS Coordinates & Navigation (إحداثيات الموقع)
+                            </span>
+                            <div className="p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200/60 dark:border-blue-900/40 flex flex-wrap items-center justify-between gap-2">
+                              <div className="flex items-center gap-2">
+                                <Crosshair className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                                {coords ? (
+                                  <div>
+                                    <p className="text-xs font-mono font-black text-slate-800 dark:text-slate-200">
+                                      {coords.latitude.toFixed(6)}, {coords.longitude.toFixed(6)}
+                                    </p>
+                                    <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                                      Lat: {coords.latitude.toFixed(4)} • Lng: {coords.longitude.toFixed(4)}
+                                    </p>
+                                  </div>
+                                ) : (
+                                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                                    Coordinates estimated from address
+                                  </span>
+                                )}
+                              </div>
+                              {mapUrl && (
+                                <a
+                                  href={mapUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition"
+                                >
+                                  <span>Open Google Maps</span>
+                                  <ExternalLink className="w-3 h-3" />
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
                   </div>
                 </div>
 
