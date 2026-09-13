@@ -207,6 +207,9 @@ export default function ServiceCard({ service, onBook }) {
             <div className="text-lg sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight truncate leading-tight">
               {formatPrice(price)}
             </div>
+            <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 truncate">
+              {language === 'ar' ? 'شامل الضريبة 15%' : 'Incl. 15% VAT'}
+            </span>
           </div>
 
           {/* Action Buttons */}

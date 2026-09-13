@@ -114,8 +114,8 @@ const SERVICES_FALLBACK = [
     icon: '💨',
     name: 'AC Gas Refill',
     nameAr: 'شحن فريون أصلي للمكيف',
-    description: 'Top-tier R410A and R22 refrigerant charging with pressure leak test and compressor performance check.',
-    descriptionAr: 'شحن غاز فريون أصلي أمريكي مع كشف تسريبات الضغط وفحص أداء الكمبروسر وضمان التبريد التام.',
+    description: 'Starting from 180 SAR. Top-tier R410A and R22 refrigerant charging with pressure leak test (prices vary by gas type & required quantity).',
+    descriptionAr: 'يبدأ من 180 ريال. شحن غاز فريون أصلي أمريكي مع فحص تسريبات الضغط (يختلف السعر حسب نوع الفريون R410A/R22 والكمية المطلوبة).',
     basePrice: 180,
     estimatedDuration: '1 hour',
     category: 'ac',
@@ -526,8 +526,27 @@ export default function Home() {
           ))}
         </div>
 
+        {/* Pricing Terms & VAT Banner */}
+        <div className="mt-8 rounded-2xl border border-blue-100 bg-blue-50/70 p-4 text-xs font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-start">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
+              <span>
+                {language === 'ar'
+                  ? 'جميع الأسعار تشمل ضريبة القيمة المضافة 15% • قطع الغيار غير مشمولة وتُحدد حسب الحاجة'
+                  : 'All prices include 15% VAT • Spare parts are not included and quoted separately'}
+              </span>
+            </div>
+            <p className="font-bold text-primary dark:text-blue-400">
+              {language === 'ar'
+                ? 'الأسعار تبدأ من وتختلف حسب المعاينة والفحص الميداني.'
+                : 'Prices start from and may vary after inspection.'}
+            </p>
+          </div>
+        </div>
+
         {/* Bottom Explorer CTA */}
-        <div className="mt-12 text-center">
+        <div className="mt-8 text-center">
           <Link
             href="/services"
             className="inline-flex items-center gap-2 rounded-2xl border-2 border-primary/30 bg-primary-light px-8 py-4 text-sm font-black text-primary hover:bg-primary hover:text-white transition-all shadow-sm"
@@ -670,7 +689,10 @@ export default function Home() {
               <span className="text-xs font-black uppercase text-purple-600">{language === 'ar' ? 'رعاية سنوية للفلل' : 'Annual Villa Care'}</span>
               <h3 className="mt-1 text-xl font-black text-slate-900 dark:text-white">{language === 'ar' ? 'عقد صيانة منزلية كامل' : 'Full Home Maintenance'}</h3>
               <div className="mt-4 mb-6">
-                <span className="text-3xl font-black text-slate-900 dark:text-white">{formatPrice(750)}</span>
+                <span className="text-[11px] font-bold text-slate-500 uppercase block mb-1">
+                  {language === 'ar' ? 'يبدأ من' : 'Starting from'}
+                </span>
+                <span className="text-3xl font-black text-slate-900 dark:text-white">{formatPrice(1200)}</span>
                 <span className="text-xs text-slate-500 ms-1">{language === 'ar' ? '/ سنة' : '/ year'}</span>
               </div>
               <ul className="space-y-3 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-8 flex-1">
@@ -696,6 +718,20 @@ export default function Home() {
                 </a>
               </div>
             </div>
+          </div>
+
+          {/* Pricing Terms & Disclaimer for Packages */}
+          <div className="mt-8 rounded-2xl border border-slate-200 bg-white/80 p-4 text-xs font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300 text-center sm:text-start flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p>
+              {language === 'ar'
+                ? 'الأسعار تشمل ضريبة القيمة المضافة 15% • قطع الغيار غير مشمولة وتُحدد بشكل منفصل عند الحاجة.'
+                : 'Prices include 15% VAT • Spare parts are not included and quoted separately if required.'}
+            </p>
+            <p className="font-bold text-primary dark:text-blue-400 shrink-0">
+              {language === 'ar'
+                ? 'الأسعار تبدأ من وتختلف حسب المعاينة والفحص الميداني.'
+                : 'Prices start from and may vary after inspection.'}
+            </p>
           </div>
         </div>
       </section>

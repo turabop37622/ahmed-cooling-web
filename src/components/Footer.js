@@ -163,8 +163,17 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* Pricing notice in footer */}
+        <div className="mt-12 pt-6 border-t border-slate-800/60 text-center text-xs text-slate-400 space-y-1">
+          <p>
+            {isAr
+              ? 'جميع الأسعار شاملة ضريبة القيمة المضافة 15% • قطع الغيار غير مشمولة وتُحدد عند الفحص • الأسعار تبدأ من وتختلف حسب المعاينة والفحص الميداني.'
+              : 'All prices include 15% VAT • Spare parts not included (quoted upon inspection) • Prices start from and may vary after inspection.'}
+          </p>
+        </div>
+
         {/* Bottom bar */}
-        <div className="mt-14 pt-8 border-t border-slate-800/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+        <div className="mt-6 pt-6 border-t border-slate-800/40 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <p>
             &copy; {new Date().getFullYear()} {isAr ? 'ورشة أحمد للتبريد. جميع الحقوق محفوظة.' : 'Ahmed Cooling Workshop. All rights reserved.'}
           </p>

@@ -156,7 +156,7 @@ const FALLBACK_SERVICES = [
     id: 'pkg_villa',
     name: 'Annual Villa Care - Full Home Maintenance',
     nameAr: 'عقد رعاية سنوية للفلل والمنازل',
-    basePrice: 750,
+    basePrice: 1200,
     icon: '🏡',
     category: 'general',
     description: '4 seasonal AC maintenance visits, VIP priority 24/7 hotline dispatch, and 20% off all spare parts.',
@@ -225,8 +225,8 @@ const FALLBACK_SERVICES = [
     basePrice: 180,
     icon: '💨',
     category: 'ac',
-    description: 'Pressure test, leak detection, complete evacuation, and 100% genuine refrigerant refill.',
-    descriptionAr: 'شحن فريون أمريكي أصلي مع كشف وتصليح مكان التسريب وفحص الضغوط.',
+    description: 'Starting from 180 SAR (prices vary depending on gas type R410A/R22 & quantity needed). Pressure test, leak detection, complete evacuation, and 100% genuine refrigerant refill.',
+    descriptionAr: 'يبدأ من 180 ريال (تختلف القيمة حسب نوع الغاز R410A / R22 وكمية الشحن المطلوبة). شحن فريون أصلي مع كشف مكان التسريب وفحص الضغوط.',
   },
   {
     _id: '7',
@@ -868,6 +868,10 @@ export default function BookingPage() {
             <span className="text-xs font-bold text-sub dark:text-slate-400">{t.servicePrice || 'Service Price'}</span>
             <span className="text-lg font-black text-primary dark:text-blue-400">{formatPrice(servicePrice)}</span>
           </div>
+          <div className="border-t border-blue-100 bg-blue-50/60 px-5 py-2.5 text-[11px] font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300 flex flex-wrap items-center justify-between gap-2">
+            <span>{t.vatIncluded || (language === 'ar' ? 'الأسعار شاملة ضريبة القيمة المضافة 15%' : 'Prices include 15% VAT')} • {t.sparePartsNotIncluded || (language === 'ar' ? 'قطع الغيار غير مشمولة' : 'Spare parts not included')}</span>
+            <span className="font-bold text-primary dark:text-blue-400">{t.pricesVaryInspection || (language === 'ar' ? 'الأسعار تبدأ من وتختلف حسب المعاينة والفحص الميداني.' : 'Prices start from and may vary after inspection.')}</span>
+          </div>
         </div>
 
         {/* Contact Section */}
@@ -1299,8 +1303,16 @@ export default function BookingPage() {
               </div>
             </div>
           </div>
-          <div className="border-t border-border bg-blue-50/50 px-5 py-2.5 dark:border-slate-700 dark:bg-slate-800/50">
-            <p className="text-center text-[11px] font-semibold text-sub dark:text-slate-500">{t.cashPaymentNote || 'Cash payment after service completion'}</p>
+          <div className="border-t border-border bg-blue-50/50 px-5 py-3 dark:border-slate-700 dark:bg-slate-800/50 space-y-1.5 text-center">
+            <p className="text-[11px] font-semibold text-sub dark:text-slate-400">
+              {t.cashPaymentNote || 'Cash payment after service completion'}
+            </p>
+            <p className="text-[10.5px] font-medium text-slate-500 dark:text-slate-400">
+              {t.vatIncluded || (language === 'ar' ? 'الأسعار شاملة ضريبة القيمة المضافة 15%' : 'Prices include 15% VAT')} • {t.sparePartsNotIncluded || (language === 'ar' ? 'قطع الغيار غير مشمولة' : 'Spare parts not included')}
+            </p>
+            <p className="pt-1 text-[11px] font-bold text-primary dark:text-blue-400 border-t border-blue-100/60 dark:border-slate-700/60">
+              {t.pricesVaryInspection || (language === 'ar' ? 'الأسعار تبدأ من وتختلف حسب المعاينة والفحص الميداني.' : 'Prices start from and may vary after inspection.')}
+            </p>
           </div>
         </div>
 

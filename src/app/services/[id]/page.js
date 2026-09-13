@@ -37,10 +37,11 @@ import ServiceCard from '@/components/ServiceCard';
 const FALLBACK_SERVICES = [
   {
     _id: '1',
-    name: 'AC Repair',
-    nameAr: 'إصلاح المكيفات',
-    description: 'Expert diagnostics and repair for all split, window, and central AC systems. We fix cooling issues, gas leaks, electrical faults, and unusual noises.',
-    descriptionAr: 'تشخيص وإصلاح احترافي لجميع أنواع مكيفات الاسبليت والشباك والمركزي. نعالج مشاكل ضعف التبريد وتسريب الفريون والأعطال الكهربائية.',
+    id: '1',
+    name: 'AC Repair & Diagnostics',
+    nameAr: 'صيانة وفحص المكيفات',
+    description: 'Expert diagnostics and repair for all split, window, and central AC systems. We fix cooling faults, gas leaks, electrical issues, and unusual noises.',
+    descriptionAr: 'تشخيص وإصلاح احترافي لجميع أنواع مكيفات الاسبليت والشباك والمركزي. صيانة ضعف التبريد وتسريب الفريون والأعطال الكهربائية.',
     basePrice: 150,
     estimatedDuration: '1-2 hours',
     category: 'ac',
@@ -49,8 +50,9 @@ const FALLBACK_SERVICES = [
   },
   {
     _id: '2',
-    name: 'AC Installation',
-    nameAr: 'تركيب المكيفات',
+    id: '2',
+    name: 'AC Installation & Dismantling',
+    nameAr: 'تركيب وفك مكيفات سبليت وشباك',
     description: 'Professional installation for new or relocated split and window air conditioners with vacuum testing and leak-free copper piping.',
     descriptionAr: 'تركيب احترافي لمكيفات الاسبليت والشباك الجديدة أو المنقولة مع فحص التفريغ وتمديد النحاس بدون تسريبات.',
     basePrice: 200,
@@ -61,7 +63,8 @@ const FALLBACK_SERVICES = [
   },
   {
     _id: '3',
-    name: 'AC Deep Cleaning',
+    id: '3',
+    name: 'AC Deep Cleaning & Sanitization',
     nameAr: 'تنظيف وغسيل المكيفات',
     description: 'High-pressure jet wash and chemical sanitization of evaporator coils, blower fan, filters, and drain lines for maximum airflow and cooling.',
     descriptionAr: 'غسيل عميق بأجهزة ضغط الماء العالي ومواد التعقيم لملفات التبريد والمروحة والفلاتر ومجرى التصريف لزيادة كفاءة التبريد ونقاء الهواء.',
@@ -73,8 +76,9 @@ const FALLBACK_SERVICES = [
   },
   {
     _id: '4',
-    name: 'Refrigerator Repair',
-    nameAr: 'إصلاح الثلاجات',
+    id: '4',
+    name: 'Refrigerator & Freezer Repair',
+    nameAr: 'إصلاح الثلاجات والفريزر',
     description: 'Comprehensive repair for all refrigerator and freezer brands. Thermostat replacement, compressor repair, defrost timer fixes, and gas charging.',
     descriptionAr: 'إصلاح شامل لجميع ماركات الثلاجات والفريزر. تغيير الثرموستات، صيانة الكمبروسر، معالجة تراكم الثلج وشحن الفريون الأصلي.',
     basePrice: 150,
@@ -82,6 +86,58 @@ const FALLBACK_SERVICES = [
     category: 'refrigerator',
     isPopular: true,
     warrantyDays: 30,
+  },
+  {
+    _id: '5',
+    id: '5',
+    name: 'Washing Machine Repair',
+    nameAr: 'إصلاح وصيانة الغسالات',
+    description: 'Expert repair for front-load and top-load washers: motor issues, water drainage, noisy bearings, and electronic PCB boards.',
+    descriptionAr: 'إصلاح جميع أنواع الغسالات الأوتوماتيك والعادية: مشاكل دوران الحوض، طرد المياه، اهتزاز التجفيف ولوحات التحكم.',
+    basePrice: 140,
+    estimatedDuration: '1-2 hours',
+    category: 'washing-machine',
+    isPopular: true,
+    warrantyDays: 30,
+  },
+  {
+    _id: '6',
+    id: '6',
+    name: 'AC Gas Refill (Freon R410A / R22)',
+    nameAr: 'تعبئة غاز فريون أصلي',
+    description: 'Starting from 180 SAR (prices vary depending on gas type R410A/R22 & quantity needed). Pressure test, leak detection, complete evacuation, and 100% genuine refrigerant refill.',
+    descriptionAr: 'يبدأ من 180 ريال (تختلف القيمة حسب نوع الغاز R410A / R22 وكمية الشحن المطلوبة). شحن فريون أصلي مع كشف وتصليح مكان التسريب وفحص الضغوط.',
+    basePrice: 180,
+    estimatedDuration: '1 hour',
+    category: 'ac',
+    isPopular: true,
+    warrantyDays: 30,
+  },
+  {
+    _id: '7',
+    id: '7',
+    name: 'Cooking Stove & Oven Repair',
+    nameAr: 'صيانة الأفران والبوتاجازات',
+    description: 'Burner cleaning, ignition fixes, thermostat replacement, and gas safety checks.',
+    descriptionAr: 'صيانة شعلات الغاز وتغيير الحساسات وضبط درجات حرارة الأفران.',
+    basePrice: 160,
+    estimatedDuration: '1-2 hours',
+    category: 'stove',
+    isPopular: false,
+    warrantyDays: 30,
+  },
+  {
+    _id: 'pkg_villa',
+    id: 'pkg_villa',
+    name: 'Annual Villa Care - Full Home Maintenance',
+    nameAr: 'عقد رعاية سنوية للفلل والمنازل',
+    description: '4 seasonal AC maintenance visits, VIP priority 24/7 hotline dispatch, and 20% off all spare parts.',
+    descriptionAr: '٤ زيارات فحص دوري للمكيفات مع صيانة طوارئ ذات أولوية قصوى وخصم ٢٠٪ على قطع الغيار.',
+    basePrice: 1200,
+    estimatedDuration: 'Annual Contract',
+    category: 'general',
+    isPopular: true,
+    warrantyDays: 365,
   },
 ];
 
@@ -428,6 +484,33 @@ export default function ServiceDetailPage() {
         <p className="mt-2 text-xs font-medium text-slate-600 dark:text-slate-400">
           {t.payAfterService || 'Pay only after service is completed & inspected.'}
         </p>
+
+        {/* Gas Refill Notice if applicable */}
+        {(serviceId === '6' || String(service?.name).toLowerCase().includes('gas') || String(service?.nameAr).includes('غاز') || String(service?.nameAr).includes('فريون')) && (
+          <div className="mt-3 rounded-xl border border-amber-200/80 bg-amber-50/90 p-2.5 text-[11px] font-medium text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">
+            <span className="font-bold">{language === 'ar' ? 'ملاحظة تعبئة الفريون:' : 'AC Gas Refill Notice:'}</span>{' '}
+            <span>
+              {language === 'ar'
+                ? 'يبدأ من 180 ريال، وتختلف القيمة حسب نوع الغاز (R410A / R22) وكمية الشحن المطلوبة بعد فحص الضغوط.'
+                : 'Starting from 180 SAR; final price varies depending on refrigerant type (R410A / R22) and required gas quantity.'}
+            </span>
+          </div>
+        )}
+
+        {/* Pricing Terms, VAT & Inspection Disclaimer */}
+        <div className="mt-3 space-y-1.5 rounded-xl border border-blue-100 bg-blue-50/60 p-3 text-[11px] font-medium text-slate-600 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300">
+          <p className="flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
+            <span>{t.vatIncluded || (language === 'ar' ? 'الأسعار شاملة ضريبة القيمة المضافة 15%' : 'Prices include 15% VAT')}</span>
+          </p>
+          <p className="flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" />
+            <span>{t.sparePartsNotIncluded || (language === 'ar' ? 'قطع الغيار غير مشمولة (تُسعر بشكل منفصل عند الحاجة)' : 'Spare parts not included (quoted separately)')}</span>
+          </p>
+          <p className="pt-1.5 text-[11px] font-bold text-primary dark:text-blue-400 border-t border-blue-100/70 dark:border-slate-700/70">
+            {t.pricesVaryInspection || (language === 'ar' ? 'الأسعار تبدأ من وتختلف حسب المعاينة والفحص الميداني.' : 'Prices start from and may vary after inspection.')}
+          </p>
+        </div>
       </div>
 
       {/* Service Specs summary */}
@@ -1222,6 +1305,9 @@ export default function ServiceDetailPage() {
             </span>
             <span className="text-base font-black text-primary dark:text-blue-400">
               {formatPrice(price)}
+            </span>
+            <span className="block text-[9px] font-semibold text-slate-400 dark:text-slate-500 truncate">
+              {language === 'ar' ? 'شامل الضريبة 15%' : 'Incl. 15% VAT'}
             </span>
           </div>
 

@@ -36,7 +36,7 @@ function serviceMatchesFilter(service, filterId) {
 }
 
 export default function ServicesPage() {
-  const { t, isRTL } = useTranslation();
+  const { t, language, isRTL } = useTranslation();
   const router = useRouter();
   const [allServices, setAllServices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -144,6 +144,27 @@ export default function ServicesPage() {
                 onBook={handleBook}
               />
             ))}
+          </div>
+        )}
+
+        {/* Pricing Terms & VAT Banner */}
+        {!loading && filteredServices.length > 0 && (
+          <div className="mt-8 rounded-2xl border border-blue-100 bg-blue-50/70 p-4 text-xs font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-start">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
+                <span>
+                  {language === 'ar'
+                    ? 'جميع الأسعار تشمل ضريبة القيمة المضافة 15% • قطع الغيار غير مشمولة وتُحدد حسب الحاجة'
+                    : 'All prices include 15% VAT • Spare parts are not included and quoted separately'}
+                </span>
+              </div>
+              <p className="font-bold text-primary dark:text-blue-400">
+                {language === 'ar'
+                  ? 'الأسعار تبدأ من وتختلف حسب المعاينة والفحص الميداني.'
+                  : 'Prices start from and may vary after inspection.'}
+              </p>
+            </div>
           </div>
         )}
 
