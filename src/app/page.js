@@ -224,8 +224,8 @@ export default function Home() {
   const { t, language, isRTL, formatPrice } = useTranslation();
   const { user } = useAuth();
   const [services, setServices] = useState(SERVICES_FALLBACK);
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [reviews, setReviews] = useState(REVIEWS_AR);
+  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
 
   const PHONE = '+966590192146';
@@ -357,26 +357,20 @@ export default function Home() {
     },
   ];
 
-  if (loading) {
-    return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 bg-bg dark:bg-slate-950">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-        <p className="text-sm font-semibold text-sub">{t.loadingServices}</p>
-      </div>
-    );
-  }
+
 
   return (
     <div className="bg-bg dark:bg-slate-950" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* ═══ 1. HERO SECTION (CONTAINER MATCHING USER MARKERS: mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-8) ═══ */}
-      <section className="relative w-full aspect-video sm:aspect-auto sm:min-h-[85vh] overflow-hidden bg-gradient-to-br from-[#1D4ED8] via-[#2563EB] to-[#3B82F6] flex items-center">
+      <section className="relative w-full min-h-[360px] sm:min-h-[540px] lg:min-h-[640px] overflow-hidden bg-gradient-to-br from-[#1D4ED8] via-[#2563EB] to-[#3B82F6] flex items-center">
         {/* Background Video */}
         <video
           autoPlay
           muted
           loop
           playsInline
-          className="absolute inset-0 h-full w-full object-cover"
+          preload="none"
+          className="absolute inset-0 h-full w-full object-cover pointer-events-none"
         >
           <source src="/hero.mp4" type="video/mp4" />
         </video>

@@ -169,7 +169,7 @@ export default function RootLayout({ children }) {
         {/* TikTok Pixel Code */}
         <Script
           id="tiktok-pixel"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
           dangerouslySetInnerHTML={{
             __html: `
               !function (w, d, t) {

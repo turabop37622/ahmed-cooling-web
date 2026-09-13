@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Loader2, Inbox, RefreshCw } from 'lucide-react';
 import { useTranslation } from '@/contexts/TranslationContext';
 import { getServices } from '@/lib/api';
+import { FALLBACK_SERVICES } from '@/lib/servicesData';
 import ServiceCard from '@/components/ServiceCard';
 
 const FILTERS = [
@@ -38,12 +39,11 @@ function serviceMatchesFilter(service, filterId) {
 export default function ServicesPage() {
   const { t, language, isRTL } = useTranslation();
   const router = useRouter();
-  const [allServices, setAllServices] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [allServices, setAllServices] = useState(FALLBACK_SERVICES);
+  const [loading, setLoading] = useState(false);
   const [activeFilter, setActiveFilter] = useState('all');
 
   const loadServices = useCallback(async () => {
-    setLoading(true);
     try {
       const res = await getServices();
       const list = res?.services ?? res?.data ?? res;
@@ -126,8 +126,8 @@ export default function ServicesPage() {
           })}
         </div>
 
-        {/* Loading */}
-        {loading && (
+        {/* Loading - only if no services loaded yet */}
+        {loading && allServices.length === 0 && (
           <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4">
             <Loader2 className="h-10 w-10 animate-spin text-primary dark:text-blue-400" />
             <p className="text-sm font-semibold text-sub dark:text-slate-400">{t.loadingServices}</p>
@@ -135,7 +135,7 @@ export default function ServicesPage() {
         )}
 
         {/* Grid: 3 cards per row */}
-        {!loading && filteredServices.length > 0 && (
+        {filteredServices.length > 0 && (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filteredServices.map((svc) => (
               <ServiceCard
@@ -148,7 +148,7 @@ export default function ServicesPage() {
         )}
 
         {/* Pricing Terms & VAT Banner */}
-        {!loading && filteredServices.length > 0 && (
+        {filteredServices.length > 0 && (
           <div className="mt-8 rounded-2xl border border-blue-100 bg-blue-50/70 p-4 text-xs font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-start">
               <div className="flex items-center gap-2">
