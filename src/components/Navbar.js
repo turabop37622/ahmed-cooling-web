@@ -13,6 +13,7 @@ export default function Navbar() {
   const { user, token, logout } = useAuth();
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { t, language, setLanguage } = useTranslation();
+  const isAr = language === 'ar';
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -45,11 +46,17 @@ export default function Navbar() {
       <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 shrink-0">
-            <Snowflake className="h-7 w-7 text-primary" />
-            <div>
-              <span className="text-lg font-black text-text dark:text-white">{t.appName}</span>
-            </div>
+          <Link href="/" className="flex items-center shrink-0 group py-1">
+            <img
+              src={isAr ? "/logo-ar.png" : "/logo-en.png"}
+              alt="Ahmed Cooling Workshop"
+              className="h-10 sm:h-11 w-auto object-contain dark:hidden transition-transform duration-200 group-hover:scale-[1.02]"
+            />
+            <img
+              src={isAr ? "/logo-ar-white.png" : "/logo-en-white.png"}
+              alt="Ahmed Cooling Workshop"
+              className="h-10 sm:h-11 w-auto object-contain hidden dark:block transition-transform duration-200 group-hover:scale-[1.02]"
+            />
           </Link>
 
           {/* Desktop links */}

@@ -35,9 +35,9 @@ export const metadata = {
     'خدمة طوارئ تكييف', 'ورشة أحمد للتبريد',
   ],
   icons: {
-    icon: '/favicon.svg',
-    shortcut: '/favicon.svg',
-    apple: '/favicon.svg',
+    icon: '/logo-icon.png',
+    shortcut: '/logo-icon.png',
+    apple: '/logo-icon.png',
   },
   openGraph: {
     type: 'website',

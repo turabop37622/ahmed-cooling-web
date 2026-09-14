@@ -21,13 +21,12 @@ export default function Footer() {
 
           {/* 1. Brand */}
           <div className="space-y-4">
-            <Link href="/" className="inline-flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-600/20">
-                <Snowflake className="w-5 h-5" />
-              </div>
-              <span className="text-lg font-bold text-white tracking-tight">
-                {isAr ? 'ورشة أحمد للتبريد' : 'Ahmed Cooling'}
-              </span>
+            <Link href="/" className="inline-block group py-1">
+              <img
+                src={isAr ? "/logo-ar-white.png" : "/logo-en-white.png"}
+                alt="Ahmed Cooling Workshop"
+                className="h-11 sm:h-12 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02]"
+              />
             </Link>
             <p className="text-sm text-slate-400 leading-relaxed max-w-sm">
               {isAr

@@ -80,8 +80,8 @@ function AdminShell({ children }) {
         {/* Brand Header */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-slate-100 dark:border-slate-800/80 shrink-0">
           <Link href="/admin/dashboard" className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shrink-0 shadow-md shadow-blue-500/25">
-              <Snowflake className="w-6 h-6 text-white animate-pulse" />
+            <div className="w-10 h-10 rounded-xl bg-blue-600/10 dark:bg-blue-500/10 flex items-center justify-center shrink-0 p-1">
+              <img src="/logo-icon.png" alt="Ahmed Cooling" className="w-8 h-8 object-contain" />
             </div>
             {(!collapsed || mobileOpen) && (
               <div className="min-w-0">

@@ -48,13 +48,11 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-md">
         {/* Header Branding */}
         <div className="text-center mb-8">
-          <div className="mx-auto w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center shadow-xl shadow-blue-500/30 mb-4 ring-8 ring-blue-500/10">
-            <Snowflake className="w-9 h-9 text-white animate-pulse" />
+          <div className="mx-auto flex items-center justify-center mb-3">
+            <img src="/logo-en.png" alt="Ahmed Cooling Workshop" className="h-16 w-auto object-contain dark:hidden" />
+            <img src="/logo-en-white.png" alt="Ahmed Cooling Workshop" className="h-16 w-auto object-contain hidden dark:block" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-            Ahmed Cooling Workshop
-          </h1>
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
             Official Management & Admin Portal • Jeddah & Makkah
           </p>
         </div>
