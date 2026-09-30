@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  Clock,
   ArrowRight,
   ArrowLeft,
   Star,
@@ -84,7 +83,7 @@ const getCategoryMeta = (cat, serviceName, lang) => {
   };
 };
 
-export default function ServiceCard({ service, onBook }) {
+export default function ServiceCard({ service, onBook, index = 0, className = '' }) {
   const router = useRouter();
   const { t, language, isRTL, toAr, formatPrice } = useTranslation();
 
@@ -96,11 +95,6 @@ export default function ServiceCard({ service, onBook }) {
     service.description ||
     '';
   const price = service.basePrice ?? 0;
-  const rawDuration = service.estimatedDuration || service.duration || '1-2 hours';
-  const displayDuration =
-    language === 'ar'
-      ? toAr(rawDuration).replace(/hours?/gi, 'ساعة')
-      : rawDuration;
 
   const imgSrc = getServiceImage(service.name, service.category);
   const detailUrl = id ? `/services/${id}` : '/services';
@@ -122,10 +116,12 @@ export default function ServiceCard({ service, onBook }) {
     }
   };
 
+  const staggerDelay = index % 3 === 1 ? 'delay-100' : index % 3 === 2 ? 'delay-200' : '';
+
   return (
     <div
       onClick={handleCardClick}
-      className="group relative flex w-full cursor-pointer flex-col overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/40 hover:shadow-[0_20px_40px_-15px_rgba(37,99,235,0.18)] dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-500/40 dark:hover:shadow-[0_20px_40px_-15px_rgba(37,99,235,0.28)]"
+      className={`group relative flex w-full cursor-pointer flex-col overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/40 hover:shadow-[0_20px_40px_-15px_rgba(37,99,235,0.18)] dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-500/40 dark:hover:shadow-[0_20px_40px_-15px_rgba(37,99,235,0.28)] scroll-reveal ${staggerDelay} ${className}`}
     >
       {/* ═══ Top Photography Header ═══ */}
       <div className="relative h-48 sm:h-56 w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
@@ -160,9 +156,9 @@ export default function ServiceCard({ service, onBook }) {
               {catMeta.label}
             </span>
           </div>
-          <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-400 dark:text-slate-500">
-            <Clock className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
-            <span>{displayDuration}</span>
+          <div className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/40">
+            <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+            <span>{language === 'ar' ? 'ضمان معتمد' : 'Certified Warranty'}</span>
           </div>
         </div>
 
@@ -172,7 +168,7 @@ export default function ServiceCard({ service, onBook }) {
         </h3>
 
         {/* Description / Subtitle - uniform min-height for 2 lines */}
-        <p className="mt-1.5 line-clamp-2 text-xs sm:text-sm font-normal leading-relaxed text-slate-500 dark:text-slate-400 min-h-[2.5rem] sm:min-h-[2.75rem]">
+        <p data-nosnippet="true" className="mt-1.5 line-clamp-2 text-xs sm:text-sm font-normal leading-relaxed text-slate-500 dark:text-slate-400 min-h-[2.5rem] sm:min-h-[2.75rem]">
           {desc}
         </p>
 

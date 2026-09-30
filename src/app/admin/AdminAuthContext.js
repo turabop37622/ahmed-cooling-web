@@ -40,6 +40,13 @@ export function AdminAuthProvider({ children }) {
   const login = useCallback((authData) => {
     const t = authData.token;
     const u = authData.user || authData.admin || { fullName: 'Admin', email: authData.email, role: 'admin' };
+
+    // Verify the user has admin role
+    const role = (u.role || '').toLowerCase();
+    if (role !== 'admin' && role !== 'superadmin') {
+      throw new Error('Access denied. Only admin users can access this panel.');
+    }
+
     setToken(t);
     setUser(u);
 

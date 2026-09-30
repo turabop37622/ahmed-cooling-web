@@ -39,6 +39,19 @@ function AdminShell({ children }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  // Enforce LTR for Admin Panel
+  useEffect(() => {
+    document.documentElement.dir = 'ltr';
+    document.documentElement.lang = 'en';
+    return () => {
+      try {
+        const saved = localStorage.getItem('language') || 'ar';
+        document.documentElement.dir = saved === 'ar' ? 'rtl' : 'ltr';
+        document.documentElement.lang = saved;
+      } catch (e) {}
+    };
+  }, []);
+
   // Check authentication
   useEffect(() => {
     if (!loading && !token && pathname !== '/admin/login') {
@@ -48,13 +61,13 @@ function AdminShell({ children }) {
 
   // If on login page, render clean page without admin sidebar
   if (pathname === '/admin/login') {
-    return <div className="min-h-screen bg-slate-50 dark:bg-slate-950">{children}</div>;
+    return <div className="min-h-screen bg-slate-50 dark:bg-slate-950" dir="ltr">{children}</div>;
   }
 
   // Loading state
   if (loading || (!token && pathname !== '/admin/login')) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300" dir="ltr">
         <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4" />
         <p className="text-sm font-medium tracking-wide">Loading Admin Portal...</p>
       </div>
@@ -62,7 +75,7 @@ function AdminShell({ children }) {
   }
 
   return (
-    <div className="min-h-screen flex bg-[#F8FAFC] dark:bg-[#090D16] text-[#0F172A] dark:text-[#F1F5F9] antialiased">
+    <div className="min-h-screen flex bg-[#F8FAFC] dark:bg-[#090D16] text-[#0F172A] dark:text-[#F1F5F9] antialiased" dir="ltr">
       {/* Mobile Backdrop */}
       {mobileOpen && (
         <div

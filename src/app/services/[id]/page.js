@@ -182,8 +182,8 @@ const SERVICE_FAQS = [
   {
     qEn: 'How soon can a technician arrive at my location?',
     qAr: 'ما هي سرعة وصول الفني إلى موقعي؟',
-    aEn: 'For standard bookings, we offer same-day service slots within 2 to 4 hours. In emergency cases in Jeddah & Makkah, our technicians can reach you in 60 to 90 minutes.',
-    aAr: 'للحجوزات المعتادة نوفر مواعيد في نفس اليوم خلال ساعتين إلى ٤ ساعات. ولحالات الطوارئ في جدة ومكة يصل الفني خلال ٦٠ إلى ٩٠ دقيقة.',
+    aEn: 'For standard bookings, we offer same-day service slots within 2 to 4 hours. In emergency cases across Saudi Arabia (Jeddah & Makkah), our mobile technicians can reach you in 60 to 90 minutes.',
+    aAr: 'للحجوزات المعتادة نوفر مواعيد في نفس اليوم خلال ساعتين إلى ٤ ساعات. ولحالات الطوارئ في السعودية (جدة ومكة) يصل الفني خلال ٦٠ إلى ٩٠ دقيقة.',
   },
   {
     qEn: 'Do you provide a warranty on repairs and spare parts?',
@@ -200,12 +200,25 @@ const SERVICE_FAQS = [
   {
     qEn: 'Which cities and areas do you cover?',
     qAr: 'ما هي المدن والأحياء التي تغطونها؟',
-    aEn: 'We provide full coverage across all neighborhoods of Jeddah and Makkah with our mobile technician fleet.',
-    aAr: 'نغطي كافة أحياء مدينتي جدة ومكة المكرمة عبر أسطول فنيين متنقل ومجهز بالكامل.',
+    aEn: 'We provide full coverage across Saudi Arabia (Jeddah, Makkah) with our fully-equipped mobile technician fleet.',
+    aAr: 'نغطي كافة مناطق المملكة العربية السعودية (جدة، مكة المكرمة) عبر أسطول فنيين متنقل ومجهز بالكامل.',
   },
 ];
 
 const INITIAL_SERVICE_REVIEWS = [
+  {
+    id: 'rev-ksa-1',
+    name: 'محمد العمري',
+    nameEn: 'Mohammed Al-Omari',
+    city: 'جدة',
+    cityEn: 'Jeddah',
+    rating: 5,
+    date: 'منذ يومين',
+    dateEn: '2 days ago',
+    comment: 'خدمة راقية جداً وسريعة في جدة. الفني فحص التكييف بدقة وقام بتغيير القطعة المطلوبة واختبر البرودة بكفاءة عالية.',
+    commentEn: 'Excellent service in Jeddah! The technician inspected our AC thoroughly, replaced the faulty component, and verified optimal cooling performance.',
+    likes: 11,
+  },
   {
     id: 'rev-1',
     name: 'عبدالله السلمي',
@@ -517,10 +530,12 @@ export default function ServiceDetailPage() {
       <div className="space-y-3 py-5 text-xs font-bold">
         <div className="flex items-center justify-between text-slate-700 dark:text-slate-300">
           <span className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
-            <Clock className="h-4 w-4 text-primary" />
-            {language === 'ar' ? 'المدة التقديرية:' : 'Duration:'}
+            <CheckCircle2 className="h-4 w-4 text-primary" />
+            {language === 'ar' ? 'قطع الغيار:' : 'Spare Parts:'}
           </span>
-          <span>{toAr(duration)}</span>
+          <span className="font-bold text-slate-800 dark:text-slate-200">
+            {language === 'ar' ? 'أصلية معتمدة' : '100% Genuine'}
+          </span>
         </div>
 
         <div className="flex items-center justify-between text-slate-700 dark:text-slate-300">
@@ -538,7 +553,7 @@ export default function ServiceDetailPage() {
             <MapPin className="h-4 w-4 text-red-500" />
             {language === 'ar' ? 'مناطق التغطية:' : 'Available in:'}
           </span>
-          <span>{language === 'ar' ? 'جدة ومكة المكرمة' : 'Jeddah & Makkah'}</span>
+          <span>{language === 'ar' ? 'المملكة العربية السعودية' : 'Saudi Arabia'}</span>
         </div>
       </div>
 
@@ -622,8 +637,6 @@ export default function ServiceDetailPage() {
     );
   }
 
-  const issuesList = COMMON_PROBLEMS[category] || COMMON_PROBLEMS.general;
-
   return (
     <div className="min-h-screen bg-bg pb-28 lg:pb-16 dark:bg-slate-950" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* ═══ BREADCRUMB (ALIGNED WITH NAVBAR) ═══ */}
@@ -650,7 +663,7 @@ export default function ServiceDetailPage() {
           <div className="lg:col-span-7 xl:col-span-8 space-y-8">
             {/* HERO MEDIA CARD */}
             <div className="group relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <div className="relative h-72 sm:h-96 w-full overflow-hidden">
+              <div className="relative h-80 sm:h-[420px] lg:h-[515px] xl:h-[520px] w-full overflow-hidden">
                 <img
                   src={imgSrc}
                   alt={name}
@@ -725,10 +738,10 @@ export default function ServiceDetailPage() {
                 </div>
                 <div className="p-1 sm:p-2 text-center min-w-0">
                   <span className="block text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">
-                    {language === 'ar' ? 'المدة التقديرية' : 'Estimated Time'}
+                    {language === 'ar' ? 'قطع الغيار' : 'Spare Parts'}
                   </span>
                   <span className="text-[11px] sm:text-sm font-bold text-slate-800 dark:text-slate-200 truncate block">
-                    {toAr(duration)}
+                    {language === 'ar' ? 'أصلية معتمدة' : '100% Genuine'}
                   </span>
                 </div>
                 <div className="p-1 sm:p-2 text-center min-w-0">
@@ -741,10 +754,10 @@ export default function ServiceDetailPage() {
                 </div>
                 <div className="p-1 sm:p-2 text-center min-w-0">
                   <span className="block text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">
-                    {language === 'ar' ? 'التغطية' : 'Coverage'}
+                    {language === 'ar' ? 'نوع الخدمة' : 'Service'}
                   </span>
                   <span className="text-[11px] sm:text-sm font-bold text-slate-800 dark:text-slate-200 truncate block">
-                    {language === 'ar' ? 'جدة ومكة' : 'Jeddah & Makkah'}
+                    {language === 'ar' ? 'خدمة منزلية' : 'Doorstep Visit'}
                   </span>
                 </div>
               </div>
@@ -824,65 +837,6 @@ export default function ServiceDetailPage() {
                     </p>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            {/* WHAT'S INCLUDED IN THIS SERVICE */}
-            <div className="rounded-3xl border border-slate-200/80 bg-white p-6 sm:p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <div className="mb-6 flex items-center gap-3">
-                <div className="h-6 w-1 rounded-full bg-primary" />
-                <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
-                  {t.whatsIncluded || "What's Included in This Service"}
-                </h2>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                {[
-                  { en: 'Comprehensive on-site diagnostics & fault detection', ar: 'فحص وتشخيص شامل للأعطال في الموقع' },
-                  { en: 'Pressure, electrical current & safety test', ar: 'فحص ضغط الغاز وتيار الكهرباء وإجراءات السلامة' },
-                  { en: 'Professional repair using specialized industrial tools', ar: 'إصلاح احترافي بأحدث الأدوات والمعدات المتخصصة' },
-                  { en: 'Original manufacturer-grade spare parts guarantee', ar: 'ضمان استخدام قطع غيار أصلية ومطابقة للمواصفات' },
-                  { en: 'Post-repair cooling / functionality performance verification', ar: 'اختبار كفاءة التبريد والأداء بعد الانتهاء' },
-                  { en: 'Complete worksite cleanup and debris disposal', ar: 'تنظيف كامل لمكان العمل بعد إتمام الصيانة' },
-                  { en: 'Official certified service warranty certificate', ar: 'سند وشهادة ضمان معتمد على الصيانة' },
-                  { en: 'Dedicated phone & WhatsApp support after service', ar: 'دعم ومتابعة مستمرة عبر الهاتف والواتساب بعد الزيارة' },
-                ].map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-3.5 dark:border-slate-800 dark:bg-slate-800/40"
-                  >
-                    <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                    <span className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200">
-                      {language === 'ar' ? item.ar : item.en}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* COMMON PROBLEMS WE SOLVE */}
-            <div className="rounded-3xl border border-slate-200/80 bg-white p-6 sm:p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <div className="mb-6 flex items-center gap-3">
-                <div className="h-6 w-1 rounded-full bg-primary" />
-                <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
-                  {t.commonIssues || 'Common Problems We Solve'}
-                </h2>
-              </div>
-
-              <div className="space-y-3">
-                {issuesList.map((prob, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center gap-3.5 rounded-2xl border border-slate-100 bg-slate-50 p-4 transition hover:bg-slate-100/80 dark:border-slate-800 dark:bg-slate-800/50 dark:hover:bg-slate-800"
-                  >
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600 dark:bg-red-950/50 dark:text-red-400 text-xs font-black">
-                      #{idx + 1}
-                    </div>
-                    <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
-                      {language === 'ar' ? prob.ar : prob.en}
-                    </span>
-                  </div>
-                ))}
               </div>
             </div>
 

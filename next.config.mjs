@@ -10,6 +10,7 @@ const nextConfig = {
   turbopack: {
     root: __dirname,
   },
+  devIndicators: false,
   images: {
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 2592000,

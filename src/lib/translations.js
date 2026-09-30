@@ -98,10 +98,11 @@ export const translations = {
 
     // Home - Hero
     heroAvailable: '✅ Serving Jeddah & Makkah',
-    heroTitle: 'Your Home.\nOur Expertise.',
-    heroSubtitle: 'From AC breakdowns to appliance emergencies — we fix it all. Trusted by 500+ families across Saudi Arabia.',
+    heroBadge: '🇸🇦 Serving Jeddah & Makkah • Certified AC & Appliance Workshop',
+    heroTitle: 'Ahmed Cooling Workshop\nAC & Appliance Repair KSA',
+    heroSubtitle: 'Certified AC repair, split AC maintenance, freon gas refill, and home appliance repair across Jeddah & Makkah. 24/7 emergency service with authentic parts and guaranteed warranty.',
     heroEmergencyCta: '🚨 24/7 Emergency Service',
-    heroStatYears: '15+', heroStatCustomers: '2K+', heroStatRating: '4.9',
+    heroStatYears: '10+', heroStatCustomers: '2.5K+', heroStatRating: '4.9',
 
     // Home - Services fallback
     svcAcRepair: 'AC Repair', svcAcRepairDesc: 'Expert diagnosis & repair for all AC brands',
@@ -489,7 +490,7 @@ export const translations = {
     brandName: 'أحمد للتبريد',
     brandTagline: 'وورشة الأجهزة',
     trustedTagline: 'شريكك الموثوق في الأجهزة',
-    trustedFooter: 'موثوق من أكثر من ٢٠٠٠ عميل في المملكة العربية السعودية',
+    trustedFooter: 'موثوق من أكثر من ٢٥٠٠ عميل في جدة ومكة المكرمة',
     loadingServices: 'جاري تحميل الخدمات...',
 
     years: 'سنوات', clients: 'عملاء', happy: 'رضا', from: 'من',
@@ -579,10 +580,11 @@ export const translations = {
     welcomeStatCustomers: '+2000', welcomeStatRating: '4.9★', welcomeStatServices: '+500',
 
     heroAvailable: '✅ نخدم جدة ومكة المكرمة',
-    heroTitle: 'بيتك.\nخبرتنا.',
-    heroSubtitle: 'من أعطال المكيفات إلى طوارئ الأجهزة — نصلح كل شيء. موثوقون من أكثر من ٥٠٠ عائلة في المملكة.',
+    heroBadge: '🇸🇦 ورشة معتمدة بجدة ومكة • صيانة منزلية وضمان شامل',
+    heroTitle: 'ورشة أحمد للتبريد\nصيانة مكيفات وأجهزة منزلية',
+    heroSubtitle: 'المركز المعتمد لصيانة وإصلاح مكيفات الاسبليت والشباك والمركزي، الثلاجات والغسالات في جدة ومكة المكرمة. خدمة طوارئ 24/7 مع ضمان معتمد وقطع غيار أصلية.',
     heroEmergencyCta: '🚨 خدمة طوارئ ٢٤/٧',
-    heroStatYears: '+15', heroStatCustomers: '+2 ألف', heroStatRating: '4.9',
+    heroStatYears: '+10', heroStatCustomers: '+2.5 ألف', heroStatRating: '4.9',
 
     svcAcRepair: 'إصلاح التكييف', svcAcRepairDesc: 'تشخيص وإصلاح احترافي لجميع ماركات التكييف',
     svcAcInstall: 'تركيب التكييف', svcAcInstallDesc: 'تركيب احترافي للتكييف السبليت والشباك',
@@ -606,8 +608,7 @@ export const translations = {
     whyWarrantyTitle: 'ضمان رسمي معتمد', whyWarrantyDesc: 'جودة عمل مضمونة',
 
     customerReviews: 'آراء العملاء', ratingPill: '⭐ 4.9 / 5',
-
-    serviceAreas: 'نخدم في جميع أنحاء المملكة العربية السعودية',
+    serviceAreas: 'نخدم في جميع أنحاء جدة ومكة المكرمة',
 
     ourServices: 'خدماتنا', seeAll: 'عرض الكل',
     emergencyStripTitle: 'إصلاح طوارئ 24/7',

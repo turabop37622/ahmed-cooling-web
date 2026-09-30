@@ -247,7 +247,7 @@ export default function AdminUsersPage() {
                     {u.phone ? (
                       <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
                         <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <a href={`tel:${u.phone}`} className="font-mono text-blue-600 dark:text-blue-400 hover:underline">
+                        <a href={`tel:${u.phone}`} className="font-mono text-blue-600 dark:text-blue-400 hover:underline inline-block" dir="ltr">
                           {u.phone}
                         </a>
                       </div>
@@ -346,7 +346,7 @@ export default function AdminUsersPage() {
                         <div className="space-y-1">
                           <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
                             <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            <span className="font-mono">{u.phone || 'No phone'}</span>
+                            <span className="font-mono select-all inline-block" dir="ltr">{u.phone || 'No phone'}</span>
                           </div>
                           <div className="flex items-center gap-1.5 text-slate-500 text-[11px]">
                             <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />

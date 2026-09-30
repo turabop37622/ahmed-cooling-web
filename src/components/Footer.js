@@ -20,7 +20,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-10">
 
           {/* 1. Brand */}
-          <div className="space-y-4">
+          <div className="space-y-4 scroll-reveal">
             <Link href="/" className="inline-block group py-1">
               <img
                 src={isAr ? "/logo-ar-white.png" : "/logo-en-white.png"}
@@ -30,8 +30,8 @@ export default function Footer() {
             </Link>
             <p className="text-sm text-slate-400 leading-relaxed max-w-sm">
               {isAr
-                ? 'خدمات صيانة وتكييف الهواء والأجهزة المنزلية المعتمدة في جدة ومكة المكرمة بضمان رسمي وقطع غيار أصلية.'
-                : 'Certified AC and home appliance repair specialists in Jeddah & Makkah with guaranteed quality and official warranty.'}
+                ? 'خدمات صيانة وتكييف الهواء والأجهزة المنزلية المعتمدة في المملكة العربية السعودية بضمان رسمي وقطع غيار أصلية.'
+                : 'Certified AC and home appliance repair specialists in Saudi Arabia with guaranteed quality and official warranty.'}
             </p>
             <div className="flex items-center gap-3 pt-1">
               <a
@@ -67,33 +67,33 @@ export default function Footer() {
           </div>
 
           {/* 2. Services */}
-          <div>
+          <div className="scroll-reveal delay-100">
             <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">
               {isAr ? 'الخدمات الرئيسية' : 'Services'}
             </h4>
             <ul className="space-y-2.5 text-sm">
               <li>
-                <Link href="/services" className="hover:text-white transition-colors">
+                <Link href="/services?cat=ac" className="hover:text-white transition-colors">
                   {isAr ? 'صيانة وإصلاح المكيفات' : 'AC Repair & Diagnostics'}
                 </Link>
               </li>
               <li>
-                <Link href="/services" className="hover:text-white transition-colors">
+                <Link href="/services?cat=cleaning" className="hover:text-white transition-colors">
                   {isAr ? 'غسيل وتنظيف عميق' : 'AC Deep Jet Wash'}
                 </Link>
               </li>
               <li>
-                <Link href="/services" className="hover:text-white transition-colors">
+                <Link href="/services?cat=gas" className="hover:text-white transition-colors">
                   {isAr ? 'شحن فريون أصلي' : 'Freon Gas Refill'}
                 </Link>
               </li>
               <li>
-                <Link href="/services" className="hover:text-white transition-colors">
+                <Link href="/services?cat=refrigerator" className="hover:text-white transition-colors">
                   {isAr ? 'صيانة الثلاجات والفريزر' : 'Refrigerator Repair'}
                 </Link>
               </li>
               <li>
-                <Link href="/services" className="hover:text-white transition-colors">
+                <Link href="/services?cat=washing" className="hover:text-white transition-colors">
                   {isAr ? 'صيانة الغسالات' : 'Washing Machine Repair'}
                 </Link>
               </li>
@@ -101,7 +101,7 @@ export default function Footer() {
           </div>
 
           {/* 3. Company */}
-          <div>
+          <div className="scroll-reveal delay-200">
             <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">
               {isAr ? 'روابط سريعة' : 'Company'}
             </h4>
@@ -135,7 +135,7 @@ export default function Footer() {
           </div>
 
           {/* 4. Contact Info */}
-          <div>
+          <div className="scroll-reveal delay-300">
             <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">
               {isAr ? 'معلومات الاتصال' : 'Contact'}
             </h4>
@@ -155,7 +155,7 @@ export default function Footer() {
               <li className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-blue-500 shrink-0 mt-1" />
                 <span className="leading-snug">
-                  {isAr ? 'حي الروضة، جدة ومكة المكرمة' : 'Al-Rawdah, Jeddah & Makkah, KSA'}
+                  {isAr ? 'المملكة العربية السعودية (جدة • مكة المكرمة)' : 'Saudi Arabia (Jeddah • Makkah)'}
                 </span>
               </li>
             </ul>
@@ -163,22 +163,22 @@ export default function Footer() {
         </div>
 
         {/* Pricing notice in footer */}
-        <div className="mt-12 pt-6 border-t border-slate-800/60 text-center text-xs text-slate-400 space-y-1">
+        <div className="scroll-reveal-fade mt-12 pt-6 border-t border-slate-800/60 text-center text-xs text-slate-400 space-y-1">
           <p>
             {isAr
-              ? 'جميع الأسعار شاملة ضريبة القيمة المضافة 15% • قطع الغيار غير مشمولة وتُحدد عند الفحص • الأسعار تبدأ من وتختلف حسب المعاينة والفحص الميداني.'
-              : 'All prices include 15% VAT • Spare parts not included (quoted upon inspection) • Prices start from and may vary after inspection.'}
+              ? 'الأسعار شاملة الضرائب المعمول بها • قطع الغيار غير مشمولة وتُحدد عند الفحص الميداني • أسعار الصيانة تبدأ من وتختلف حسب المعاينة الفنية.'
+              : 'Prices include applicable VAT • Spare parts not included (quoted upon on-site diagnosis) • Prices start from and vary based on inspection.'}
           </p>
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-6 pt-6 border-t border-slate-800/40 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+        <div className="scroll-reveal-fade mt-6 pt-6 border-t border-slate-800/40 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <p>
             &copy; {new Date().getFullYear()} {isAr ? 'ورشة أحمد للتبريد. جميع الحقوق محفوظة.' : 'Ahmed Cooling Workshop. All rights reserved.'}
           </p>
 
           <div className="flex items-center gap-5">
-            <span>{isAr ? 'جدة ومكة المكرمة 🇸🇦' : 'Jeddah & Makkah 🇸🇦'}</span>
+            <span>{isAr ? 'المملكة العربية السعودية 🇸🇦' : 'Saudi Arabia 🇸🇦'}</span>
           </div>
         </div>
       </div>

@@ -147,11 +147,17 @@ const STATUS_CONFIG = {
   },
 };
 
+const getBookingCurrency = (b) => {
+  if (b?.currency) return b.currency;
+  return 'SAR';
+};
+
 export default function AdminBookingsPage() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [currentTab, setCurrentTab] = useState('all');
+  const [countryFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
@@ -194,11 +200,18 @@ export default function AdminBookingsPage() {
     );
   }, [bookings]);
 
+  // Country counts (Saudi Arabia only)
+  const countryCounts = useMemo(() => {
+    return { saudi: bookings.length };
+  }, [bookings]);
+
   // Filtered list
   const filteredBookings = useMemo(() => {
     return bookings.filter((b) => {
       const st = normalizeStatus(b.status);
       if (currentTab !== 'all' && st !== currentTab) return false;
+
+      // No country filter needed (Saudi Arabia only)
 
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
@@ -207,11 +220,13 @@ export default function AdminBookingsPage() {
         const srv = (b.service?.name || b.serviceDetails?.name || b.serviceName || '').toLowerCase();
         const id = (b.orderNumber || b.bookingId || b._id || '').toLowerCase();
         const addr = (b.address || '').toLowerCase();
-        return name.includes(q) || phone.includes(q) || srv.includes(q) || id.includes(q) || addr.includes(q);
+        const country = (b.country || '').toLowerCase();
+        const city = (b.city || '').toLowerCase();
+        return name.includes(q) || phone.includes(q) || srv.includes(q) || id.includes(q) || addr.includes(q) || country.includes(q) || city.includes(q);
       }
       return true;
     });
-  }, [bookings, currentTab, searchQuery]);
+  }, [bookings, currentTab, countryFilter, searchQuery]);
 
   const handleStatusChange = async (booking, newStatus, reason = '') => {
     setUpdatingId(booking._id);
@@ -295,7 +310,7 @@ export default function AdminBookingsPage() {
       return `https://www.google.com/maps?q=${coords.latitude},${coords.longitude}`;
     }
     if (address) {
-      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address + ' Jeddah Saudi Arabia')}`;
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address + ' Saudi Arabia')}`;
     }
     return null;
   };
@@ -375,6 +390,8 @@ export default function AdminBookingsPage() {
             );
           })}
         </div>
+
+        {/* Country filter removed - Saudi Arabia only */}
       </div>
 
       {/* Bookings List / Table */}
@@ -409,9 +426,14 @@ export default function AdminBookingsPage() {
                         <h4 className="font-bold text-slate-900 dark:text-white text-sm truncate">
                           {serviceName}
                         </h4>
-                        <span className="text-[11px] font-mono text-slate-400">
-                          #{bkg.orderNumber || bkg.bookingId || bkg._id?.slice(-6).toUpperCase()}
-                        </span>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-[11px] font-mono text-slate-400">
+                            #{bkg.orderNumber || bkg.bookingId || bkg._id?.slice(-6).toUpperCase()}
+                          </span>
+                          <span className="text-[10px] px-1.5 py-0.2 rounded font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/50">
+                              🇸🇦 KSA
+                            </span>
+                        </div>
                       </div>
                     </div>
                     <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${status.bg} shrink-0`}>
@@ -436,7 +458,7 @@ export default function AdminBookingsPage() {
                     <div className="space-y-1">
                       <div className="flex items-start gap-1.5 text-slate-600 dark:text-slate-300">
                         <MapPin className="w-3.5 h-3.5 shrink-0 text-slate-400 mt-0.5" />
-                        <span className="truncate font-medium">{bkg.address || 'Jeddah / Makkah'}</span>
+                        <span className="truncate font-medium">{bkg.address || 'Address not provided'}</span>
                       </div>
                       {(() => {
                         const coords = getBookingCoordinates(bkg);
@@ -479,7 +501,7 @@ export default function AdminBookingsPage() {
                     <div>
                       <span className="text-[10px] uppercase font-bold text-slate-400 block">Total</span>
                       <span className="font-mono font-black text-slate-900 dark:text-white text-sm">
-                        {bkg.totalAmount ?? 0} <span className="text-xs font-normal text-slate-500">SAR</span>
+                        {bkg.totalAmount ?? 0} <span className="text-xs font-normal text-slate-500">{getBookingCurrency(bkg)}</span>
                       </span>
                     </div>
 
@@ -557,9 +579,14 @@ export default function AdminBookingsPage() {
                               <p className="font-bold text-slate-900 dark:text-white truncate text-xs sm:text-sm">
                                 {serviceName}
                               </p>
-                              <span className="text-[10px] sm:text-[11px] font-mono text-slate-400 truncate block">
-                                #{bkg.orderNumber || bkg.bookingId || bkg._id?.slice(-6).toUpperCase()}
-                              </span>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className="text-[10px] sm:text-[11px] font-mono text-slate-400 truncate">
+                                  #{bkg.orderNumber || bkg.bookingId || bkg._id?.slice(-6).toUpperCase()}
+                                </span>
+                                <span className="text-[9px] px-1.5 py-0.2 rounded font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/50">
+                                    🇸🇦 SA
+                                  </span>
+                              </div>
                             </div>
                           </div>
                         </td>
@@ -589,7 +616,7 @@ export default function AdminBookingsPage() {
                         {/* Address & GPS */}
                         <td className="py-3 px-3 lg:px-3.5 min-w-0">
                           <p className="text-xs font-medium text-slate-700 dark:text-slate-200 truncate block" title={bkg.address}>
-                            {bkg.address || 'Jeddah / Makkah'}
+                            {bkg.address || 'Jeddah / Makkah, KSA'}
                           </p>
                           {(() => {
                             const coords = getBookingCoordinates(bkg);
@@ -636,7 +663,7 @@ export default function AdminBookingsPage() {
                             {bkg.totalAmount ?? 0}
                           </span>{' '}
                           <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                            SAR
+                            {getBookingCurrency(bkg)}
                           </span>
                         </td>
 
@@ -776,6 +803,14 @@ export default function AdminBookingsPage() {
                       </div>
                     )}
 
+                    {/* Country & Branch Indicator */}
+                    <div className="flex items-center gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/60 text-xs">
+                      <span className="text-slate-400 font-semibold">Country:</span>
+                        <span className="inline-flex items-center gap-1 font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200/60">
+                          🇸🇦 Saudi Arabia (المملكة العربية السعودية) {selectedBooking.city ? `• ${selectedBooking.city}` : ''}
+                        </span>
+                    </div>
+
                     {/* Location: Exact Address AND GPS */}
                     <div className="pt-3 border-t border-slate-200/60 dark:border-slate-700/60 space-y-3">
                       <div>
@@ -877,19 +912,19 @@ export default function AdminBookingsPage() {
                     <div className="flex justify-between text-slate-600 dark:text-slate-400">
                       <span>Service Diagnostic / Repair</span>
                       <span>
-                        {selectedBooking.servicePrice ?? selectedBooking.serviceCharge ?? (selectedBooking.totalAmount ? selectedBooking.totalAmount - (selectedBooking.visitCharges ?? selectedBooking.visitFee ?? 50) : 150)} SAR
+                        {selectedBooking.servicePrice ?? selectedBooking.serviceCharge ?? (selectedBooking.totalAmount ? selectedBooking.totalAmount - (selectedBooking.visitCharges ?? selectedBooking.visitFee ?? 50) : 150)} {getBookingCurrency(selectedBooking)}
                       </span>
                     </div>
                     {((selectedBooking.visitCharges !== undefined && selectedBooking.visitCharges > 0) || (selectedBooking.visitFee !== undefined && selectedBooking.visitFee > 0)) && (
                       <div className="flex justify-between text-slate-600 dark:text-slate-400">
                         <span>Technician Visit Fee</span>
-                        <span>{selectedBooking.visitCharges ?? selectedBooking.visitFee ?? 50} SAR</span>
+                        <span>{selectedBooking.visitCharges ?? selectedBooking.visitFee ?? 50} {getBookingCurrency(selectedBooking)}</span>
                       </div>
                     )}
                     <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex justify-between font-bold text-slate-900 dark:text-white text-base">
                       <span>Total Amount</span>
                       <span className="text-blue-600 dark:text-blue-400 font-bold">
-                        {selectedBooking.totalAmount ?? 200} SAR
+                        {selectedBooking.totalAmount ?? 200} {getBookingCurrency(selectedBooking)}
                       </span>
                     </div>
                   </div>

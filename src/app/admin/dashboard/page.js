@@ -62,6 +62,11 @@ function getBookingCoordinates(booking) {
   return null;
 }
 
+function getBookingCurrency(b) {
+  if (b?.currency) return b.currency;
+  return 'SAR';
+}
+
 function renderServiceOutlineIcon(service, serviceName) {
   const text = ((service?.name || '') + ' ' + (serviceName || '') + ' ' + (service?.category || '')).toLowerCase();
   const iconSize = 'w-5 h-5 stroke-[1.8]';
@@ -290,7 +295,7 @@ export default function AdminDashboardPage() {
             Workshop Dashboard
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Real-time analytics and management for Jeddah & Makkah cooling services
+            Real-time analytics and management for Ahmed Cooling Workshop
           </p>
         </div>
 
@@ -381,7 +386,7 @@ export default function AdminDashboardPage() {
         <div className="p-6 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between flex-wrap gap-3">
           <div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">Recent Customer Requests</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Latest service bookings from Jeddah and Makkah</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Latest service bookings across Saudi Arabia</p>
           </div>
           <Link
             href="/admin/bookings"
@@ -421,6 +426,9 @@ export default function AdminDashboardPage() {
                         <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500">
                           #{bkg.orderNumber || bkg._id?.slice(-5).toUpperCase()}
                         </span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/50">
+                            🇸🇦 KSA
+                          </span>
                       </div>
 
                       <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-1 flex-wrap">
@@ -473,7 +481,7 @@ export default function AdminDashboardPage() {
                   <div className="flex items-center justify-between md:justify-end gap-3 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800">
                     <div className="text-right">
                       <span className="block text-sm font-black text-slate-900 dark:text-white">
-                        {bkg.totalAmount ?? 150} SAR
+                        {bkg.totalAmount ?? 150} {getBookingCurrency(bkg)}
                       </span>
                       <span
                         className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${status.bg}`}

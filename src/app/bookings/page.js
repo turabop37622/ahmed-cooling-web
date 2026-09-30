@@ -192,7 +192,7 @@ export default function BookingsPage() {
       <div className="mx-auto max-w-5xl px-4 pt-6 sm:px-6 lg:px-8">
 
         {/* Header */}
-        <div className="mb-6 flex items-end gap-3">
+        <div className="scroll-reveal mb-6 flex items-end gap-3">
           <div className="h-8 w-1 shrink-0 rounded-full bg-primary dark:bg-blue-500" />
           <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-black tracking-tight text-text dark:text-white">{t.myBookings || 'My Bookings'}</h1>
@@ -203,7 +203,7 @@ export default function BookingsPage() {
         </div>
 
         {/* Filter Tabs */}
-        <div className="-mx-1 mb-6 flex gap-2 overflow-x-auto px-1 pb-1 scrollbar-none" style={{ scrollbarWidth: 'none' }}>
+        <div className="scroll-reveal delay-100 -mx-1 mb-6 flex gap-2 overflow-x-auto px-1 pb-1 scrollbar-none" style={{ scrollbarWidth: 'none' }}>
           {FILTERS.map((f) => {
             const active = activeFilter === f;
             const count = f === 'all' ? bookings.length : bookings.filter((b) => b.status?.toLowerCase() === f).length;
@@ -233,12 +233,12 @@ export default function BookingsPage() {
         {/* Bookings List */}
         {!loading && filtered.length > 0 && (
           <div className="space-y-3">
-            {filtered.map((booking) => {
+            {filtered.map((booking, idx) => {
               const id = booking._id || booking.id;
               const status = (booking.status || 'pending').toLowerCase();
               const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
               return (
-                <div key={id} className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
+                <div key={id} className={`scroll-reveal delay-${(idx % 4) * 100 + 100} overflow-hidden rounded-2xl border border-border bg-white shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-900`}>
                   <div className="p-4">
                     <div className="mb-3 flex items-start justify-between gap-2">
                       <div className="flex items-center gap-3">

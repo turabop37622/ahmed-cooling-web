@@ -12,7 +12,7 @@ import { useTranslation } from '@/contexts/TranslationContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { getServices, createBooking, updateProfile } from '@/lib/api';
 
-const VISIT_FEE = 200;
+const VISIT_FEE = 50;
 
 const TIME_SLOTS = [
   { time: '09:00 AM', busy: false },
@@ -38,6 +38,7 @@ const MONTH_NAMES_AR = ['يناير', 'فبراير', 'مارس', 'أبريل', 
 
 const LOCATION_DATA = {
   jeddah: {
+    country: 'SA',
     en: 'Jeddah', ar: 'جدة',
     areas: [
       { en: 'Abhur', ar: 'أبحر' },
@@ -72,6 +73,7 @@ const LOCATION_DATA = {
     ],
   },
   makkah: {
+    country: 'SA',
     en: 'Makkah', ar: 'مكة المكرمة',
     areas: [
       { en: 'Al Adl', ar: 'العدل' },
@@ -98,6 +100,7 @@ const LOCATION_DATA = {
     ],
   },
 };
+
 
 function getMonthGrid(year, month) {
   const firstDay = new Date(year, month, 1).getDay();
@@ -253,6 +256,7 @@ export default function BookingPage() {
   const [bookingSuccess, setBookingSuccess] = useState(null);
 
   const [fullName, setFullName] = useState('');
+  const [selectedCountry] = useState('SA');
   const [countryCode, setCountryCode] = useState('+966');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
@@ -267,6 +271,12 @@ export default function BookingPage() {
   const [coords, setCoords] = useState(null);
   const [locating, setLocating] = useState(false);
   const [errors, setErrors] = useState({});
+
+  const currency = 'SAR';
+
+  const handleCountryCodeChange = (code) => {
+    setCountryCode(code);
+  };
 
   const handleSelectCity = (cityKey) => {
     setSelectedCity(cityKey);
@@ -288,7 +298,8 @@ export default function BookingPage() {
     if (val.startsWith('0')) {
       val = val.replace(/^0+/, '');
     }
-    setPhoneNumber(val.slice(0, 9));
+    const maxLen = 9;
+    setPhoneNumber(val.slice(0, maxLen));
     if (errors.phone) setErrors((prev) => ({ ...prev, phone: null }));
   };
 
@@ -400,9 +411,11 @@ export default function BookingPage() {
       const rawPhone = String(currentUser.phone || currentUser.phoneNumber || '').trim();
       if (rawPhone) {
         if (rawPhone.startsWith('+966')) {
+          setSelectedCountry('SA');
           setCountryCode('+966');
           setPhoneNumber(rawPhone.replace('+966', '').replace(/^0/, ''));
         } else if (rawPhone.startsWith('966')) {
+          setSelectedCountry('SA');
           setCountryCode('+966');
           setPhoneNumber(rawPhone.replace('966', '').replace(/^0/, ''));
         } else if (rawPhone.startsWith('+92')) {
@@ -442,6 +455,28 @@ export default function BookingPage() {
       }
     }
   }, [user]);
+
+  useEffect(() => {
+    try {
+      const savedDraft = sessionStorage.getItem(`pending_booking_${params.id}`);
+      if (savedDraft) {
+        const draft = JSON.parse(savedDraft);
+        if (draft.fullName) setFullName(draft.fullName);
+        if (draft.phoneNumber) setPhoneNumber(draft.phoneNumber);
+        if (draft.countryCode) setCountryCode(draft.countryCode);
+        if (draft.selectedDate) setSelectedDate(new Date(draft.selectedDate));
+        if (draft.selectedTime) setSelectedTime(draft.selectedTime);
+        if (draft.selectedCity) setSelectedCity(draft.selectedCity);
+        if (draft.selectedArea) setSelectedArea(draft.selectedArea);
+        if (draft.customArea) setCustomArea(draft.customArea);
+        if (draft.subLocation) setSubLocation(draft.subLocation);
+        if (draft.isManualAddress !== undefined) setIsManualAddress(draft.isManualAddress);
+        if (draft.manualAddress) setManualAddress(draft.manualAddress);
+        if (draft.notes) setNotes(draft.notes);
+        if (draft.coords) setCoords(draft.coords);
+      }
+    } catch (e) {}
+  }, [params.id]);
 
   useEffect(() => {
     loadService();
@@ -565,7 +600,7 @@ export default function BookingPage() {
     if (!fullName.trim()) e.fullName = t.enterNameMsg || (language === 'ar' ? 'الاسم مطلوب' : 'Full name is required');
     if (!phoneNumber.trim()) {
       e.phone = language === 'ar' ? 'رقم الجوال مطلوب' : 'Mobile number is required';
-    } else if (phoneNumber.length !== 9 || !phoneNumber.startsWith('5')) {
+    } else if (countryCode === '+966' && (phoneNumber.length !== 9 || !phoneNumber.startsWith('5'))) {
       e.phone = language === 'ar' ? 'رقم الجوال السعودي يجب أن يتكون من 9 أرقام يبدأ بـ 5 (مثال: 501234567)' : 'Valid 9-digit Saudi mobile number required (5XXXXXXXX)';
     }
     if (!selectedDate) e.date = t.selectDateMsg || 'Select a date';
@@ -615,6 +650,29 @@ export default function BookingPage() {
 
   const handleSubmit = async () => {
     if (!validate()) return;
+
+    if (!user || !token) {
+      try {
+        sessionStorage.setItem(`pending_booking_${params.id}`, JSON.stringify({
+          fullName,
+          phoneNumber,
+          countryCode,
+          selectedDate: selectedDate ? selectedDate.toISOString() : null,
+          selectedTime,
+          selectedCity,
+          selectedArea,
+          customArea,
+          subLocation,
+          isManualAddress,
+          manualAddress,
+          notes,
+          coords,
+        }));
+      } catch (e) {}
+      router.push(`/login?redirect=/book/${params.id}`);
+      return;
+    }
+
     setSubmitting(true);
     try {
       const bookingData = {
@@ -635,6 +693,9 @@ export default function BookingPage() {
         email: user?.email || '',
         date: selectedDate.toISOString().split('T')[0],
         time: selectedTime || 'Anytime',
+        country: 'Saudi Arabia',
+        city: LOCATION_DATA[selectedCity]?.en || '',
+        currency,
         address: getFullAddress(),
         coordinates: coords || { latitude: 0, longitude: 0 },
         comments: notes.trim(),
@@ -644,6 +705,9 @@ export default function BookingPage() {
       };
       const res = await createBooking(bookingData);
       if (res?.success) {
+        try {
+          sessionStorage.removeItem(`pending_booking_${params.id}`);
+        } catch (storageErr) {}
         try {
           if (user) {
             const canonicalAddress = getCanonicalAddress();
@@ -672,6 +736,9 @@ export default function BookingPage() {
             customerName: fullName.trim(),
             phone: `${countryCode}${phoneNumber.trim()}`,
             email: user?.email || '',
+            country: 'Saudi Arabia',
+            city: LOCATION_DATA[selectedCity]?.en || '',
+            currency,
             service: {
               id: service?._id || service?.id || params.id,
               name: svcName || service?.name || 'Service',
@@ -700,7 +767,9 @@ export default function BookingPage() {
           date: selectedDate.toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
           time: selectedTime,
           address: getFullAddress(),
-          total: formatPrice(totalAmount),
+          country: 'Saudi Arabia',
+          currency,
+          total: formatPrice(totalAmount, currency),
         });
       } else {
         alert(res?.message || t.bookingErrorMsg || 'Failed to create booking.');
@@ -788,6 +857,13 @@ export default function BookingPage() {
 
             {/* Details */}
             <div className="space-y-0 divide-y divide-border dark:divide-slate-700">
+              {bookingSuccess.country && (
+                <DetailRow
+                  icon={<Building2 className="h-4 w-4" />}
+                  label={language === 'ar' ? 'الدولة' : 'Country'}
+                  value={'🇸🇦 السعودية (Saudi Arabia)'}
+                />
+              )}
               <DetailRow icon={<Calendar className="h-4 w-4" />} label={language === 'ar' ? 'التاريخ' : 'Date'} value={bookingSuccess.date} />
               {bookingSuccess.time && bookingSuccess.time !== 'Anytime' && (
                 <DetailRow icon={<Clock className="h-4 w-4" />} label={language === 'ar' ? 'الوقت' : 'Time'} value={bookingSuccess.time} />
@@ -835,24 +911,41 @@ export default function BookingPage() {
     <div className="min-h-screen bg-bg pb-10 dark:bg-slate-950" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="mx-auto max-w-3xl px-4 pt-6 sm:px-6 lg:px-8">
 
-        {!user && (
-          <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-blue-200/80 bg-blue-50/80 px-4 py-3 text-xs text-blue-900 shadow-sm dark:border-blue-900/40 dark:bg-blue-950/30 dark:text-blue-300">
-            <div className="min-w-0">
-              <span className="font-bold">{language === 'ar' ? 'حجز سريع كضيف:' : 'Quick Guest Booking:'}</span>{' '}
-              <span>{language === 'ar' ? 'يمكنك إتمام الحجز بدون حساب، أو تسجيل الدخول لحفظ طلباتك.' : 'You can book directly without an account, or sign in to track your order.'}</span>
+        {!user && !authLoading && (
+          <div className="mb-4 flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl border border-blue-200/90 bg-blue-50/90 p-4 text-xs text-blue-950 shadow-sm dark:border-blue-900/40 dark:bg-blue-950/30 dark:text-blue-200">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
+                <User className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-bold text-sm text-slate-900 dark:text-white">
+                  {language === 'ar' ? 'تسجيل الدخول مطلوب لإتمام الحجز' : 'Account Required to Complete Booking'}
+                </p>
+                <p className="mt-0.5 text-slate-600 dark:text-slate-300 text-xs">
+                  {language === 'ar' ? 'يرجى تسجيل الدخول أو إنشاء حساب جديد لتتمكن من متابعة حجزك وتأكيده.' : 'Please sign in or register so you can track technician dispatch and manage your booking.'}
+                </p>
+              </div>
             </div>
             <button
               type="button"
-              onClick={() => router.push('/login')}
-              className="shrink-0 rounded-xl bg-blue-600 px-3 py-1.5 font-bold text-white shadow-sm hover:bg-blue-700 transition"
+              onClick={() => {
+                try {
+                  sessionStorage.setItem(`pending_booking_${params.id}`, JSON.stringify({
+                    fullName, phoneNumber, countryCode, selectedDate: selectedDate ? selectedDate.toISOString() : null,
+                    selectedTime, selectedCity, selectedArea, customArea, subLocation, isManualAddress, manualAddress, notes, coords,
+                  }));
+                } catch (e) {}
+                router.push(`/login?redirect=/book/${params.id}`);
+              }}
+              className="shrink-0 w-full sm:w-auto rounded-xl bg-blue-600 px-4 py-2 font-bold text-white shadow-md hover:bg-blue-700 transition text-center"
             >
-              {language === 'ar' ? 'دخول' : 'Sign In'}
+              {language === 'ar' ? 'تسجيل الدخول / حساب جديد' : 'Sign In / Register'}
             </button>
           </div>
         )}
 
         {/* Service Hero Card */}
-        <div className="mb-6 overflow-hidden rounded-2xl border border-border bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <div className="scroll-reveal mb-6 overflow-hidden rounded-2xl border border-border bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-5 py-4">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/20 text-white backdrop-blur-sm shadow-inner">
@@ -866,7 +959,7 @@ export default function BookingPage() {
           </div>
           <div className="flex items-center justify-between border-t border-blue-500/20 bg-blue-50 px-5 py-3 dark:bg-slate-800">
             <span className="text-xs font-bold text-sub dark:text-slate-400">{t.servicePrice || 'Service Price'}</span>
-            <span className="text-lg font-black text-primary dark:text-blue-400">{formatPrice(servicePrice)}</span>
+            <span className="text-lg font-black text-primary dark:text-blue-400">{formatPrice(servicePrice, currency)}</span>
           </div>
           <div className="border-t border-blue-100 bg-blue-50/60 px-5 py-2.5 text-[11px] font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300 flex flex-wrap items-center justify-between gap-2">
             <span>{t.vatIncluded || (language === 'ar' ? 'الأسعار شاملة ضريبة القيمة المضافة 15%' : 'Prices include 15% VAT')} • {t.sparePartsNotIncluded || (language === 'ar' ? 'قطع الغيار غير مشمولة' : 'Spare parts not included')}</span>
@@ -884,7 +977,7 @@ export default function BookingPage() {
             </span>
           )}
         </div>
-        <div className="mb-6 space-y-3 rounded-2xl border border-border bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <div className="scroll-reveal delay-100 mb-6 space-y-3 rounded-2xl border border-border bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <div>
             <label className="mb-1.5 block text-xs font-bold text-sub dark:text-slate-400">
               {t.fullNameInput || (language === 'ar' ? 'الاسم الكامل' : 'Full Name')} <span className="text-red-500">*</span>
@@ -911,8 +1004,9 @@ export default function BookingPage() {
             </label>
             <div className="flex gap-2">
               <select
-                value={countryCode} onChange={(e) => setCountryCode(e.target.value)}
-                className="shrink-0 rounded-xl border border-border bg-white px-2 py-3 text-sm font-bold text-text dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                value={countryCode}
+                onChange={(e) => handleCountryCodeChange(e.target.value)}
+                className="shrink-0 rounded-xl border border-border bg-white px-2 py-3 text-sm font-bold text-text dark:border-slate-600 dark:bg-slate-800 dark:text-white cursor-pointer"
               >
                 {COUNTRY_CODES.map((c) => <option key={c.code} value={c.code}>{c.label}</option>)}
               </select>
@@ -925,13 +1019,15 @@ export default function BookingPage() {
                   maxLength={9}
                   value={phoneNumber}
                   onChange={handlePhoneChange}
-                  placeholder="5XXXXXXXX"
+                  placeholder="501234567"
                   className={`w-full rounded-xl border py-3 pr-4 pl-10 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${errors.phone ? 'border-red-400' : 'border-border dark:border-slate-600'}`}
                 />
               </div>
             </div>
             <div className="mt-1.5 flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500">
-              <span>{language === 'ar' ? 'أدخل 9 أرقام تبدأ بـ 5 (مثال: 501234567)' : '9 digits starting with 5 (e.g. 501234567)'}</span>
+              <span>
+                {language === 'ar' ? 'أدخل 9 أرقام تبدأ بـ 5 (مثال: 501234567)' : '9 digits starting with 5 (e.g. 501234567)'}
+              </span>
               <span className={`font-mono font-bold ${phoneNumber.length === 9 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}>
                 {phoneNumber.length}/9
               </span>
@@ -958,7 +1054,7 @@ export default function BookingPage() {
 
         {/* Date Section */}
         <SectionTitle icon={<Calendar className="h-5 w-5" />} title={t.selectDate || (language === 'ar' ? 'تحديد التاريخ' : 'Select Date')} />
-        <div id="field-date" className="mb-6 rounded-2xl border border-border bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <div id="field-date" className="scroll-reveal delay-100 mb-6 rounded-2xl border border-border bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
           {/* Quick date buttons */}
           <div className="mb-4 flex gap-2">
             {[
@@ -1059,7 +1155,7 @@ export default function BookingPage() {
           </button>
         </div>
 
-        <div className="mb-6 rounded-2xl border border-border bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <div className="scroll-reveal delay-100 mb-6 rounded-2xl border border-border bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
           {/* Quick GPS location bar */}
           <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-blue-100 bg-blue-50/60 p-3 dark:border-blue-950/60 dark:bg-blue-950/30">
             <div className="flex items-center gap-2 min-w-0">
@@ -1113,30 +1209,37 @@ export default function BookingPage() {
           ) : (
             /* Mode A: Guided City & District Selection */
             <div className="space-y-4">
-              {/* City Selection: 1-Click Buttons */}
+
+              {/* City Selection: Filtered by Selected Country */}
               <div>
-                <label className="mb-2 block text-xs font-bold text-sub dark:text-slate-400">
-                  {language === 'ar' ? 'المدينة' : 'City'} <span className="text-red-500">*</span>
-                </label>
+                <div className="mb-2 flex items-center justify-between">
+                  <label className="block text-xs font-bold text-sub dark:text-slate-400">
+                    {language === 'ar' ? 'المدينة' : 'City'} <span className="text-red-500">*</span>
+                  </label>
+                  <span className="text-[11px] font-bold text-primary dark:text-blue-400">
+                    🇸🇦 {language === 'ar' ? 'مدن ومناطق السعودية' : 'Saudi Arabia Cities'}
+                  </span>
+                </div>
                 <div id="field-city" className="grid grid-cols-2 gap-2.5">
-                  {Object.entries(LOCATION_DATA).map(([key, city]) => {
-                    const active = selectedCity === key;
-                    return (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() => handleSelectCity(key)}
-                        className={`flex items-center justify-center gap-2 rounded-xl border py-3 px-4 text-sm font-black transition-all duration-200 ${
-                          active
-                            ? 'border-primary bg-primary text-white shadow-md shadow-primary/25 ring-2 ring-primary/20'
-                            : 'border-border bg-white text-text hover:border-primary/50 hover:bg-blue-50/30 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700'
-                        }`}
-                      >
-                        <span className="text-lg">{key === 'jeddah' ? '🏙️' : '🕋'}</span>
-                        <span>{language === 'ar' ? city.ar : city.en}</span>
-                      </button>
-                    );
-                  })}
+                  {Object.entries(LOCATION_DATA)
+                    .map(([key, city]) => {
+                      const active = selectedCity === key;
+                      return (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => handleSelectCity(key)}
+                          className={`flex items-center justify-center gap-2 rounded-xl border py-3 px-4 text-sm font-black transition-all duration-200 cursor-pointer ${
+                            active
+                              ? 'border-primary bg-primary text-white shadow-md shadow-primary/25 ring-2 ring-primary/20'
+                              : 'border-border bg-white text-text hover:border-primary/50 hover:bg-blue-50/30 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700'
+                          }`}
+                        >
+                          <span className="text-lg">{key === 'jeddah' ? '🏙️' : '🕋'}</span>
+                          <span>{language === 'ar' ? city.ar : city.en}</span>
+                        </button>
+                      );
+                    })}
                 </div>
                 {errors.city && <p className="mt-1 text-xs font-semibold text-red-500">{errors.city}</p>}
               </div>
@@ -1241,7 +1344,7 @@ export default function BookingPage() {
 
         {/* Notes Section */}
         <SectionTitle icon={<FileText className="h-5 w-5" />} title={t.additionalNotes || 'Additional Notes (Optional)'} />
-        <div className="mb-6 rounded-2xl border border-border bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <div className="scroll-reveal mb-6 rounded-2xl border border-border bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <textarea
             value={notes} onChange={(e) => setNotes(e.target.value)} rows={3}
             placeholder={t.specialInstructions || 'Any special instructions for the technician...'}
@@ -1250,7 +1353,7 @@ export default function BookingPage() {
         </div>
 
         {/* Summary Card */}
-        <div className="mb-6 overflow-hidden rounded-2xl border border-border bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <div className="scroll-reveal-scale mb-6 overflow-hidden rounded-2xl border border-border bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <div className="border-b border-border px-5 py-3.5 dark:border-slate-700 flex items-center justify-between">
             <h3 className="text-sm font-black text-text dark:text-white">{t.bookingSummary || 'Booking Summary'}</h3>
             <span className="inline-flex items-center gap-1.5 text-xs font-bold text-primary dark:text-blue-400">
@@ -1290,16 +1393,16 @@ export default function BookingPage() {
           <div className="space-y-3 px-5 py-4">
             <div className="flex items-center justify-between">
               <span className="text-sm text-sub dark:text-slate-400">{t.serviceCharge || 'Service Charge'}</span>
-              <span className="text-sm font-bold text-text dark:text-white">{formatPrice(servicePrice)}</span>
+              <span className="text-sm font-bold text-text dark:text-white">{formatPrice(servicePrice, currency)}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-sub dark:text-slate-400">{t.visitFee || 'Visit Fee'}</span>
-              <span className="text-sm font-bold text-text dark:text-white">{formatPrice(VISIT_FEE)}</span>
+              <span className="text-sm font-bold text-text dark:text-white">{formatPrice(VISIT_FEE, currency)}</span>
             </div>
             <div className="border-t border-dashed border-border pt-3 dark:border-slate-700">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-black text-text dark:text-white">{t.totalAmount || 'Total'}</span>
-                <span className="text-xl font-black text-primary dark:text-blue-400">{formatPrice(totalAmount)}</span>
+                <span className="text-xl font-black text-primary dark:text-blue-400">{formatPrice(totalAmount, currency)}</span>
               </div>
             </div>
           </div>
@@ -1318,10 +1421,14 @@ export default function BookingPage() {
 
         {/* Confirm Button */}
         <button onClick={handleSubmit} disabled={submitting}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-base font-black text-white shadow-lg shadow-primary/25 transition hover:bg-primary-dark disabled:opacity-60 dark:bg-blue-600 dark:shadow-blue-900/30 dark:hover:bg-blue-700"
+          className="scroll-reveal-scale flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-base font-black text-white shadow-lg shadow-primary/25 transition hover:bg-primary-dark disabled:opacity-60 dark:bg-blue-600 dark:shadow-blue-900/30 dark:hover:bg-blue-700"
         >
           {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
-          {submitting ? (t.loading || 'Loading...') : (t.confirmBooking || 'Confirm Booking')}
+          {submitting
+            ? (t.loading || 'Loading...')
+            : !user
+              ? (language === 'ar' ? 'تسجيل الدخول وتأكيد الحجز' : 'Log In to Confirm Booking')
+              : (t.confirmBooking || 'Confirm Booking')}
         </button>
 
         <div className="mt-3 flex items-center justify-center gap-1.5 pb-4">
@@ -1335,7 +1442,7 @@ export default function BookingPage() {
 
 function SectionTitle({ icon, title }) {
   return (
-    <div className="mb-3 flex items-center gap-2">
+    <div className="scroll-reveal mb-3 flex items-center gap-2">
       <div className="text-primary dark:text-blue-400">{icon}</div>
       <h2 className="text-sm font-black text-text dark:text-white">{title}</h2>
     </div>
