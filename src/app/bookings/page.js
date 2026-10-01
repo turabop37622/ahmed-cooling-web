@@ -37,12 +37,6 @@ const STATUS_CONFIG = {
 
 const FILTERS = ['all', 'pending', 'confirmed', 'completed'];
 
-const RESCHEDULE_TIMES = [
-  '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
-  '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM',
-  '05:00 PM', '06:00 PM',
-];
-
 function statusLabel(status, t) {
   const key = `status${status?.charAt(0).toUpperCase()}${status?.slice(1).replace(/[_-]([a-z])/g, (_, c) => c.toUpperCase())}`;
   return t[key] || status || 'Unknown';
@@ -61,7 +55,6 @@ export default function BookingsPage() {
   const [detailBooking, setDetailBooking] = useState(null);
   const [showReschedule, setShowReschedule] = useState(false);
   const [rescheduleDate, setRescheduleDate] = useState('');
-  const [rescheduleTime, setRescheduleTime] = useState('');
   const [rescheduling, setRescheduling] = useState(false);
   const [cancelling, setCancelling] = useState(false);
 
@@ -130,14 +123,14 @@ export default function BookingsPage() {
   };
 
   const handleReschedule = async (booking) => {
-    if (!rescheduleDate || !rescheduleTime) {
-      alert(t.rescheduleRequired || 'Please select both date and time.');
+    if (!rescheduleDate) {
+      alert(t.selectDateMsg || 'Please select a date.');
       return;
     }
     setRescheduling(true);
     try {
       const id = booking._id || booking.id;
-      await rescheduleBooking(id, { date: rescheduleDate, time: rescheduleTime, phone: booking.phone });
+      await rescheduleBooking(id, { date: rescheduleDate, phone: booking.phone });
       alert(t.rescheduleSuccess || 'Booking rescheduled!');
       setShowReschedule(false);
       setDetailBooking(null);
@@ -408,16 +401,6 @@ export default function BookingsPage() {
                           className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm font-semibold text-text dark:border-slate-600 dark:bg-slate-800 dark:text-white"
                         />
                       </div>
-                      <div className="mb-3">
-                        <label className="mb-1 block text-xs font-semibold text-sub dark:text-slate-400">{t.selectTimeLabel || 'Select Time'}</label>
-                        <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
-                          {RESCHEDULE_TIMES.map((tm) => (
-                            <button key={tm} onClick={() => setRescheduleTime(tm)}
-                              className={`rounded-lg border px-2 py-1.5 text-xs font-semibold transition ${rescheduleTime === tm ? 'border-primary bg-primary text-white' : 'border-border bg-white text-text dark:border-slate-600 dark:bg-slate-800 dark:text-white'}`}
-                            >{tm}</button>
-                          ))}
-                        </div>
-                      </div>
                       <button onClick={() => handleReschedule(b)} disabled={rescheduling}
                         className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-semibold text-white transition hover:bg-primary-dark disabled:opacity-60 dark:bg-blue-600"
                       >
@@ -438,7 +421,7 @@ export default function BookingsPage() {
                       </button>
                     )}
                     {(status === 'confirmed' || status === 'pending') && !showReschedule && (
-                      <button onClick={() => { setShowReschedule(true); setRescheduleDate(''); setRescheduleTime(''); }}
+                      <button onClick={() => { setShowReschedule(true); setRescheduleDate(''); }}
                         className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-sm font-semibold text-white transition hover:bg-primary-dark dark:bg-blue-600"
                       >
                         <RotateCcw className="h-4 w-4" />
