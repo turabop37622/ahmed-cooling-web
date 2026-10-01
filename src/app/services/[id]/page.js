@@ -513,7 +513,7 @@ export default function ServiceDetailPage() {
                 </div>
 
                 <div className="flex items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/50">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-300">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-primary dark:bg-blue-900/40 dark:text-blue-300">
                     <Zap className="h-5 w-5" />
                   </div>
                   <div>
@@ -527,7 +527,7 @@ export default function ServiceDetailPage() {
                 </div>
 
                 <div className="flex items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/50">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-300">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-primary dark:bg-blue-900/40 dark:text-blue-300">
                     <Award className="h-5 w-5" />
                   </div>
                   <div>
@@ -541,7 +541,7 @@ export default function ServiceDetailPage() {
                 </div>
 
                 <div className="flex items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/50">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-300">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-primary dark:bg-blue-900/40 dark:text-blue-300">
                     <DollarSign className="h-5 w-5" />
                   </div>
                   <div>
