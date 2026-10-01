@@ -910,7 +910,7 @@ export default function AdminBookingsPage() {
                       Rescheduled by customer on {new Date(selectedBooking.rescheduledAt).toLocaleString('en-GB')}
                       {selectedBooking.previousSchedule?.date && (
                         <span className="block font-medium opacity-80">
-                          Was: {selectedBooking.previousSchedule.date} • {selectedBooking.previousSchedule.time || '-'}
+                          Was: {selectedBooking.previousSchedule.date}
                         </span>
                       )}
                     </div>
