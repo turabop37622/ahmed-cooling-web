@@ -1,5 +1,6 @@
 'use client';
 
+import { VISIT_FEE } from '@/lib/servicesData';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -382,11 +383,11 @@ export default function BookingsPage() {
                   <div className="mb-5 space-y-2 rounded-xl border border-border bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/50">
                     <div className="flex justify-between text-sm">
                       <span className="text-sub dark:text-slate-400">{t.serviceCharge || 'Service Charge'}</span>
-                      <span className="font-semibold text-text dark:text-white">{formatPrice((b.totalAmount || 0) - 200)}</span>
+                      <span className="font-semibold text-text dark:text-white">{formatPrice(b.servicePrice ?? Math.max((b.totalAmount || 0) - (b.visitCharges ?? VISIT_FEE), 0))}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-sub dark:text-slate-400">{t.visitFee || 'Visit Fee'}</span>
-                      <span className="font-semibold text-text dark:text-white">{formatPrice(200)}</span>
+                      <span className="font-semibold text-text dark:text-white">{formatPrice(b.visitCharges ?? VISIT_FEE)}</span>
                     </div>
                     <div className="border-t border-dashed border-border pt-2 dark:border-slate-600">
                       <div className="flex justify-between">

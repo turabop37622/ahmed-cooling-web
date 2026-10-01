@@ -242,6 +242,30 @@ export default function Navbar() {
             )}
           </div>
 
+          {/* Mobile: language + bookings stay in the header bar */}
+          <div className="flex items-center gap-2 md:hidden ms-auto me-1">
+            <button
+              onClick={toggleLanguage}
+              className={`px-2.5 py-1 text-xs font-semibold rounded-lg border transition-colors ${
+                isDarkHeader
+                  ? 'border-white/30 text-white hover:bg-white/10'
+                  : 'border-border text-sub hover:text-primary hover:border-primary dark:text-slate-300 dark:border-slate-700'
+              }`}
+            >
+              {language === 'en' ? 'عربي' : 'EN'}
+            </button>
+            <Link
+              href={token ? '/bookings' : '/services'}
+              className={`px-3 py-1 text-xs font-semibold rounded-full whitespace-nowrap transition-colors ${
+                isDarkHeader
+                  ? 'bg-white text-[#0A1640] hover:bg-white/90'
+                  : 'bg-primary text-white hover:bg-primary-dark'
+              }`}
+            >
+              {token ? (t.myBookings || 'My Bookings') : (isAr ? 'احجز الآن' : 'Book Now')}
+            </Link>
+          </div>
+
           {/* Mobile menu button */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
@@ -282,15 +306,6 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-            {token && (
-              <Link
-                href="/bookings"
-                onClick={() => setMobileOpen(false)}
-                className="block px-3 py-2.5 rounded-lg text-sm font-semibold text-center text-white bg-primary hover:bg-primary-dark transition-colors"
-              >
-                {t.myBookings || 'My Bookings'}
-              </Link>
-            )}
           </div>
 
           <div
@@ -298,16 +313,6 @@ export default function Navbar() {
               isDarkHeader ? 'border-white/15' : 'border-border dark:border-slate-700'
             }`}
           >
-            <button
-              onClick={toggleLanguage}
-              className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition-colors ${
-                isDarkHeader
-                  ? 'border-white/30 text-white hover:bg-white/10'
-                  : 'border-border text-sub dark:text-slate-300 dark:border-slate-700 hover:text-primary hover:border-primary'
-              }`}
-            >
-              {language === 'en' ? 'عربي' : 'EN'}
-            </button>
             <button
               onClick={toggleDarkMode}
               className={`p-2 rounded-lg transition-colors ${
