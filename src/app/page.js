@@ -201,32 +201,32 @@ export default function Home() {
 
   const whyItems = [
     {
-      icon: <Shield className="h-7 w-7 text-primary" />,
+      icon: <Shield className="h-7 w-7 text-primary dark:text-blue-400" />,
       title: language === 'ar' ? 'ضمان صيانة رسمي ومعتمد' : 'Official Certified Warranty',
       desc: language === 'ar' ? 'سند ضمان معتمد يضمن حقك الكامل في حال تكرار أي عطل مجاناً.' : 'Complete protection covering labor and parts with 100% free revisit policy.',
     },
     {
-      icon: <Zap className="h-7 w-7 text-emerald-600" />,
+      icon: <Zap className="h-7 w-7 text-primary dark:text-blue-400" />,
       title: language === 'ar' ? 'وصول سريع خلال ٦٠-٩٠ دقيقة' : 'Rapid Response in 60-90 Mins',
       desc: language === 'ar' ? 'أسطول فنيين متنقل وموزع في جميع أحياء جدة ومكة المكرمة.' : 'Distributed technician fleet ready to reach your home across Jeddah & Makkah.',
     },
     {
-      icon: <UserCheck className="h-7 w-7 text-purple-600" />,
+      icon: <UserCheck className="h-7 w-7 text-primary dark:text-blue-400" />,
       title: language === 'ar' ? 'فنيون محترفون ومعتمدون' : 'Certified & Background-Checked',
       desc: language === 'ar' ? 'فريق مدرب بخبرة تتجاوز ١٠ سنوات في صيانة المكيفات والأجهزة المنزلية.' : 'Skilled specialists with 10+ years of dedicated appliance experience.',
     },
     {
-      icon: <DollarSign className="h-7 w-7 text-amber-600" />,
+      icon: <DollarSign className="h-7 w-7 text-primary dark:text-blue-400" />,
       title: language === 'ar' ? 'تسعير واضح - الدفع بعد الفحص' : 'Pay After Work Is Completed',
       desc: language === 'ar' ? 'لا تدفع أي مبلغ حتى يتم إصلاح جهازك واختباره وتأكدك من التبريد التام.' : 'No upfront payment. Inspect and test your appliance before you pay a single riyal.',
     },
     {
-      icon: <Award className="h-7 w-7 text-blue-600" />,
+      icon: <Award className="h-7 w-7 text-primary dark:text-blue-400" />,
       title: language === 'ar' ? 'قطع غيار أصلية ١٠٠٪' : '100% Genuine Spare Parts',
       desc: language === 'ar' ? 'نستخدم قطع غيار وكالة مطابقة للمواصفات القياسية لضمان عمر أطول للجهاز.' : 'Manufacturer-approved replacement components for optimal lifespan and efficiency.',
     },
     {
-      icon: <Clock className="h-7 w-7 text-red-600" />,
+      icon: <Clock className="h-7 w-7 text-primary dark:text-blue-400" />,
       title: language === 'ar' ? 'طوارئ ٢٤/٧ على مدار الساعة' : '24/7 Emergency Support',
       desc: language === 'ar' ? 'جاهزون دائماً لخدمتك في فترات الصيف الحار وعطلات نهاية الأسبوع.' : 'Always on standby for severe summer heatwaves and weekend emergencies.',
     },
