@@ -73,29 +73,11 @@ async function safeCall(apiPromise) {
   }
 }
 
-// Helper to identify fake / troll / test bookings
-export function isFakeBooking(b) {
-  if (!b) return true;
-  const name = (b.customerName || b.user?.name || b.user?.fullName || '').toLowerCase().trim();
-  const addr = (b.address || '').toLowerCase().trim();
-  const phone = (b.phone || b.user?.phone || '').replace(/[\s-]/g, '');
-
-  // Obvious test/spam names & keyboard mashing
-  if (['test', 'testing', 'asdasd', 'qwerty', 'fake'].includes(name)) return true;
-  if (/^([a-z])\1{4,}$/i.test(name)) return true;
-
-  // Placeholder test addresses
-  if (['test', 'test address', 'dummy', 'current location'].includes(addr)) return true;
-
-  return false;
-}
-
 // ─────────────────────────────────────────
 // EXPORTED ADMIN API METHODS
 // ─────────────────────────────────────────
 
 export const adminApi = {
-  isFakeBooking,
 
   // Authentication
   async login(email, password) {
@@ -122,70 +104,13 @@ export const adminApi = {
   async getStats() {
     return safeCall(api.get('/admin/stats'));
   },
+  async changePassword(currentPassword, newPassword) {
+    return safeCall(api.post('/admin/change-password', { currentPassword, newPassword }));
+  },
 
   // Bookings
   async getAllBookings(status = 'all', page = 1, limit = 50) {
-    try {
-      await ensureValidAdminToken();
-      const res = await api.get('/admin/bookings', { params: { status, page, limit } });
-      let serverBookings = res.data?.bookings || res.data?.data || [];
-
-      // Exclude any deleted bookings
-      let deletedIds = new Set();
-      if (typeof window !== 'undefined') {
-        try {
-          const stored = JSON.parse(localStorage.getItem('admin_deleted_booking_ids') || '[]');
-          deletedIds = new Set(stored.map((x) => String(x).toLowerCase()));
-        } catch (e) {}
-      }
-
-      // Show all genuine bookings directly from DB
-      serverBookings = serverBookings.filter((b) => {
-        const idKey = String(b._id || b.bookingId || b.orderNumber || '').toLowerCase();
-        if (deletedIds.has(idKey)) return false;
-        return true;
-      });
-
-      // Prepend any locally placed bookings if not already present
-      if (typeof window !== 'undefined') {
-        try {
-          const localBookings = JSON.parse(localStorage.getItem('local_recent_bookings') || '[]');
-          if (Array.isArray(localBookings) && localBookings.length > 0) {
-            const existingKeys = new Set(
-              serverBookings.map((b) => (b.bookingId || b.orderNumber || b._id || '').toLowerCase())
-            );
-            const freshLocal = localBookings.filter(
-              (b) =>
-                !existingKeys.has((b.bookingId || b.orderNumber || b._id || '').toLowerCase()) &&
-                !deletedIds.has(String(b._id || b.bookingId || b.orderNumber).toLowerCase())
-            );
-            serverBookings = [...freshLocal, ...serverBookings];
-          }
-        } catch (e) {
-          console.warn('Error merging local bookings:', e);
-        }
-      }
-
-      return {
-        success: true,
-        bookings: serverBookings,
-        pagination: res.data?.pagination || { total: serverBookings.length, page: 1, pages: 1 },
-      };
-    } catch (err) {
-      console.warn('Error fetching server bookings:', err?.message || err);
-      let localList = [];
-      if (typeof window !== 'undefined') {
-        try {
-          localList = JSON.parse(localStorage.getItem('local_recent_bookings') || '[]');
-          localList = localList.filter((b) => !isFakeBooking(b));
-        } catch (e) {}
-      }
-      return {
-        success: true,
-        bookings: localList,
-        pagination: { total: localList.length, page: 1, pages: 1 },
-      };
-    }
+    return safeCall(api.get('/admin/bookings', { params: { status, page, limit } }));
   },
 
   async updateBookingStatus(id, status, notes = '') {
@@ -249,6 +174,12 @@ export const adminApi = {
   // Users
   async getAllUsers() {
     return safeCall(api.get('/admin/users'));
+  },
+  async getInquiries() {
+    return safeCall(api.get('/admin/inquiries'));
+  },
+  async getRatings() {
+    return safeCall(api.get('/admin/ratings'));
   },
 
   async getUserBookings(userId) {

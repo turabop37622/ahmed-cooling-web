@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Snowflake, Mail, Lock, Eye, EyeOff, AlertCircle, Loader2, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, Loader2, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { useTranslation } from '../../contexts/TranslationContext';
 import { forgotPassword, verifyResetOTP, resetPassword } from '../../lib/api';
 
@@ -81,7 +81,7 @@ export default function ForgotPasswordPage() {
     setError('');
     setLoading(true);
     try {
-      await resetPassword(otp.join(''), password);
+      await resetPassword(otp.join(''), password, email.trim());
       setSuccess(language === 'ar' ? 'تمت إعادة تعيين كلمة المرور بنجاح!' : 'Password reset successful!');
       setTimeout(() => router.push('/login'), 2000);
     } catch (err) {
@@ -99,15 +99,15 @@ export default function ForgotPasswordPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 p-2.5 mb-4 ring-4 ring-blue-500/10">
             <img src="/logo-icon.png" alt="Ahmed Cooling" className="w-full h-full object-contain" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-white">{t.brandName}</h1>
+          <p className="text-2xl font-semibold text-slate-800 dark:text-white">{t.brandName}</p>
           <p className="text-sm text-slate-500 dark:text-slate-400">{t.brandTagline}</p>
         </div>
 
         {/* Card */}
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-blue-900/5 border border-slate-200/60 dark:border-slate-700 p-6 sm:p-8">
-          <h2 className="text-xl font-semibold text-slate-800 dark:text-white text-center mb-6">
+          <h1 className="text-xl font-semibold text-slate-800 dark:text-white text-center mb-6">
             {language === 'ar' ? 'نسيت كلمة المرور' : 'Forgot Password'}
-          </h2>
+          </h1>
 
           {error && (
             <div className="flex items-start gap-2 p-3 mb-5 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
@@ -129,15 +129,15 @@ export default function ForgotPasswordPage() {
                 {language === 'ar' ? 'أدخل بريدك الإلكتروني لتلقي رمز التحقق' : 'Enter your email to receive a reset code'}
               </p>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.email}</label>
+                <label htmlFor="forgot-email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.email}</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                  <input
+                  <Mail className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <input id="forgot-email" name="email" autoComplete="email" inputMode="email" autoCapitalize="none" spellCheck={false}
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                    className="w-full ps-10 pe-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                     required
                   />
                 </div>
@@ -160,7 +160,7 @@ export default function ForgotPasswordPage() {
               </p>
               <div className="flex justify-center gap-2" dir="ltr">
                 {otp.map((digit, idx) => (
-                  <input
+                  <input id="forgot-otp" name="otp" autoComplete="one-time-code" inputMode="numeric"
                     key={idx}
                     id={`otp-${idx}`}
                     type="text"
@@ -168,7 +168,7 @@ export default function ForgotPasswordPage() {
                     value={digit}
                     onChange={(e) => handleOtpChange(idx, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                    className="w-12 h-14 text-center text-xl font-bold rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                    className="w-12 h-14 text-center text-xl font-semibold rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                   />
                 ))}
               </div>
@@ -198,35 +198,35 @@ export default function ForgotPasswordPage() {
                 {language === 'ar' ? 'أدخل كلمة المرور الجديدة' : 'Enter your new password'}
               </p>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.password}</label>
+                <label htmlFor="forgot-new-password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.password}</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                  <input
+                  <Lock className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <input id="forgot-new-password" name="new-password" autoComplete="new-password"
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-10 pr-12 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    className="w-full ps-10 pe-12 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                     required
                   />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={language === 'ar' ? (showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور') : (showPassword ? 'Hide password' : 'Show password')} aria-pressed={showPassword} className="absolute end-1 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center text-slate-400">
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.confirmPasswordSignUp}</label>
+                <label htmlFor="forgot-confirm-password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.confirmPasswordSignUp}</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                  <input
+                  <Lock className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <input id="forgot-confirm-password" name="confirm-password" autoComplete="new-password"
                     type={showConfirmPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-10 pr-12 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    className="w-full ps-10 pe-12 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                     required
                   />
-                  <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} aria-label={language === 'ar' ? (showConfirmPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور') : (showConfirmPassword ? 'Hide password' : 'Show password')} aria-pressed={showConfirmPassword} className="absolute end-1 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center text-slate-400">
                     {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
@@ -243,8 +243,8 @@ export default function ForgotPasswordPage() {
           )}
 
           <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700 text-center">
-            <Link href="/login" className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline">
-              <ArrowLeft className="w-4 h-4" />
+            <Link href="/login" className="inline-flex items-center gap-2 py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+              <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
               {language === 'ar' ? 'العودة لتسجيل الدخول' : 'Back to Login'}
             </Link>
           </div>

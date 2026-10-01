@@ -10,10 +10,11 @@ import {
   Wrench,
   Users,
   Star,
+  MessageSquare,
+  Settings,
   LogOut,
   Menu,
   X,
-  Snowflake,
   ExternalLink,
   ChevronLeft,
   ChevronRight,
@@ -29,6 +30,8 @@ const NAV_ITEMS = [
   { href: '/admin/services', label: 'Services', icon: Wrench },
   { href: '/admin/users', label: 'Users', icon: Users },
   { href: '/admin/reviews', label: 'Reviews', icon: Star },
+  { href: '/admin/feedback', label: 'Messages & Ratings', icon: MessageSquare },
+  { href: '/admin/settings', label: 'Security', icon: Settings },
 ];
 
 function AdminShell({ children }) {
@@ -69,7 +72,7 @@ function AdminShell({ children }) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300" dir="ltr">
         <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-sm font-medium tracking-wide">Loading Admin Portal...</p>
+        <p className="text-sm font-medium">Loading Admin Portal...</p>
       </div>
     );
   }
@@ -98,12 +101,12 @@ function AdminShell({ children }) {
             </div>
             {(!collapsed || mobileOpen) && (
               <div className="min-w-0">
-                <h1 className="text-base font-bold text-slate-900 dark:text-white leading-tight truncate">
+                <h1 className="text-base font-semibold text-slate-900 dark:text-white leading-tight truncate">
                   Ahmed Cooling
                 </h1>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+                  <span className="text-[11px] font-semibold uppercase text-blue-600 dark:text-blue-400">
                     Admin Panel
                   </span>
                 </div>
@@ -167,7 +170,7 @@ function AdminShell({ children }) {
           {/* User Profile Info */}
           <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-blue-600 text-white font-bold flex items-center justify-center text-xs shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-blue-600 text-white font-semibold flex items-center justify-center text-xs shrink-0">
                 {(user?.fullName || user?.name || 'A')[0]?.toUpperCase()}
               </div>
               {(!collapsed || mobileOpen) && (

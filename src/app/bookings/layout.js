@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'My Bookings | Ahmed Cooling Workshop',
+  title: 'My Bookings | حجوزاتي',
   robots: { index: false, follow: false },
 };
 

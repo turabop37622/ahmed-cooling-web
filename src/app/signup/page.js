@@ -3,19 +3,20 @@
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Snowflake, Mail, Lock, Eye, EyeOff, User, Phone, AlertCircle, Loader2, ChevronDown, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, User, Phone, AlertCircle, Loader2, ChevronDown, CheckCircle2, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from '../../contexts/TranslationContext';
 import { signupEmail, verifyOTP, resendOTP } from '../../lib/api';
+import { safeRedirect } from '../../lib/safeRedirect';
 
 const COUNTRY_CODES = [
-  { code: '+966', label: '🇸🇦 +966', phonePlaceholder: '5XXXXXXXX', regex: /^5\d{8}$/ },
+  { code: '+966', label: 'SA +966', phonePlaceholder: '5XXXXXXXX', regex: /^5\d{8}$/ },
 ];
 
 function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectUrl = searchParams.get('redirect') || '/';
+  const redirectUrl = safeRedirect(searchParams.get('redirect'));
 
   const { login } = useAuth();
   const { t, language } = useTranslation();
@@ -178,7 +179,7 @@ function SignupForm() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 p-2.5 mb-4 ring-4 ring-blue-500/10">
             <img src="/logo-icon.png" alt="Ahmed Cooling" className="w-full h-full object-contain" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-white">{t.brandName}</h1>
+          <p className="text-2xl font-semibold text-slate-800 dark:text-white">{t.brandName}</p>
           <p className="text-sm text-slate-500 dark:text-slate-400">{t.brandTagline}</p>
         </div>
 
@@ -187,7 +188,7 @@ function SignupForm() {
 
           {step === 'form' && (
             <>
-              <h2 className="text-xl font-semibold text-slate-800 dark:text-white text-center mb-6">{t.createAccount}</h2>
+              <h1 className="text-xl font-semibold text-slate-800 dark:text-white text-center mb-6">{t.createAccount}</h1>
 
               {/* Error */}
               {error && (
@@ -200,47 +201,50 @@ function SignupForm() {
               <form onSubmit={handleSignup} className="space-y-4">
                 {/* Name */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.name}</label>
+                  <label htmlFor="signup-name" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.name}</label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                    <User className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                     <input
+                  id="signup-name" name="name" autoComplete="name"
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder={t.namePlaceholder}
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                      className="w-full ps-10 pe-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                     />
                   </div>
                 </div>
 
                 {/* Email */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.email}</label>
+                  <label htmlFor="signup-email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.email}</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                    <Mail className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                     <input
+                  id="signup-email" name="email" autoComplete="email" inputMode="email" autoCapitalize="none" spellCheck={false}
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@example.com"
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                      className="w-full ps-10 pe-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                     />
                   </div>
                 </div>
 
                 {/* Password */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.password}</label>
+                  <label htmlFor="signup-password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.password}</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                    <Lock className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                     <input
+                  id="signup-password" name="new-password" autoComplete="new-password"
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-10 pr-12 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                      className="w-full ps-10 pe-12 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                     />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={language === 'ar' ? (showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور') : (showPassword ? 'Hide password' : 'Show password')} aria-pressed={showPassword} className="absolute end-1 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
@@ -249,17 +253,18 @@ function SignupForm() {
 
                 {/* Confirm Password */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.confirmPasswordSignUp}</label>
+                  <label htmlFor="signup-confirm" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.confirmPasswordSignUp}</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                    <Lock className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                     <input
+                  id="signup-confirm" name="confirm-password" autoComplete="new-password"
                       type={showConfirmPassword ? 'text' : 'password'}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-10 pr-12 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                      className="w-full ps-10 pe-12 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                     />
-                    <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                    <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} aria-label={language === 'ar' ? (showConfirmPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور') : (showConfirmPassword ? 'Hide password' : 'Show password')} aria-pressed={showConfirmPassword} className="absolute end-1 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
                       {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
@@ -267,7 +272,7 @@ function SignupForm() {
 
                 {/* Phone */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.phone}</label>
+                  <label htmlFor="signup-phone" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t.phone}</label>
                   <div className="flex gap-2">
                     <div className="relative">
                       <button
@@ -296,13 +301,14 @@ function SignupForm() {
                       )}
                     </div>
                     <div className="relative flex-1">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                      <Phone className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                       <input
+                  id="signup-phone" name="phone" autoComplete="tel-national" inputMode="numeric"
                         type="tel"
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
                         placeholder={country.phonePlaceholder}
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                        className="w-full ps-10 pe-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                       />
                     </div>
                   </div>
@@ -365,7 +371,7 @@ function SignupForm() {
                     value={digit}
                     onChange={(e) => handleOtpChange(idx, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                    className="w-12 h-14 text-center text-xl font-bold rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    className="w-12 h-14 text-center text-xl font-semibold rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                   />
                 ))}
               </div>

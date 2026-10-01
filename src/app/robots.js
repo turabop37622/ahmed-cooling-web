@@ -13,6 +13,7 @@ export default function robots() {
           '/login',
           '/signup',
           '/forgot-password',
+          '/rate',
         ],
       },
     ],

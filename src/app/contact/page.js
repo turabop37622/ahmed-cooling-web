@@ -7,12 +7,11 @@ import {
   Mail,
   MapPin,
   Phone,
-  X,
   Send,
   Loader2,
   CheckCircle2,
   AlertCircle,
-  MessageSquare,
+  MessageCircle,
 } from 'lucide-react';
 import { submitContact } from '@/lib/api';
 
@@ -80,49 +79,50 @@ export default function ContactPage() {
         <section id="contact">
           <div className="mb-6 flex items-center gap-3 scroll-reveal">
             <span className="h-8 w-1 shrink-0 rounded-full bg-primary dark:bg-blue-500" />
-            <h1 className="text-3xl font-black text-text dark:text-white">{t.contactInformation}</h1>
+            <h1 className="text-3xl font-semibold text-text dark:text-white">{t.contactInformation}</h1>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <a
               href={`tel:${(t.aboutContactPhoneValue || '+966590192146').replace(/\s/g, '')}`}
-              className="scroll-reveal delay-100 flex gap-4 rounded-2xl border border-border bg-white p-5 transition-colors hover:border-primary/40 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-500/50"
+              className="scroll-reveal delay-100 flex gap-3 sm:gap-4 rounded-2xl border border-border bg-white p-4 sm:p-5 transition-colors hover:border-primary/40 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-500/50"
             >
-              <Phone className="h-6 w-6 shrink-0 text-primary dark:text-blue-400" aria-hidden />
+              <Phone className="h-5 w-5 sm:h-6 sm:w-6 shrink-0 text-primary dark:text-blue-400" aria-hidden />
               <div>
-                <p className="text-sm font-bold uppercase tracking-wide text-sub dark:text-slate-500">
+                <p className="text-xs sm:text-sm font-semibold uppercase text-sub dark:text-slate-500">
                   {t.phone}
                 </p>
-                <p className="mt-1 text-lg font-semibold text-text dark:text-white">{t.aboutContactPhoneValue || '+966 59 019 2146'}</p>
+                <p dir="ltr" className="mt-1 text-sm sm:text-lg font-semibold text-text dark:text-white rtl:text-right">{t.aboutContactPhoneValue || '+966 59 019 2146'}</p>
               </div>
             </a>
             <a
-              href={`mailto:${t.aboutContactEmailValue || 'turabop37622@gmail.com'}`}
-              className="scroll-reveal delay-200 flex gap-4 rounded-2xl border border-border bg-white p-5 transition-colors hover:border-primary/40 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-500/50"
+              href={`mailto:${t.aboutContactEmailValue || 'ahmedcoolingworkshop@gmail.com'}`}
+              className="scroll-reveal delay-200 flex gap-3 sm:gap-4 rounded-2xl border border-border bg-white p-4 sm:p-5 transition-colors hover:border-primary/40 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-500/50"
             >
-              <Mail className="h-6 w-6 shrink-0 text-primary dark:text-blue-400" aria-hidden />
-              <div>
-                <p className="text-sm font-bold uppercase tracking-wide text-sub dark:text-slate-500">
+              <Mail className="h-5 w-5 sm:h-6 sm:w-6 shrink-0 text-primary dark:text-blue-400" aria-hidden />
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm font-semibold uppercase text-sub dark:text-slate-500">
                   {t.email}
                 </p>
-                <p className="mt-1 text-lg font-semibold text-text dark:text-white">{t.aboutContactEmailValue || 'turabop37622@gmail.com'}</p>
+                <p className="mt-1 break-all text-[13px] sm:text-lg font-semibold text-text dark:text-white">{t.aboutContactEmailValue || 'ahmedcoolingworkshop@gmail.com'}</p>
               </div>
             </a>
-            <div className="scroll-reveal delay-300 flex gap-4 rounded-2xl border border-border bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-              <MapPin className="h-6 w-6 shrink-0 text-primary dark:text-blue-400" aria-hidden />
+            <div className="scroll-reveal delay-300 flex gap-3 sm:gap-4 rounded-2xl border border-border bg-white p-4 sm:p-5 dark:border-slate-700 dark:bg-slate-900">
+              <MapPin className="h-5 w-5 sm:h-6 sm:w-6 shrink-0 text-primary dark:text-blue-400" aria-hidden />
               <div>
-                <p className="text-sm font-bold uppercase tracking-wide text-sub dark:text-slate-500">
+                <p className="text-xs sm:text-sm font-semibold uppercase text-sub dark:text-slate-500">
                   {t.location}
                 </p>
-                <p className="mt-1 text-lg font-semibold text-text dark:text-white">{t.aboutContactAddressValue || 'Jeddah & Makkah, Saudi Arabia'}</p>
+                <p className="mt-1 text-sm sm:text-lg font-semibold text-text dark:text-white">{t.aboutContactAddressValue || 'Jeddah & Makkah, Saudi Arabia'}</p>
               </div>
             </div>
-            <div className="scroll-reveal delay-400 flex gap-4 rounded-2xl border border-border bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-              <Clock className="h-6 w-6 shrink-0 text-primary dark:text-blue-400" aria-hidden />
+            <div className="scroll-reveal delay-400 flex gap-3 sm:gap-4 rounded-2xl border border-border bg-white p-4 sm:p-5 dark:border-slate-700 dark:bg-slate-900">
+              <Clock className="h-5 w-5 sm:h-6 sm:w-6 shrink-0 text-primary dark:text-blue-400" aria-hidden />
               <div>
-                <p className="text-sm font-bold uppercase tracking-wide text-sub dark:text-slate-500">
+                <p className="text-xs sm:text-sm font-semibold uppercase text-sub dark:text-slate-500">
                   {t.hours}
                 </p>
-                <p className="mt-1 text-lg font-semibold text-text dark:text-white">{t.aboutContactHoursValue || 'Daily 8:00 AM – 10:00 PM'}</p>
+                <p className="mt-1 text-sm sm:text-lg font-semibold text-text dark:text-white">{t.aboutContactHoursValue || 'Sat–Thu: 9:00 AM – 8:00 PM'}</p>
+                <p className="mt-1 text-xs sm:text-sm font-semibold text-red-600 dark:text-red-400">{t.aboutContactEmergencyValue || 'Emergency line: 24/7, every day'}</p>
               </div>
             </div>
           </div>
@@ -131,7 +131,7 @@ export default function ContactPage() {
         {/* Message Form */}
         <section className="scroll-reveal bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-10 border border-border dark:border-slate-800 shadow-sm">
           <div className="mb-8">
-            <h2 className="text-2xl font-black text-text dark:text-white mb-2">
+            <h2 className="text-2xl font-semibold text-text dark:text-white mb-2">
               {language === 'ar' ? 'أرسل لنا رسالة' : 'Send us a Message'}
             </h2>
             <p className="text-sub dark:text-slate-400">
@@ -153,10 +153,11 @@ export default function ContactPage() {
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="grid gap-6 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                <label htmlFor="contact-name" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   {t.name || (language === 'ar' ? 'الاسم' : 'Name')} *
                 </label>
                 <input
+                  id="contact-name" name="name" autoComplete="name"
                   type="text"
                   required
                   value={name}
@@ -166,10 +167,11 @@ export default function ContactPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                <label htmlFor="contact-phone" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   {t.phone || (language === 'ar' ? 'رقم الهاتف' : 'Phone')} *
                 </label>
                 <input
+                  id="contact-phone" name="phone" autoComplete="tel" inputMode="tel"
                   type="tel"
                   required
                   value={phone}
@@ -180,10 +182,11 @@ export default function ContactPage() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              <label htmlFor="contact-message" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 {language === 'ar' ? 'الرسالة' : 'Message'} *
               </label>
               <textarea
+                id="contact-message" name="message"
                 required
                 rows={4}
                 value={message}
@@ -196,7 +199,7 @@ export default function ContactPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-primary hover:bg-primary-dark text-white font-bold shadow-lg shadow-primary/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-primary hover:bg-primary-dark text-white font-semibold shadow-lg shadow-primary/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
               >
                 {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-4 h-4" />}
                 {submitting ? (language === 'ar' ? 'جاري الإرسال...' : 'Sending...') : (language === 'ar' ? 'إرسال الرسالة' : 'Send Message')}
@@ -206,41 +209,13 @@ export default function ContactPage() {
                 href="https://wa.me/966590192146"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-emerald-500/40 bg-emerald-50/50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/40 font-bold transition flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-emerald-500/40 bg-emerald-50/50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/40 font-semibold transition flex items-center justify-center gap-2"
               >
-                <span>💬</span>
+                <MessageCircle className="h-5 w-5" aria-hidden="true" />
                 {language === 'ar' ? 'محادثة سريعة عبر واتساب' : 'Quick Chat on WhatsApp'}
               </a>
             </div>
           </form>
-        </section>
-
-        {/* Follow Us */}
-        <section className="scroll-reveal-fade pb-4">
-          <div className="mb-6 flex items-center gap-3">
-            <span className="h-8 w-1 shrink-0 rounded-full bg-primary dark:bg-blue-500" />
-            <h2 className="text-2xl font-black text-text dark:text-white">{t.followUs}</h2>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <a
-              href="https://www.facebook.com/profile.php?id=61589456784736"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl border border-border bg-white px-5 py-3 text-sm font-bold text-text transition-colors hover:border-primary hover:bg-primary-light dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:hover:border-blue-500 dark:hover:bg-slate-800"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
-              {t.facebook}
-            </a>
-            <a
-              href="https://www.instagram.com/ahmedcoolingworkshop/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl border border-border bg-white px-5 py-3 text-sm font-bold text-text transition-colors hover:border-primary hover:bg-primary-light dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:hover:border-blue-500 dark:hover:bg-slate-800"
-            >
-              <svg className="h-5 w-5 text-primary dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-              {t.instagram}
-            </a>
-          </div>
         </section>
       </div>
     </div>

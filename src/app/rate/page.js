@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { Star, PartyPopper, Loader2, AlertCircle, CheckCircle2, User, Phone } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Star, PartyPopper, Loader2, AlertCircle, User, Phone } from 'lucide-react';
 import { useTranslation } from '@/contexts/TranslationContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { submitGeneralRating } from '@/lib/api';
@@ -10,7 +11,11 @@ const MAX_FEEDBACK = 500;
 
 export default function RatePage() {
   const { t, isRTL, language } = useTranslation();
-  const { user } = useAuth();
+  const { user, token, loading: authLoading } = useAuth();
+  const router = useRouter();
+  useEffect(() => {
+    if (!authLoading && !token) router.replace('/login?redirect=/rate');
+  }, [authLoading, token, router]);
 
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
@@ -19,6 +24,13 @@ export default function RatePage() {
   const [authorPhone, setAuthorPhone] = useState(user?.phone || '');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  // `user` is still null on the first render while the session loads, so fill the fields when it arrives
+  useEffect(() => {
+    if (!user) return;
+    setAuthorName((prev) => prev || user.fullName || user.name || '');
+    setAuthorPhone((prev) => prev || user.phone || '');
+  }, [user]);
   const [error, setError] = useState('');
 
   const labels = useMemo(
@@ -54,8 +66,7 @@ export default function RatePage() {
       }
     } catch (err) {
       console.error('Rate submission error:', err);
-      // Even if network fails, don't block user experience
-      setSubmitted(true);
+      setError(err?.response?.data?.message || 'Failed to submit rating. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -70,7 +81,7 @@ export default function RatePage() {
         <div className="mx-auto max-w-lg scroll-reveal">
           <div className="mb-2 flex items-center gap-3">
             <span className="h-8 w-1 shrink-0 rounded-full bg-primary dark:bg-blue-500" />
-            <h1 className="text-2xl font-black text-text dark:text-white sm:text-3xl">{t.rateUsTitle}</h1>
+            <h1 className="text-2xl font-semibold text-text dark:text-white sm:text-3xl">{t.rateUsTitle}</h1>
           </div>
           <p className="text-sm font-semibold text-primary dark:text-blue-400">{t.appName}</p>
 
@@ -85,7 +96,7 @@ export default function RatePage() {
 
               {/* Star Rating Card */}
               <div className="scroll-reveal-scale rounded-2xl border border-border bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-8">
-                <h2 className="text-center text-lg font-extrabold text-text dark:text-white">
+                <h2 className="text-center text-lg font-semibold text-text dark:text-white">
                   {t.howWasExperience}
                 </h2>
                 <div
@@ -118,7 +129,7 @@ export default function RatePage() {
                   })}
                 </div>
                 <p
-                  className="mt-4 min-h-[1.5rem] text-center text-sm font-bold text-primary dark:text-blue-400"
+                  className="mt-4 min-h-[1.5rem] text-center text-sm font-semibold text-primary dark:text-blue-400"
                   aria-live="polite"
                 >
                   {labelText || '\u00a0'}
@@ -128,7 +139,7 @@ export default function RatePage() {
               {/* Optional Name & Phone */}
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="block text-xs font-bold text-sub dark:text-slate-400 mb-1.5">
+                  <label className="block text-xs font-semibold text-sub dark:text-slate-400 mb-1.5">
                     {language === 'ar' ? 'الاسم (اختياري)' : 'Name (Optional)'}
                   </label>
                   <div className="relative">
@@ -143,7 +154,7 @@ export default function RatePage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-sub dark:text-slate-400 mb-1.5">
+                  <label className="block text-xs font-semibold text-sub dark:text-slate-400 mb-1.5">
                     {language === 'ar' ? 'رقم الهاتف (اختياري)' : 'Phone (Optional)'}
                   </label>
                   <div className="relative">
@@ -161,7 +172,7 @@ export default function RatePage() {
 
               {/* Message */}
               <div>
-                <label htmlFor="rate-feedback" className="block text-sm font-extrabold text-text dark:text-white">
+                <label htmlFor="rate-feedback" className="block text-sm font-semibold text-text dark:text-white">
                   {t.yourMessage}
                 </label>
                 <textarea
@@ -181,7 +192,7 @@ export default function RatePage() {
               <button
                 type="submit"
                 disabled={rating < 1 || submitting}
-                className="w-full rounded-xl bg-primary py-3.5 text-sm font-black text-white shadow-lg shadow-primary/25 transition-colors hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-50 dark:bg-blue-600 dark:hover:bg-blue-700 cursor-pointer flex items-center justify-center gap-2"
+                className="w-full rounded-xl bg-primary py-3.5 text-sm font-semibold text-white shadow-lg shadow-primary/25 transition-colors hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-50 dark:bg-blue-600 dark:hover:bg-blue-700 cursor-pointer flex items-center justify-center gap-2"
               >
                 {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
                 {submitting ? (language === 'ar' ? 'جاري الإرسال...' : 'Submitting...') : t.submitRating}
@@ -195,10 +206,10 @@ export default function RatePage() {
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-light dark:bg-blue-950/80">
                 <PartyPopper className="h-8 w-8 text-primary dark:text-blue-400" aria-hidden />
               </div>
-              <h2 className="text-xl font-black text-text dark:text-white">{t.thankYou}</h2>
+              <h2 className="text-xl font-semibold text-text dark:text-white">{t.thankYou}</h2>
               <p className="mt-3 text-sm leading-relaxed text-sub dark:text-slate-300">{t.rateThankYouMsg}</p>
               {rating > 0 && (
-                <p className="mt-4 text-sm font-bold text-primary dark:text-blue-400">
+                <p className="mt-4 text-sm font-semibold text-primary dark:text-blue-400">
                   {labels[rating - 1]} · {rating}/5
                 </p>
               )}

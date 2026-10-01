@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Privacy Policy | سياسة الخصوصية | Ahmed Cooling Workshop',
+  title: 'Privacy Policy | سياسة الخصوصية',
   description: 'Privacy policy and client data protection terms for Ahmed Cooling Workshop in Saudi Arabia.',
   alternates: {
     canonical: 'https://www.ahmedcoolingworkshop.com/privacy',

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { adminApi } from '../adminApi';
+import ServiceIcon from '@/components/ServiceIcon';
 import {
   Wrench,
   Plus,
@@ -16,15 +17,13 @@ import {
   ShieldCheck,
   Flame,
   Star,
-  DollarSign,
   Layers,
   Sparkles,
-  Check,
-  AlertCircle,
   Snowflake,
   WashingMachine,
   Refrigerator,
   Zap,
+  Siren,
 } from 'lucide-react';
 
 const CATEGORIES = [
@@ -182,10 +181,10 @@ export default function AdminServicesPage() {
     try {
       if (modalMode === 'create') {
         const res = await adminApi.createService(formData);
-        showToast('Service added successfully! ✨');
+        showToast('Service added successfully!');
       } else {
         const res = await adminApi.updateService(formData._id, formData);
-        showToast('Service updated successfully! 💾');
+        showToast('Service updated successfully!');
       }
       setIsModalOpen(false);
       fetchServices();
@@ -201,7 +200,7 @@ export default function AdminServicesPage() {
     if (!deleteTarget) return;
     try {
       await adminApi.deleteService(deleteTarget._id);
-      showToast('Service deleted successfully 🗑️');
+      showToast('Service deleted successfully');
       setDeleteTarget(null);
       fetchServices();
     } catch (err) {
@@ -234,7 +233,7 @@ export default function AdminServicesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+            <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white">
               Services Catalog
             </h1>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400">
@@ -270,45 +269,45 @@ export default function AdminServicesPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium uppercase tracking-wider text-slate-400">Total Services</span>
+            <span className="text-xs font-medium uppercase text-slate-400">Total Services</span>
             <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
               <Wrench className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-slate-900 dark:text-white mt-2">{stats.total}</div>
+          <div className="text-2xl font-semibold text-slate-900 dark:text-white mt-2">{stats.total}</div>
           <div className="text-xs text-slate-500 mt-1">Active repair & maintenance</div>
         </div>
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium uppercase tracking-wider text-slate-400">Popular Marked</span>
+            <span className="text-xs font-medium uppercase text-slate-400">Popular Marked</span>
             <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
               <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-slate-900 dark:text-white mt-2">{stats.popular}</div>
+          <div className="text-2xl font-semibold text-slate-900 dark:text-white mt-2">{stats.popular}</div>
           <div className="text-xs text-slate-500 mt-1">Highlighted on homepage</div>
         </div>
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium uppercase tracking-wider text-slate-400">24/7 Emergency</span>
+            <span className="text-xs font-medium uppercase text-slate-400">24/7 Emergency</span>
             <div className="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center">
               <Flame className="w-4 h-4 text-rose-500" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-slate-900 dark:text-white mt-2">{stats.emergency}</div>
+          <div className="text-2xl font-semibold text-slate-900 dark:text-white mt-2">{stats.emergency}</div>
           <div className="text-xs text-slate-500 mt-1">Instant urgent dispatch</div>
         </div>
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium uppercase tracking-wider text-slate-400">Avg. Base Price</span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xs">
+            <span className="text-xs font-medium uppercase text-slate-400">Avg. Base Price</span>
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-semibold text-xs">
               SAR
             </div>
           </div>
-          <div className="text-2xl font-bold text-slate-900 dark:text-white mt-2">{stats.avgPrice} <span className="text-sm font-semibold text-slate-400">SAR</span></div>
+          <div className="text-2xl font-semibold text-slate-900 dark:text-white mt-2">{stats.avgPrice} <span className="text-sm font-semibold text-slate-400">SAR</span></div>
           <div className="text-xs text-slate-500 mt-1">Standard diagnosis & visit</div>
         </div>
       </div>
@@ -365,7 +364,7 @@ export default function AdminServicesPage() {
       ) : filteredServices.length === 0 ? (
         <div className="py-16 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8">
           <Wrench className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-          <h3 className="text-base font-bold text-slate-900 dark:text-white">No services found</h3>
+          <h3 className="text-base font-semibold text-slate-900 dark:text-white">No services found</h3>
           <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
             Try adjusting your search keywords or select a different category filter above.
           </p>
@@ -398,23 +397,23 @@ export default function AdminServicesPage() {
                     <div>
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {service.isPopular && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-600 text-white shadow-xs">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-blue-600 text-white shadow-xs">
                             <Star className="w-2.5 h-2.5 fill-white" />
                             Popular
                           </span>
                         )}
                         {service.isEmergency && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30">
                             <Flame className="w-2.5 h-2.5 text-rose-500" />
                             24/7
                           </span>
                         )}
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
                           {service.category || 'General'}
                         </span>
                       </div>
 
-                      <h3 className="text-base font-bold text-slate-900 dark:text-white mt-1.5 leading-snug group-hover:text-blue-600 transition-colors">
+                      <h3 className="text-base font-semibold text-slate-900 dark:text-white mt-1.5 leading-snug group-hover:text-blue-600 transition-colors">
                         {service.name}
                       </h3>
                       {service.nameAr && (
@@ -428,7 +427,7 @@ export default function AdminServicesPage() {
                   {/* Active Toggle Switch */}
                   <button
                     onClick={() => handleToggleActive(service)}
-                    className={`px-2 py-1 rounded-full text-[10px] font-bold tracking-wide flex items-center gap-1 transition-all ${
+                    className={`px-2 py-1 rounded-full text-[10px] font-semibold flex items-center gap-1 transition-all ${
                       service.active !== false
                         ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30'
                         : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
@@ -461,12 +460,12 @@ export default function AdminServicesPage() {
               {/* Bottom Row: Price & Actions */}
               <div className="mt-5 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
                 <div>
-                  <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block">Base Price</span>
+                  <span className="text-[11px] font-medium text-slate-400 uppercase block">Base Price</span>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-xl font-extrabold text-blue-600 dark:text-blue-400">
+                    <span className="text-xl font-semibold text-blue-600 dark:text-blue-400">
                       {service.basePrice || 150}
                     </span>
-                    <span className="text-xs font-bold text-slate-500">SAR</span>
+                    <span className="text-xs font-semibold text-slate-500">SAR</span>
                   </div>
                 </div>
 
@@ -498,11 +497,11 @@ export default function AdminServicesPage() {
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
-                  {formData.icon || '🔧'}
+                <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-semibold">
+                  <ServiceIcon service={{ name: formData.name, nameAr: formData.nameAr, category: formData.category }} className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
                     {modalMode === 'create' ? 'Add New Service' : 'Edit Service'}
                   </h3>
                   <p className="text-xs text-slate-500">Configure pricing, duration, and warranty terms.</p>
@@ -596,7 +595,7 @@ export default function AdminServicesPage() {
                       onChange={(e) => setFormData({ ...formData, basePrice: Number(e.target.value) })}
                       className="w-full pl-3.5 pr-12 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:outline-none font-semibold"
                     />
-                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">
                       SAR
                     </span>
                   </div>
@@ -667,7 +666,7 @@ export default function AdminServicesPage() {
                     className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
                   />
                   <div>
-                    <div className="text-xs font-bold text-slate-900 dark:text-white">Popular ⭐</div>
+                    <div className="flex items-center gap-1 text-xs font-semibold text-slate-900 dark:text-white">Popular <Star className="h-3 w-3 fill-amber-400 text-amber-400" aria-hidden="true" /></div>
                     <div className="text-[11px] text-slate-500">Feature on homepage</div>
                   </div>
                 </label>
@@ -680,7 +679,7 @@ export default function AdminServicesPage() {
                     className="w-4 h-4 rounded text-rose-600 focus:ring-rose-500"
                   />
                   <div>
-                    <div className="text-xs font-bold text-slate-900 dark:text-white">24/7 Urgent 🚨</div>
+                    <div className="flex items-center gap-1 text-xs font-semibold text-slate-900 dark:text-white">24/7 Urgent <Siren className="h-3 w-3 text-rose-600" aria-hidden="true" /></div>
                     <div className="text-[11px] text-slate-500">Emergency dispatch</div>
                   </div>
                 </label>
@@ -693,7 +692,7 @@ export default function AdminServicesPage() {
                     className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500"
                   />
                   <div>
-                    <div className="text-xs font-bold text-slate-900 dark:text-white">Active Status</div>
+                    <div className="text-xs font-semibold text-slate-900 dark:text-white">Active Status</div>
                     <div className="text-[11px] text-slate-500">Visible to customers</div>
                   </div>
                 </label>
@@ -728,7 +727,7 @@ export default function AdminServicesPage() {
             <div className="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto mb-4">
               <AlertTriangle className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-center text-slate-900 dark:text-white">
+            <h3 className="text-lg font-semibold text-center text-slate-900 dark:text-white">
               Delete Service?
             </h3>
             <p className="text-xs text-center text-slate-500 mt-2">

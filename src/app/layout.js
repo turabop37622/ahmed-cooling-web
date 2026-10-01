@@ -1,5 +1,3 @@
-import { Plus_Jakarta_Sans, IBM_Plex_Sans_Arabic, Tajawal } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "../contexts/ThemeContext";
 import { TranslationProvider } from "../contexts/TranslationContext";
@@ -8,27 +6,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import WhatsAppButton from "../components/WhatsAppButton";
 import ScrollObserver from "../components/ScrollObserver";
-
-const plusJakartaSans = Plus_Jakarta_Sans({
-  variable: "--font-plus-jakarta-sans",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
-  display: "swap",
-});
-
-const ibmPlexArabic = IBM_Plex_Sans_Arabic({
-  variable: "--font-ibm-plex-arabic",
-  subsets: ["arabic"],
-  weight: ["300", "400", "500", "600", "700"],
-  display: "swap",
-});
-
-const tajawal = Tajawal({
-  variable: "--font-tajawal",
-  subsets: ["arabic"],
-  weight: ["300", "400", "500", "700", "800", "900"],
-  display: "swap",
-});
+import ConsentBanner from "../components/ConsentBanner";
 
 export const metadata = {
   metadataBase: new URL('https://www.ahmedcoolingworkshop.com'),
@@ -103,7 +81,8 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="ar"
-      className={`${plusJakartaSans.variable} ${ibmPlexArabic.variable} ${tajawal.variable} h-full`}
+      dir="rtl"
+      className="h-full"
       translate="no"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
@@ -112,7 +91,7 @@ export default function RootLayout({ children }) {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Tajawal:wght@300;400;500;700;800;900&display=swap"
+          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800;900&display=swap"
           rel="stylesheet"
         />
         {/* Prevent dark mode flash — runs before React hydration */}
@@ -204,20 +183,6 @@ export default function RootLayout({ children }) {
             }),
           }}
         />
-        {/* TikTok Pixel Code */}
-        <Script
-          id="tiktok-pixel"
-          strategy="lazyOnload"
-          dangerouslySetInnerHTML={{
-            __html: `
-              !function (w, d, t) {
-                w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for( var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script") ;n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
-                ttq.load('D7UA7P3C77U0A0BNDM3G');
-                ttq.page();
-              }(window, document, 'ttq');
-            `,
-          }}
-        />
       </head>
       <body className="min-h-full flex flex-col bg-[#F0F4FF] text-[#0F172A] dark:bg-[#0F172A] dark:text-[#F1F5F9] antialiased" suppressHydrationWarning>
         <ThemeProvider>
@@ -228,6 +193,7 @@ export default function RootLayout({ children }) {
               <main className="flex-1">{children}</main>
               <Footer />
               <WhatsAppButton />
+              <ConsentBanner />
             </AuthProvider>
           </TranslationProvider>
         </ThemeProvider>

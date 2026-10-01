@@ -38,8 +38,19 @@ export default function Navbar() {
         setDropdownOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        setDropdownOpen(false);
+        setMobileOpen(false);
+      }
+    };
+    // pointerdown also covers touch, which mousedown does not
+    document.addEventListener('pointerdown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('pointerdown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
   }, []);
 
   // Lock body scroll when mobile menu is open
@@ -71,7 +82,7 @@ export default function Navbar() {
         isHome ? 'fixed top-0 left-0 right-0' : 'sticky top-0'
       } z-50 transition-all duration-300 ${
         isDarkHeader
-          ? 'bg-slate-950/35 backdrop-blur-md border-b border-white/10 shadow-none text-white'
+          ? 'bg-[#0A1640] border-b border-white/10 shadow-none text-white'
           : 'bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-md border-b border-slate-200/80 dark:border-slate-800 text-slate-900 dark:text-white'
       }`}
     >
@@ -83,6 +94,8 @@ export default function Navbar() {
               <img
                 src={isAr ? "/logo-ar-white.png" : "/logo-en-white.png"}
                 alt="Ahmed Cooling Workshop"
+                width="300"
+                height={isAr ? 124 : 98}
                 className="h-10 sm:h-11 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02]"
               />
             ) : (
@@ -90,11 +103,16 @@ export default function Navbar() {
                 <img
                   src={isAr ? "/logo-ar.png" : "/logo-en.png"}
                   alt="Ahmed Cooling Workshop"
+                  width="300"
+                  height={isAr ? 124 : 98}
                   className="h-10 sm:h-11 w-auto object-contain dark:hidden transition-transform duration-200 group-hover:scale-[1.02]"
                 />
                 <img
                   src={isAr ? "/logo-ar-white.png" : "/logo-en-white.png"}
                   alt="Ahmed Cooling Workshop"
+                  width="300"
+                  height={isAr ? 124 : 98}
+                  loading="lazy"
                   className="h-10 sm:h-11 w-auto object-contain hidden dark:block transition-transform duration-200 group-hover:scale-[1.02]"
                 />
               </>
@@ -131,7 +149,7 @@ export default function Navbar() {
             {token && (
               <Link
                 href="/bookings"
-                className={`px-4 py-1.5 text-sm font-bold rounded-full transition-colors ${
+                className={`px-4 py-1.5 text-sm font-semibold rounded-full transition-colors ${
                   isDarkHeader
                     ? 'bg-white/15 text-white border border-white/25 hover:bg-white/25'
                     : 'bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20'
@@ -161,7 +179,7 @@ export default function Navbar() {
                   ? 'text-white/90 hover:text-white hover:bg-white/10'
                   : 'text-sub hover:text-primary hover:bg-primary-light dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800'
               }`}
-              aria-label="Toggle theme"
+              aria-label={isAr ? 'تبديل الوضع الداكن' : 'Toggle theme'}
             >
               {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>
@@ -171,6 +189,8 @@ export default function Navbar() {
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
+                  aria-haspopup="menu"
+                  aria-expanded={dropdownOpen}
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                     isDarkHeader
                       ? 'text-white hover:bg-white/10'
@@ -178,7 +198,7 @@ export default function Navbar() {
                   }`}
                 >
                   <div className="h-7 w-7 rounded-full bg-primary flex items-center justify-center">
-                    <span className="text-xs font-bold text-white">
+                    <span className="text-xs font-semibold text-white">
                       {(user.fullName || user.name || 'U').charAt(0).toUpperCase()}
                     </span>
                   </div>
@@ -187,7 +207,7 @@ export default function Navbar() {
                 </button>
 
                 {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-border dark:border-slate-700 py-1 z-50">
+                  <div role="menu" className="absolute end-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-border dark:border-slate-700 py-1 z-50">
                     <Link
                       href="/profile"
                       onClick={() => setDropdownOpen(false)}
@@ -230,7 +250,8 @@ export default function Navbar() {
                 ? 'text-white hover:bg-white/10'
                 : 'text-sub hover:text-primary hover:bg-primary-light dark:text-slate-300 dark:hover:bg-slate-800'
             }`}
-            aria-label="Toggle menu"
+            aria-label={mobileOpen ? (isAr ? 'إغلاق القائمة' : 'Close menu') : (isAr ? 'فتح القائمة' : 'Open menu')}
+            aria-expanded={mobileOpen}
           >
             {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
@@ -265,7 +286,7 @@ export default function Navbar() {
               <Link
                 href="/bookings"
                 onClick={() => setMobileOpen(false)}
-                className="block px-3 py-2.5 rounded-lg text-sm font-bold text-center text-white bg-primary hover:bg-primary-dark transition-colors"
+                className="block px-3 py-2.5 rounded-lg text-sm font-semibold text-center text-white bg-primary hover:bg-primary-dark transition-colors"
               >
                 {t.myBookings || 'My Bookings'}
               </Link>
@@ -294,7 +315,7 @@ export default function Navbar() {
                   ? 'text-white/90 hover:bg-white/10'
                   : 'text-sub dark:text-slate-300 hover:text-primary hover:bg-primary-light dark:hover:bg-slate-800'
               }`}
-              aria-label="Toggle theme"
+              aria-label={isAr ? 'تبديل الوضع الداكن' : 'Toggle theme'}
             >
               {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>
@@ -309,7 +330,7 @@ export default function Navbar() {
               <div className="space-y-1">
                 <div className="flex items-center gap-3 px-3 py-2">
                   <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
-                    <span className="text-sm font-bold text-white">
+                    <span className="text-sm font-semibold text-white">
                       {(user.fullName || user.name || 'U').charAt(0).toUpperCase()}
                     </span>
                   </div>

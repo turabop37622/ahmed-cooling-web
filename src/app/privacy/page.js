@@ -109,7 +109,7 @@ export default function PrivacyPage() {
             <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-md dark:bg-slate-800">
               <Shield className="h-7 w-7 text-primary dark:text-blue-400" aria-hidden />
             </div>
-            <h1 className="text-3xl font-black tracking-tight text-text dark:text-white sm:text-4xl">
+            <h1 className="text-3xl font-semibold text-text dark:text-white sm:text-4xl">
               {t.privacyPolicyTitle}
             </h1>
             <p className="mt-3 text-sm font-semibold text-primary dark:text-blue-400">{t.privacyLastUpdated}</p>
@@ -119,7 +119,7 @@ export default function PrivacyPage() {
 
       <article className="mx-auto max-w-3xl px-4 pt-10 sm:px-8 lg:px-16 xl:px-24">
         <header className="mb-12 rounded-2xl border border-border bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-          <h2 className="text-xl font-black text-text dark:text-white">{t.privacyWelcome}</h2>
+          <h2 className="text-xl font-semibold text-text dark:text-white">{t.privacyWelcome}</h2>
           <p className="mt-4 text-sm leading-relaxed text-sub dark:text-slate-300">{t.privacyIntro}</p>
           <p className="mt-3 text-sm leading-relaxed text-sub dark:text-slate-300">{t.privacyAgree}</p>
         </header>
@@ -127,14 +127,14 @@ export default function PrivacyPage() {
         <div className="space-y-12">
           {sections.map((section) => (
             <section key={section.title} className="scroll-mt-24">
-              <h2 className="border-b border-border pb-2 text-lg font-black text-text dark:border-slate-700 dark:text-white">
+              <h2 className="border-b border-border pb-2 text-lg font-semibold text-text dark:border-slate-700 dark:text-white">
                 {section.title}
               </h2>
               <div className="mt-4 space-y-4">
                 {section.blocks.map((block, i) => (
                   <div key={i}>
                     {block.subtitle && (
-                      <h3 className="mb-2 text-sm font-extrabold text-text dark:text-white">{block.subtitle}</h3>
+                      <h3 className="mb-2 text-sm font-semibold text-text dark:text-white">{block.subtitle}</h3>
                     )}
                     {block.text && (
                       <p className="text-sm leading-relaxed text-sub dark:text-slate-300">{block.text}</p>
@@ -156,14 +156,14 @@ export default function PrivacyPage() {
         <div className="mt-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
           <a
             href={mailtoHref}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-primary/25 transition-colors hover:bg-primary-dark dark:bg-blue-600 dark:hover:bg-blue-700 sm:w-auto"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-primary/25 transition-colors hover:bg-primary-dark dark:bg-blue-600 dark:hover:bg-blue-700 sm:w-auto"
           >
             <Mail className="h-5 w-5" aria-hidden />
             {t.privacyContactBtn}
           </a>
           <Link
             href="/about#contact"
-            className="inline-flex w-full items-center justify-center rounded-xl border border-border bg-white px-6 py-3.5 text-sm font-bold text-text transition-colors hover:border-primary dark:border-slate-600 dark:bg-slate-900 dark:text-white dark:hover:border-blue-500 sm:w-auto"
+            className="inline-flex w-full items-center justify-center rounded-xl border border-border bg-white px-6 py-3.5 text-sm font-semibold text-text transition-colors hover:border-primary dark:border-slate-600 dark:bg-slate-900 dark:text-white dark:hover:border-blue-500 sm:w-auto"
           >
             {t.contactInformation}
           </Link>

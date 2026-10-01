@@ -7,27 +7,18 @@ const ThemeContext = createContext(null);
 export const ThemeProvider = ({ children }) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
+  // The inline script in layout.js already applied the saved theme before React loaded; just mirror it
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('darkMode');
-      if (saved === 'true') {
-        setIsDarkMode(true);
-        document.documentElement.classList.add('dark');
-      }
-    } catch {}
+    setIsDarkMode(document.documentElement.classList.contains('dark'));
   }, []);
 
   const toggleDarkMode = () => {
-    setIsDarkMode((prev) => {
-      const next = !prev;
+    const next = !isDarkMode;
+    setIsDarkMode(next);
+    try {
       localStorage.setItem('darkMode', String(next));
-      if (next) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-      return next;
-    });
+    } catch {}
+    document.documentElement.classList.toggle('dark', next);
   };
 
   return (

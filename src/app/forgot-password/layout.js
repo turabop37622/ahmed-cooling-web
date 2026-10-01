@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Reset Password | Ahmed Cooling Workshop',
+  title: 'Reset Password | إعادة تعيين كلمة المرور',
   robots: { index: false, follow: false },
 };
 

@@ -8,6 +8,19 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+// An expired or revoked token must not leave the UI "logged in": clear it and tell the app
+api.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    if (typeof window !== 'undefined' && error?.response?.status === 401 && localStorage.getItem('token')) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.dispatchEvent(new Event('auth:expired'));
+    }
+    return Promise.reject(error);
+  },
+);
+
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('token');
@@ -62,8 +75,8 @@ export const verifyResetOTP = async (email, otp) => {
   return res.data;
 };
 
-export const resetPassword = async (token, password) => {
-  const res = await api.post(`/auth/reset-password/${token}`, { password });
+export const resetPassword = async (token, password, email) => {
+  const res = await api.post(`/auth/reset-password/${encodeURIComponent(token)}`, { password, email });
   return res.data;
 };
 
@@ -90,8 +103,13 @@ export const getServiceById = async (id) => {
 };
 
 // Bookings
-export const createBooking = async (data) => {
-  const res = await api.post('/bookings/public', data);
+// The same Idempotency-Key makes a retry after a timeout return the first booking instead of creating a second one.
+// Booking creation can be slow on a cold server, so it gets a longer timeout.
+export const createBooking = async (data, idempotencyKey) => {
+  const res = await api.post('/bookings/public', data, {
+    timeout: 60000,
+    headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
+  });
   return res.data;
 };
 
@@ -101,22 +119,22 @@ export const getUserBookings = async () => {
 };
 
 export const getBookingsByPhone = async (phone) => {
-  const res = await api.get(`/bookings/phone/${phone}`);
+  const res = await api.get(`/bookings/phone/${encodeURIComponent(phone)}`);
   return res.data;
 };
 
 export const cancelBooking = async (id, reason) => {
-  const res = await api.put(`/bookings/${id}/cancel`, { reason });
+  const res = await api.put(`/bookings/${encodeURIComponent(id)}/cancel`, { reason });
   return res.data;
 };
 
 export const publicCancelBooking = async (id, reason, phone) => {
-  const res = await api.put(`/bookings/public/cancel/${id}`, { reason, phone });
+  const res = await api.put(`/bookings/public/cancel/${encodeURIComponent(id)}`, { reason, phone });
   return res.data;
 };
 
 export const rescheduleBooking = async (id, data) => {
-  const res = await api.put(`/bookings/public/reschedule/${id}`, data);
+  const res = await api.put(`/bookings/${encodeURIComponent(id)}/reschedule`, data);
   return res.data;
 };
 

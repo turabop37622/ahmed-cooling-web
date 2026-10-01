@@ -41,9 +41,13 @@ export const TranslationProvider = ({ children }) => {
     const num = Number(amount || 0);
     const currUpper = String(currency || 'SAR').toUpperCase();
     if (language === 'ar') {
-      const formatted = num.toLocaleString();
-      const arNum = formatted.replace(/[0-9]/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
-      const symbol = 'ر.س';
+      // Arabic digits with the Arabic thousands (٬) and decimal (٫) separators, e.g. ١٬٢٠٠
+      const formatted = num.toLocaleString('en-US');
+      const arNum = formatted
+        .replace(/[0-9]/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d])
+        .replace(/,/g, '٬')
+        .replace(/\./g, '٫');
+      const symbol = 'ريال';
       return `${arNum} ${symbol}`;
     }
     return `${currUpper} ${num.toLocaleString()}`;

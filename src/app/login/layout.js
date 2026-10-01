@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Login | Ahmed Cooling Workshop | تسجيل الدخول',
+  title: 'Login | تسجيل الدخول',
   description: 'Login to your Ahmed Cooling Workshop account to book AC repair and appliance maintenance services. تسجيل الدخول لحجز خدمات صيانة المكيفات.',
   robots: { index: false, follow: false },
 };

@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Book Service | Ahmed Cooling Workshop',
+  title: 'Book Service | حجز خدمة',
   robots: { index: false, follow: false },
 };
 

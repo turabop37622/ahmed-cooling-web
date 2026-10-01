@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAdminAuth } from '../AdminAuthContext';
 import { adminApi } from '../adminApi';
-import { Snowflake, Mail, Lock, Loader2, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, Loader2, ShieldCheck } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -61,7 +61,7 @@ export default function AdminLoginPage() {
         <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl shadow-2xl shadow-slate-900/10 border border-slate-200/80 dark:border-slate-800 p-7 sm:p-9">
           <div className="flex items-center justify-between pb-5 border-b border-slate-100 dark:border-slate-800 mb-6">
             <div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Admin Sign In</h2>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Admin Sign In</h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">Restricted to authorized workshop staff</p>
             </div>
             <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-semibold">
@@ -78,7 +78,7 @@ export default function AdminLoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold uppercase text-slate-600 dark:text-slate-300 mb-1.5">
                 Admin Email
               </label>
               <div className="relative">
@@ -95,7 +95,7 @@ export default function AdminLoginPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold uppercase text-slate-600 dark:text-slate-300 mb-1.5">
                 Password
               </label>
               <div className="relative">
@@ -114,7 +114,7 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold text-sm shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer mt-2"
+              className="w-full py-3.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-semibold text-sm shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer mt-2"
             >
               {loading ? (
                 <>

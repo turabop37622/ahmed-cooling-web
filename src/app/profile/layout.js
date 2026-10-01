@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'My Profile | Ahmed Cooling Workshop',
+  title: 'My Profile | الملف الشخصي',
   robots: { index: false, follow: false },
 };
 

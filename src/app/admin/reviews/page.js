@@ -8,15 +8,11 @@ import {
   RefreshCw,
   CheckCircle2,
   EyeOff,
-  Eye,
   MessageSquare,
-  Sparkles,
   Check,
   X,
   Clock,
-  User,
   Wrench,
-  ThumbsUp,
 } from 'lucide-react';
 
 export default function AdminReviewsPage() {
@@ -60,7 +56,7 @@ export default function AdminReviewsPage() {
     const newStatus = !review.approved;
     try {
       await adminApi.approveReview(review._id, newStatus);
-      showToast(newStatus ? 'Review approved and published! ⭐' : 'Review hidden from website');
+      showToast(newStatus ? 'Review approved and published!' : 'Review hidden from website');
       fetchReviews();
     } catch (err) {
       console.error('Failed to toggle approval:', err);
@@ -113,11 +109,11 @@ export default function AdminReviewsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+            <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white">
               Customer Reviews
             </h1>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-500/10 dark:text-amber-400">
-              ★ {stats.avgRating} Average
+              <Star className="me-1 inline h-3 w-3 fill-current align-[-1px]" aria-hidden="true" />{stats.avgRating} Average
             </span>
           </div>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
@@ -139,45 +135,45 @@ export default function AdminReviewsPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium uppercase tracking-wider text-slate-400">Total Reviews</span>
+            <span className="text-xs font-medium uppercase text-slate-400">Total Reviews</span>
             <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
               <MessageSquare className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-slate-900 dark:text-white mt-2">{stats.total}</div>
+          <div className="text-2xl font-semibold text-slate-900 dark:text-white mt-2">{stats.total}</div>
           <div className="text-xs text-slate-500 mt-1">From verified customers</div>
         </div>
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium uppercase tracking-wider text-slate-400">Live & Published</span>
+            <span className="text-xs font-medium uppercase text-slate-400">Live & Published</span>
             <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
               <CheckCircle2 className="w-4 h-4 text-emerald-500" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-slate-900 dark:text-white mt-2">{stats.approved}</div>
+          <div className="text-2xl font-semibold text-slate-900 dark:text-white mt-2">{stats.approved}</div>
           <div className="text-xs text-slate-500 mt-1">Visible on website</div>
         </div>
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium uppercase tracking-wider text-slate-400">Pending Review</span>
+            <span className="text-xs font-medium uppercase text-slate-400">Pending Review</span>
             <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
               <Clock className="w-4 h-4 text-amber-500" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-slate-900 dark:text-white mt-2">{stats.pending}</div>
+          <div className="text-2xl font-semibold text-slate-900 dark:text-white mt-2">{stats.pending}</div>
           <div className="text-xs text-slate-500 mt-1">Awaiting admin approval</div>
         </div>
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium uppercase tracking-wider text-slate-400">Customer Rating</span>
+            <span className="text-xs font-medium uppercase text-slate-400">Customer Rating</span>
             <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
               <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-slate-900 dark:text-white mt-2 flex items-baseline gap-1">
+          <div className="text-2xl font-semibold text-slate-900 dark:text-white mt-2 flex items-baseline gap-1">
             <span>{stats.avgRating}</span>
             <span className="text-xs font-normal text-slate-400">/ 5.0</span>
           </div>
@@ -250,7 +246,7 @@ export default function AdminReviewsPage() {
       ) : filteredReviews.length === 0 ? (
         <div className="py-16 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8">
           <Star className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-          <h3 className="text-base font-bold text-slate-900 dark:text-white">No reviews found</h3>
+          <h3 className="text-base font-semibold text-slate-900 dark:text-white">No reviews found</h3>
           <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
             Try adjusting your search terms or view another status filter tab above.
           </p>
@@ -271,11 +267,11 @@ export default function AdminReviewsPage() {
                   {/* Top: Customer & Status Pill */}
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold flex items-center justify-center text-sm">
+                      <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold flex items-center justify-center text-sm">
                         {customerName.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <h4 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">
+                        <h4 className="text-sm font-semibold text-slate-900 dark:text-white leading-tight">
                           {customerName}
                         </h4>
                         <div className="flex items-center gap-1 mt-0.5">
@@ -288,7 +284,7 @@ export default function AdminReviewsPage() {
                     </div>
 
                     <span
-                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase ${
                         rev.approved
                           ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30'
                           : 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30'
@@ -320,7 +316,7 @@ export default function AdminReviewsPage() {
                         }`}
                       />
                     ))}
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 ml-1.5">
+                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 ml-1.5">
                       {rating}.0
                     </span>
                   </div>

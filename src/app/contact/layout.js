@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Contact Us | اتصل بنا | Ahmed Cooling Workshop Jeddah & Makkah',
+  title: 'Contact Us Jeddah & Makkah | اتصل بنا',
   description: 'Contact Ahmed Cooling Workshop for 24/7 emergency AC repair, maintenance, and home appliance services in Jeddah and Makkah. Call or WhatsApp +966 590 192 146.',
   keywords: [
     'contact Ahmed cooling', 'AC technician phone Jeddah', 'رقم فني مكيفات جدة',

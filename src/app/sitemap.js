@@ -1,7 +1,10 @@
+import services from '../lib/services.json';
+
 export default function sitemap() {
   const base = 'https://www.ahmedcoolingworkshop.com';
 
-  const serviceIds = ['1', '2', '3', '4', '5', '6'];
+  // Every service in the shared catalogue, so new services are listed without editing this file
+  const serviceIds = services.map((svc) => svc._id);
 
   const serviceUrls = serviceIds.map((id) => ({
     url: `${base}/services/${id}`,

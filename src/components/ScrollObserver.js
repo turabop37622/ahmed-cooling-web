@@ -35,8 +35,9 @@ export default function ScrollObserver() {
         });
       },
       {
-        threshold: 0.08,
-        rootMargin: '0px 0px -40px 0px',
+        // Reveal slightly before an element scrolls into view so fast scrolling never shows blank space
+        threshold: 0,
+        rootMargin: '0px 0px 200px 0px',
       }
     );
 

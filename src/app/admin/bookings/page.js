@@ -12,7 +12,6 @@ import {
   Calendar,
   Clock,
   CheckCircle2,
-  AlertTriangle,
   X,
   MessageCircle,
   ExternalLink,
@@ -22,8 +21,6 @@ import {
   Ban,
   User,
   Wrench,
-  DollarSign,
-  Loader2,
   Snowflake,
   Refrigerator,
   WashingMachine,
@@ -154,6 +151,7 @@ const getBookingCurrency = (b) => {
 
 export default function AdminBookingsPage() {
   const [bookings, setBookings] = useState([]);
+  const [loadError, setLoadError] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [currentTab, setCurrentTab] = useState('all');
@@ -168,8 +166,10 @@ export default function AdminBookingsPage() {
       const res = await adminApi.getAllBookings('all', 1, 100);
       const data = res.bookings || res.data || [];
       setBookings(Array.isArray(data) ? data : []);
+      setLoadError('');
     } catch (err) {
       console.error('Error loading bookings:', err);
+      setLoadError(err.message || 'Could not load bookings');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -329,7 +329,7 @@ export default function AdminBookingsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white">
             Bookings Management
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
@@ -346,6 +346,8 @@ export default function AdminBookingsPage() {
           <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
         </button>
       </div>
+
+      {loadError && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{loadError}</div>}
 
       {/* Search & Tabs */}
       <div className="space-y-4">
@@ -370,7 +372,7 @@ export default function AdminBookingsPage() {
               <button
                 key={tab.key}
                 onClick={() => setCurrentTab(tab.key)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition cursor-pointer ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
                   active
                     ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25'
                     : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'
@@ -378,7 +380,7 @@ export default function AdminBookingsPage() {
               >
                 <span>{tab.label}</span>
                 <span
-                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
                     active
                       ? 'bg-white/20 text-white'
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
@@ -398,7 +400,7 @@ export default function AdminBookingsPage() {
       {filteredBookings.length === 0 ? (
         <div className="py-20 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-center p-8">
           <ClipboardList className="w-12 h-12 mx-auto mb-3 text-slate-300 dark:text-slate-600" />
-          <h3 className="text-base font-bold text-slate-900 dark:text-white">No Bookings Found</h3>
+          <h3 className="text-base font-semibold text-slate-900 dark:text-white">No Bookings Found</h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
             {searchQuery ? 'Try adjusting your search terms.' : 'No customer bookings currently match this filter.'}
           </p>
@@ -423,15 +425,15 @@ export default function AdminBookingsPage() {
                     <div className="flex items-center gap-2.5 min-w-0">
                       {renderServiceOutlineIcon(bkg.service, serviceName, 'sm')}
                       <div className="min-w-0">
-                        <h4 className="font-bold text-slate-900 dark:text-white text-sm truncate">
+                        <h4 className="font-semibold text-slate-900 dark:text-white text-sm truncate">
                           {serviceName}
                         </h4>
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <span className="text-[11px] font-mono text-slate-400">
                             #{bkg.orderNumber || bkg.bookingId || bkg._id?.slice(-6).toUpperCase()}
                           </span>
-                          <span className="text-[10px] px-1.5 py-0.2 rounded font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/50">
-                              🇸🇦 KSA
+                          <span className="text-[10px] px-1.5 py-0.2 rounded font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/50">
+                              KSA
                             </span>
                         </div>
                       </div>
@@ -444,7 +446,7 @@ export default function AdminBookingsPage() {
                   {/* Customer & Location */}
                   <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-800 dark:text-slate-200 truncate">{customerName}</span>
+                      <span className="font-semibold text-slate-800 dark:text-slate-200 truncate">{customerName}</span>
                       {bkg.phone && (
                         <a
                           href={`tel:${bkg.phone}`}
@@ -466,7 +468,7 @@ export default function AdminBookingsPage() {
                         return (
                           <div className="flex items-center gap-2 pl-5 rtl:pr-5 rtl:pl-0">
                             {coords ? (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded">
+                              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded">
                                 <Crosshair className="w-2.5 h-2.5" />
                                 {coords.latitude.toFixed(4)}, {coords.longitude.toFixed(4)}
                               </span>
@@ -477,7 +479,7 @@ export default function AdminBookingsPage() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 onClick={(e) => e.stopPropagation()}
-                                className="inline-flex items-center gap-0.5 text-[10px] font-bold text-primary dark:text-blue-400 hover:underline"
+                                className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-primary dark:text-blue-400 hover:underline"
                               >
                                 <span>Google Maps</span>
                                 <ExternalLink className="w-2.5 h-2.5" />
@@ -499,8 +501,8 @@ export default function AdminBookingsPage() {
                   {/* Footer: Price & Quick Actions */}
                   <div className="flex items-center justify-between pt-1" onClick={(e) => e.stopPropagation()}>
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Total</span>
-                      <span className="font-mono font-black text-slate-900 dark:text-white text-sm">
+                      <span className="text-[10px] uppercase font-semibold text-slate-400 block">Total</span>
+                      <span className="font-mono font-semibold text-slate-900 dark:text-white text-sm">
                         {bkg.totalAmount ?? 0} <span className="text-xs font-normal text-slate-500">{getBookingCurrency(bkg)}</span>
                       </span>
                     </div>
@@ -524,7 +526,7 @@ export default function AdminBookingsPage() {
                       </button>
                       <button
                         onClick={() => setSelectedBooking(bkg)}
-                        className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 font-bold text-xs transition cursor-pointer"
+                        className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 font-semibold text-xs transition cursor-pointer"
                       >
                         Manage
                       </button>
@@ -549,7 +551,7 @@ export default function AdminBookingsPage() {
                   <col className="w-[6%]" />
                 </colgroup>
                 <thead>
-                  <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-[11px] font-semibold uppercase text-slate-400">
                     <th className="py-3.5 px-3 lg:px-3.5">Order ID & Service</th>
                     <th className="py-3.5 px-3 lg:px-3.5">Customer</th>
                     <th className="py-3.5 px-3 lg:px-3.5">Date & Time</th>
@@ -576,15 +578,15 @@ export default function AdminBookingsPage() {
                           <div className="flex items-center gap-2.5 min-w-0">
                             {renderServiceOutlineIcon(bkg.service, serviceName, 'sm')}
                             <div className="min-w-0 flex-1">
-                              <p className="font-bold text-slate-900 dark:text-white truncate text-xs sm:text-sm">
+                              <p className="font-semibold text-slate-900 dark:text-white truncate text-xs sm:text-sm">
                                 {serviceName}
                               </p>
                               <div className="flex items-center gap-1.5 mt-0.5">
                                 <span className="text-[10px] sm:text-[11px] font-mono text-slate-400 truncate">
                                   #{bkg.orderNumber || bkg.bookingId || bkg._id?.slice(-6).toUpperCase()}
                                 </span>
-                                <span className="text-[9px] px-1.5 py-0.2 rounded font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/50">
-                                    🇸🇦 SA
+                                <span className="text-[9px] px-1.5 py-0.2 rounded font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/50">
+                                    SA
                                   </span>
                               </div>
                             </div>
@@ -635,7 +637,7 @@ export default function AdminBookingsPage() {
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     onClick={(e) => e.stopPropagation()}
-                                    className="inline-flex items-center gap-0.5 text-[10px] font-bold text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400"
+                                    className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400"
                                     title="View location in Google Maps"
                                   >
                                     <ExternalLink className="w-2.5 h-2.5" />
@@ -659,7 +661,7 @@ export default function AdminBookingsPage() {
 
                         {/* Total */}
                         <td className="py-3 px-2 sm:px-3 text-right whitespace-nowrap">
-                          <span className="font-mono font-bold text-slate-900 dark:text-white text-xs sm:text-sm">
+                          <span className="font-mono font-semibold text-slate-900 dark:text-white text-xs sm:text-sm">
                             {bkg.totalAmount ?? 0}
                           </span>{' '}
                           <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
@@ -719,7 +721,7 @@ export default function AdminBookingsPage() {
               <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                    <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400">
                       #{selectedBooking.orderNumber || selectedBooking._id?.slice(-6).toUpperCase()}
                     </span>
                     <span
@@ -730,7 +732,7 @@ export default function AdminBookingsPage() {
                       {STATUS_CONFIG[normalizeStatus(selectedBooking.status)]?.label}
                     </span>
                   </div>
-                  <h2 className="text-lg font-bold text-slate-900 dark:text-white mt-1">
+                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white mt-1">
                     Booking Details
                   </h2>
                 </div>
@@ -749,7 +751,7 @@ export default function AdminBookingsPage() {
                   <div className="flex items-center gap-3">
                     {renderServiceOutlineIcon(selectedBooking.service, selectedBooking.service?.name || selectedBooking.serviceName, 'lg')}
                     <div>
-                      <h3 className="font-bold text-slate-900 dark:text-white">
+                      <h3 className="font-semibold text-slate-900 dark:text-white">
                         {selectedBooking.service?.name || selectedBooking.serviceName || 'Appliance Service'}
                       </h3>
                       <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">
@@ -761,7 +763,7 @@ export default function AdminBookingsPage() {
 
                 {/* Customer Information */}
                 <div className="space-y-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  <h4 className="text-xs font-semibold uppercase text-slate-400">
                     Customer Details
                   </h4>
                   <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800 space-y-2.5">
@@ -788,7 +790,7 @@ export default function AdminBookingsPage() {
                               selectedBooking.service?.name
                             )
                           }
-                          className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
                         >
                           <MessageCircle className="w-3.5 h-3.5" />
                           <span>WhatsApp</span>
@@ -806,15 +808,15 @@ export default function AdminBookingsPage() {
                     {/* Country & Branch Indicator */}
                     <div className="flex items-center gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/60 text-xs">
                       <span className="text-slate-400 font-semibold">Country:</span>
-                        <span className="inline-flex items-center gap-1 font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200/60">
-                          🇸🇦 Saudi Arabia (المملكة العربية السعودية) {selectedBooking.city ? `• ${selectedBooking.city}` : ''}
+                        <span className="inline-flex items-center gap-1 font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200/60">
+                          Saudi Arabia (المملكة العربية السعودية) {selectedBooking.city ? `• ${selectedBooking.city}` : ''}
                         </span>
                     </div>
 
                     {/* Location: Exact Address AND GPS */}
                     <div className="pt-3 border-t border-slate-200/60 dark:border-slate-700/60 space-y-3">
                       <div>
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                        <span className="text-[11px] font-semibold uppercase text-slate-400 block mb-1">
                           Exact Address (العنوان المفصل)
                         </span>
                         <div className="flex items-start gap-2.5 text-xs text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
@@ -830,7 +832,7 @@ export default function AdminBookingsPage() {
                         const mapUrl = getMapLink(selectedBooking.address, selectedBooking);
                         return (
                           <div>
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                            <span className="text-[11px] font-semibold uppercase text-slate-400 block mb-1">
                               GPS Coordinates & Navigation (إحداثيات الموقع)
                             </span>
                             <div className="p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200/60 dark:border-blue-900/40 flex flex-wrap items-center justify-between gap-2">
@@ -838,7 +840,7 @@ export default function AdminBookingsPage() {
                                 <Crosshair className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
                                 {coords ? (
                                   <div>
-                                    <p className="text-xs font-mono font-black text-slate-800 dark:text-slate-200">
+                                    <p className="text-xs font-mono font-semibold text-slate-800 dark:text-slate-200">
                                       {coords.latitude.toFixed(6)}, {coords.longitude.toFixed(6)}
                                     </p>
                                     <p className="text-[10px] text-slate-500 dark:text-slate-400">
@@ -856,7 +858,7 @@ export default function AdminBookingsPage() {
                                   href={mapUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition"
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition"
                                 >
                                   <span>Open Google Maps</span>
                                   <ExternalLink className="w-3 h-3" />
@@ -872,19 +874,19 @@ export default function AdminBookingsPage() {
 
                 {/* Appointment Schedule */}
                 <div className="space-y-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  <h4 className="text-xs font-semibold uppercase text-slate-400">
                     Schedule & Time
                   </h4>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800">
                       <span className="text-[11px] font-semibold text-slate-400 block">Date</span>
-                      <span className="text-sm font-bold text-slate-900 dark:text-white mt-0.5 block">
+                      <span className="text-sm font-semibold text-slate-900 dark:text-white mt-0.5 block">
                         {selectedBooking.date ? new Date(selectedBooking.date).toLocaleDateString('en-GB') : 'Immediate'}
                       </span>
                     </div>
                     <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800">
                       <span className="text-[11px] font-semibold text-slate-400 block">Time Slot</span>
-                      <span className="text-sm font-bold text-slate-900 dark:text-white mt-0.5 block">
+                      <span className="text-sm font-semibold text-slate-900 dark:text-white mt-0.5 block">
                         {selectedBooking.time || 'Flexible'}
                       </span>
                     </div>
@@ -894,7 +896,7 @@ export default function AdminBookingsPage() {
                 {/* Customer Notes */}
                 {(selectedBooking.notes || selectedBooking.comments || selectedBooking.problemDescription) && (
                   <div className="space-y-2">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                    <h4 className="text-xs font-semibold uppercase text-slate-400">
                       Issue Description / Notes
                     </h4>
                     <div className="p-3.5 rounded-2xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 text-xs font-medium text-amber-900 dark:text-amber-200 leading-relaxed">
@@ -905,25 +907,25 @@ export default function AdminBookingsPage() {
 
                 {/* Financial Breakdown */}
                 <div className="space-y-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  <h4 className="text-xs font-semibold uppercase text-slate-400">
                     Pricing Summary
                   </h4>
                   <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800 space-y-2 text-sm">
                     <div className="flex justify-between text-slate-600 dark:text-slate-400">
                       <span>Service Diagnostic / Repair</span>
                       <span>
-                        {selectedBooking.servicePrice ?? selectedBooking.serviceCharge ?? (selectedBooking.totalAmount ? selectedBooking.totalAmount - (selectedBooking.visitCharges ?? selectedBooking.visitFee ?? 50) : 150)} {getBookingCurrency(selectedBooking)}
+                        {selectedBooking.servicePrice ?? selectedBooking.serviceCharge ?? (selectedBooking.totalAmount ? selectedBooking.totalAmount - (selectedBooking.visitCharges ?? selectedBooking.visitFee ?? 30) : 150)} {getBookingCurrency(selectedBooking)}
                       </span>
                     </div>
                     {((selectedBooking.visitCharges !== undefined && selectedBooking.visitCharges > 0) || (selectedBooking.visitFee !== undefined && selectedBooking.visitFee > 0)) && (
                       <div className="flex justify-between text-slate-600 dark:text-slate-400">
                         <span>Technician Visit Fee</span>
-                        <span>{selectedBooking.visitCharges ?? selectedBooking.visitFee ?? 50} {getBookingCurrency(selectedBooking)}</span>
+                        <span>{selectedBooking.visitCharges ?? selectedBooking.visitFee ?? 30} {getBookingCurrency(selectedBooking)}</span>
                       </div>
                     )}
-                    <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex justify-between font-bold text-slate-900 dark:text-white text-base">
+                    <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex justify-between font-semibold text-slate-900 dark:text-white text-base">
                       <span>Total Amount</span>
-                      <span className="text-blue-600 dark:text-blue-400 font-bold">
+                      <span className="text-blue-600 dark:text-blue-400 font-semibold">
                         {selectedBooking.totalAmount ?? 200} {getBookingCurrency(selectedBooking)}
                       </span>
                     </div>
@@ -933,7 +935,7 @@ export default function AdminBookingsPage() {
 
               {/* Status Action Buttons Footer */}
               <div className="p-6 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                <h4 className="text-xs font-semibold uppercase text-slate-400 mb-2">
                   Update Booking Status
                 </h4>
 
@@ -942,7 +944,7 @@ export default function AdminBookingsPage() {
                     <button
                       onClick={() => handleStatusChange(selectedBooking, 'confirmed')}
                       disabled={updatingId === selectedBooking._id}
-                      className="py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
                     >
                       <Check className="w-4 h-4" />
                       <span>Confirm</span>
@@ -953,7 +955,7 @@ export default function AdminBookingsPage() {
                     <button
                       onClick={() => handleStatusChange(selectedBooking, 'in_progress')}
                       disabled={updatingId === selectedBooking._id}
-                      className="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
                     >
                       <Wrench className="w-4 h-4" />
                       <span>In Progress</span>
@@ -964,7 +966,7 @@ export default function AdminBookingsPage() {
                     <button
                       onClick={() => handleStatusChange(selectedBooking, 'completed')}
                       disabled={updatingId === selectedBooking._id}
-                      className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
                     >
                       <CheckCircle2 className="w-4 h-4" />
                       <span>Mark Complete</span>
@@ -975,7 +977,7 @@ export default function AdminBookingsPage() {
                     <button
                       onClick={() => handleStatusChange(selectedBooking, 'cancelled', 'Cancelled by Admin')}
                       disabled={updatingId === selectedBooking._id}
-                      className="py-2.5 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="py-2.5 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-semibold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
                     >
                       <Ban className="w-4 h-4" />
                       <span>Cancel</span>
@@ -987,7 +989,7 @@ export default function AdminBookingsPage() {
                   <button
                     onClick={() => handleDeleteBooking(selectedBooking)}
                     disabled={updatingId === selectedBooking._id}
-                    className="w-full py-2.5 px-3 rounded-xl border border-rose-200 dark:border-rose-900/40 bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                    className="w-full py-2.5 px-3 rounded-xl border border-rose-200 dark:border-rose-900/40 bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-semibold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
                   >
                     <Trash2 className="w-4 h-4" />
                     <span>Delete Booking Record</span>

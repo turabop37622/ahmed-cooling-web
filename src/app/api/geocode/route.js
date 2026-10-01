@@ -40,7 +40,66 @@ function formatNominatim(data, lang) {
   return null;
 }
 
+// Public proxy to third-party geocoders: keep it from being used as a free bulk lookup service.
+const WINDOW_MS = 60 * 1000;
+const MAX_PER_WINDOW = 20;
+const hits = new Map(); // ip -> { count, resetAt }
+const cache = new Map(); // "lat,lng,lang" (rounded) -> { body, expires }
+const CACHE_TTL_MS = 10 * 60 * 1000;
+const CACHE_MAX = 500;
+
+function isRateLimited(ip) {
+  const now = Date.now();
+  if (hits.size > 5000) {
+    for (const [key, v] of hits) if (v.resetAt < now) hits.delete(key);
+  }
+  const entry = hits.get(ip);
+  if (!entry || entry.resetAt < now) {
+    hits.set(ip, { count: 1, resetAt: now + WINDOW_MS });
+    return false;
+  }
+  entry.count += 1;
+  return entry.count > MAX_PER_WINDOW;
+}
+
 export async function GET(request) {
+  const ip = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'unknown';
+  if (isRateLimited(ip)) {
+    return NextResponse.json(
+      { success: false, message: 'Too many requests, please try again in a minute' },
+      { status: 429, headers: { 'Retry-After': '60' } }
+    );
+  }
+
+  const q = new URL(request.url).searchParams;
+  const keyLat = Number.parseFloat(q.get('lat'));
+  const keyLng = Number.parseFloat(q.get('lng'));
+  const keyLang = q.get('lang') === 'ar' ? 'ar' : 'en';
+  const cacheKey = Number.isFinite(keyLat) && Number.isFinite(keyLng) ? `${keyLat.toFixed(3)},${keyLng.toFixed(3)},${keyLang}` : null;
+
+  if (cacheKey) {
+    const hit = cache.get(cacheKey);
+    if (hit && hit.expires > Date.now()) {
+      return NextResponse.json({ ...hit.body, coordinates: { latitude: keyLat, longitude: keyLng }, cached: true });
+    }
+  }
+
+  const response = await lookup(request);
+  if (cacheKey && response.status === 200) {
+    try {
+      const body = await response.clone().json();
+      if (body?.success && body.provider !== 'fallback') {
+        if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value);
+        cache.set(cacheKey, { body, expires: Date.now() + CACHE_TTL_MS });
+      }
+    } catch {
+      // not cacheable
+    }
+  }
+  return response;
+}
+
+async function lookup(request) {
   try {
     const { searchParams } = new URL(request.url);
     const latStr = searchParams.get('lat');
@@ -57,7 +116,7 @@ export async function GET(request) {
     const lat = parseFloat(latStr);
     const lng = parseFloat(lngStr);
 
-    if (isNaN(lat) || isNaN(lng)) {
+    if (isNaN(lat) || isNaN(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
       return NextResponse.json(
         { success: false, message: 'Invalid latitude or longitude' },
         { status: 400 }
@@ -71,7 +130,7 @@ export async function GET(request) {
         `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=${osmLang}`,
         {
           headers: {
-            'User-Agent': 'AhmedCoolingWorkshop/2.0 (contact@ahmedcoolingworkshop.com)',
+            'User-Agent': 'AhmedCoolingWorkshop/2.0 (ahmedcoolingworkshop@gmail.com)',
           },
           signal: AbortSignal.timeout(4500),
         }

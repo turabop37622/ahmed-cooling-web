@@ -13,7 +13,6 @@ import {
   RefreshCw,
   ArrowRight,
   Wrench,
-  AlertCircle,
   Phone,
   MessageCircle,
   Calendar,
@@ -291,7 +290,7 @@ export default function AdminDashboardPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white">
             Workshop Dashboard
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
@@ -330,10 +329,10 @@ export default function AdminDashboardPage() {
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  <p className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-400">
                     {card.title}
                   </p>
-                  <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1">
+                  <p className="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white mt-1">
                     {card.value}
                   </p>
                   <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{card.subtext}</p>
@@ -344,7 +343,7 @@ export default function AdminDashboardPage() {
               </div>
 
               {card.badge && (
-                <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white uppercase tracking-wider animate-pulse">
+                <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500 text-white uppercase animate-pulse">
                   {card.badge}
                 </span>
               )}
@@ -359,7 +358,7 @@ export default function AdminDashboardPage() {
           { label: 'Manage Bookings', href: '/admin/bookings', count: stats?.totalBookings, color: 'text-blue-600', icon: ClipboardList },
           { label: 'Workshop Services', href: '/admin/services', count: stats?.totalServices, color: 'text-cyan-600', icon: Wrench },
           { label: 'Customer Directory', href: '/admin/users', count: stats?.totalUsers, color: 'text-violet-600', icon: Users },
-          { label: 'Reviews & Ratings', href: '/admin/reviews', count: '4.9 ★', color: 'text-amber-500', icon: Star },
+          { label: 'Reviews & Ratings', href: '/admin/reviews', count: '4.9', color: 'text-amber-500', icon: Star },
         ].map((item, idx) => {
           const Icon = item.icon;
           return (
@@ -374,7 +373,7 @@ export default function AdminDashboardPage() {
               </div>
               <div>
                 <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{item.label}</p>
-                <p className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">{item.count}</p>
+                <p className="text-lg font-semibold text-slate-900 dark:text-white mt-0.5">{item.count}</p>
               </div>
             </Link>
           );
@@ -385,12 +384,12 @@ export default function AdminDashboardPage() {
       <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Recent Customer Requests</h2>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Recent Customer Requests</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">Latest service bookings across Saudi Arabia</p>
           </div>
           <Link
             href="/admin/bookings"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
           >
             <span>View All Bookings</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -420,14 +419,14 @@ export default function AdminDashboardPage() {
 
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-sm sm:text-base text-slate-900 dark:text-white truncate">
+                        <span className="font-semibold text-sm sm:text-base text-slate-900 dark:text-white truncate">
                           {serviceName}
                         </span>
                         <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500">
                           #{bkg.orderNumber || bkg._id?.slice(-5).toUpperCase()}
                         </span>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/50">
-                            🇸🇦 KSA
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/50">
+                            KSA
                           </span>
                       </div>
 
@@ -458,7 +457,7 @@ export default function AdminDashboardPage() {
                           const mapUrl = `https://www.google.com/maps?q=${coords.latitude},${coords.longitude}`;
                           return (
                             <div className="flex items-center gap-1.5">
-                              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded">
+                              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded">
                                 <Crosshair className="w-2.5 h-2.5" />
                                 {coords.latitude.toFixed(4)}, {coords.longitude.toFixed(4)}
                               </span>
@@ -466,7 +465,7 @@ export default function AdminDashboardPage() {
                                 href={mapUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-0.5 text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                                className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-blue-600 dark:text-blue-400 hover:underline"
                               >
                                 <span>Map</span>
                                 <ExternalLink className="w-2.5 h-2.5" />
@@ -480,7 +479,7 @@ export default function AdminDashboardPage() {
 
                   <div className="flex items-center justify-between md:justify-end gap-3 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800">
                     <div className="text-right">
-                      <span className="block text-sm font-black text-slate-900 dark:text-white">
+                      <span className="block text-sm font-semibold text-slate-900 dark:text-white">
                         {bkg.totalAmount ?? 150} {getBookingCurrency(bkg)}
                       </span>
                       <span
@@ -506,7 +505,7 @@ export default function AdminDashboardPage() {
                     {bkg.status === 'pending' && (
                       <button
                         onClick={(e) => handleQuickConfirm(bkg._id, e)}
-                        className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition"
+                        className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition"
                       >
                         Confirm
                       </button>

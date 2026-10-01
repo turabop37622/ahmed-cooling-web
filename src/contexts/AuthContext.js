@@ -35,6 +35,16 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
+  // api.js dispatches this when the server rejects the stored token
+  useEffect(() => {
+    const onExpired = () => {
+      setToken(null);
+      setUser(null);
+    };
+    window.addEventListener('auth:expired', onExpired);
+    return () => window.removeEventListener('auth:expired', onExpired);
+  }, []);
+
   const login = (response) => {
     const { token: newToken, user: newUser } = response;
     setToken(newToken);
