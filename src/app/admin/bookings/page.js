@@ -180,6 +180,14 @@ export default function AdminBookingsPage() {
     fetchBookings();
   }, [fetchBookings]);
 
+  // Pick up new bookings, cancellations and reschedules without a manual refresh
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (document.visibilityState === 'visible') fetchBookings();
+    }, 30000);
+    return () => clearInterval(id);
+  }, [fetchBookings]);
+
   const handleRefresh = () => {
     setRefreshing(true);
     fetchBookings();
