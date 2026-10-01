@@ -11,7 +11,7 @@ import {
   CheckCircle2,
   Users,
   RefreshCw,
-  ArrowRight,
+
   Wrench,
   Phone,
   MessageCircle,
@@ -369,7 +369,6 @@ export default function AdminDashboardPage() {
             >
               <div className="flex items-center justify-between mb-2">
                 <Icon className={`w-5 h-5 ${item.color}`} />
-                <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
               </div>
               <div>
                 <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{item.label}</p>
@@ -392,7 +391,6 @@ export default function AdminDashboardPage() {
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
           >
             <span>View All Bookings</span>
-            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 

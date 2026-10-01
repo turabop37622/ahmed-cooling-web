@@ -11,8 +11,6 @@ import {
   Clock,
   CheckCircle2,
   Award,
-  ArrowRight,
-  ArrowLeft,
   HelpCircle,
   UserCheck,
   Check,
@@ -161,15 +159,6 @@ export default function Home() {
 
   const handleEmergency = () => {
     window.location.href = `tel:${PHONE}`;
-  };
-
-  const handleRateClick = (e) => {
-    e.preventDefault();
-    if (!user) {
-      router.push('/login');
-    } else {
-      router.push('/rate');
-    }
   };
 
   // Filtered services for home page
@@ -355,7 +344,6 @@ export default function Home() {
             className="inline-flex items-center gap-2 rounded-2xl border-2 border-primary/30 bg-primary-light px-8 py-4 text-sm font-semibold text-primary hover:bg-primary hover:text-white transition-all shadow-sm"
           >
             <span>{language === 'ar' ? 'عرض جميع الخدمات وقائمة الأسعار' : 'Explore All Services & Price List'}</span>
-            {isRTL ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
           </Link>
         </div>
       </section>
@@ -454,7 +442,7 @@ export default function Home() {
             {/* Package 1 */}
             <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex flex-col scroll-reveal-left delay-100">
               <span className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-400">{language === 'ar' ? 'كشف وزيارة فردية' : 'Single Issue Visit'}</span>
-              <h3 className="mt-1 text-xl font-semibold text-slate-900 dark:text-white">{language === 'ar' ? 'فحص وتشخيص عطل' : 'Diagnostic Repair Visit'}</h3>
+              <h3 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">{language === 'ar' ? 'فحص وتشخيص عطل' : 'Diagnostic Repair Visit'}</h3>
               <div className="mt-4 mb-6">
                 <span className="text-3xl font-semibold text-slate-900 dark:text-white">{formatPrice(150)}</span>
                 <span className="text-xs text-slate-500 dark:text-slate-400 ms-1">{language === 'ar' ? '/ زيارة' : '/ visit'}</span>
@@ -476,7 +464,7 @@ export default function Home() {
                 {language === 'ar' ? 'الأكثر طلباً بالصيف' : 'Most Popular'}
               </span>
               <span className="text-xs font-semibold uppercase text-blue-700 dark:text-blue-300">{language === 'ar' ? 'باقة التبريد المثالي' : 'Summer AC Prep'}</span>
-              <h3 className="mt-1 text-xl font-semibold text-slate-900 dark:text-white">{language === 'ar' ? 'غسيل عميق + شحن فريون' : 'Deep Wash + Gas Topup'}</h3>
+              <h3 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">{language === 'ar' ? 'غسيل عميق + شحن فريون' : 'Deep Wash + Gas Topup'}</h3>
               <div className="mt-4 mb-6">
                 <span className="text-3xl font-semibold text-primary">{formatPrice(280)}</span>
                 <span className="text-xs text-slate-500 dark:text-slate-400 ms-1">{language === 'ar' ? '/ مكيف' : '/ unit'}</span>
@@ -495,7 +483,7 @@ export default function Home() {
             {/* Package 3 */}
             <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex flex-col scroll-reveal-right delay-300">
               <span className="text-xs font-semibold uppercase text-purple-700 dark:text-purple-300">{language === 'ar' ? 'رعاية سنوية للفلل' : 'Annual Villa Care'}</span>
-              <h3 className="mt-1 text-xl font-semibold text-slate-900 dark:text-white">{language === 'ar' ? 'عقد صيانة منزلية كامل' : 'Full Home Maintenance'}</h3>
+              <h3 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">{language === 'ar' ? 'عقد صيانة منزلية كامل' : 'Full Home Maintenance'}</h3>
               <div className="mt-4 mb-6">
                 <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase block mb-1">
                   {language === 'ar' ? 'يبدأ من' : 'Starting from'}
@@ -737,42 +725,6 @@ export default function Home() {
               </button>
             );
           })}
-        </div>
-      </section>
-
-      {/* ═══ 12. RATE US EXPERIENCE (mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-8) ═══ */}
-      <section className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-8 pb-14">
-        <div className="scroll-reveal-scale relative overflow-hidden rounded-3xl border border-blue-200 dark:border-blue-900/40 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 dark:from-slate-900 dark:via-blue-950 dark:to-slate-950 p-8 sm:p-12 text-center text-white shadow-2xl shadow-blue-500/10 dark:shadow-slate-950/50">
-          <div className="pointer-events-none absolute -top-24 -left-24 h-64 w-64 rounded-full bg-cyan-400/20 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-24 -right-24 h-64 w-64 rounded-full bg-blue-400/20 blur-3xl" />
-
-          <div className="relative">
-            <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full bg-white/15 dark:bg-blue-500/15 border border-white/25 dark:border-blue-500/30 px-4 py-1.5 text-xs font-semibold text-white dark:text-blue-200 backdrop-blur-md">
-              <Award className="h-4 w-4 text-amber-300" />
-              <span>{language === 'ar' ? 'تقييم العملاء وجودة الخدمة' : 'Customer Satisfaction & Quality'}</span>
-            </div>
-
-            <div className="mb-4 flex items-center justify-center gap-1.5">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Star key={i} className="h-7 w-7 sm:h-9 sm:w-9 fill-amber-400 text-amber-400 drop-shadow-[0_2px_8px_rgba(251,191,36,0.5)] transition-transform hover:scale-110" />
-              ))}
-            </div>
-
-            <h2 className="text-2xl font-semibold text-white sm:text-3xl">
-              {t.howWasExperience || 'How was your experience?'}
-            </h2>
-            <p className="mx-auto mt-2 max-w-lg text-xs sm:text-sm font-medium text-white/85 dark:text-slate-300 leading-relaxed">
-              {t.shareYourFeedback || 'Share your feedback and help us maintain top cooling service standards across Jeddah & Makkah.'}
-            </p>
-
-            <button
-              onClick={handleRateClick}
-              className="mt-7 inline-flex items-center gap-2 rounded-2xl bg-white dark:bg-blue-500 hover:bg-slate-100 dark:hover:bg-blue-600 px-8 py-3.5 text-sm font-semibold text-blue-700 dark:text-white shadow-xl shadow-black/10 transition-all hover:scale-105 active:scale-95 cursor-pointer"
-            >
-              <Star className="h-4.5 w-4.5 fill-amber-400 text-amber-400" />
-              <span>{t.rateUs || 'Rate Us'}</span>
-            </button>
-          </div>
         </div>
       </section>
 

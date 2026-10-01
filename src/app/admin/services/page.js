@@ -14,7 +14,6 @@ import {
   AlertTriangle,
   X,
   Clock,
-  ShieldCheck,
   Flame,
   Star,
   Layers,
@@ -449,10 +448,6 @@ export default function AdminServicesPage() {
                   <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                     <Clock className="w-3.5 h-3.5 text-slate-400" />
                     <span>{service.estimatedDuration || '1-2 hrs'}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                    <ShieldCheck className="w-3.5 h-3.5 text-blue-500" />
-                    <span>{service.warrantyDays || 30} Days Warranty</span>
                   </div>
                 </div>
               </div>

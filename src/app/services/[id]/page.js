@@ -19,7 +19,6 @@ import {
   DollarSign,
   Award,
   Zap,
-  HelpCircle,
   Share2,
   Siren,
 } from 'lucide-react';
@@ -27,7 +26,7 @@ import { useTranslation } from '@/contexts/TranslationContext';
 import { getServiceById, getServices } from '@/lib/api';
 import { getServiceImage } from '@/lib/serviceImages';
 import ServiceCard from '@/components/ServiceCard';
-import { FALLBACK_SERVICES, VISIT_FEE } from '@/lib/servicesData';
+import { FALLBACK_SERVICES, VISIT_FEE, getServiceRating } from '@/lib/servicesData';
 import { getReviewsForService } from '@/lib/serviceReviews';
 
 const COMMON_PROBLEMS = {
@@ -66,33 +65,6 @@ const COMMON_PROBLEMS = {
     { en: 'Control panel unresponsive or erratic behavior', ar: 'لوحة التحكم لا تستجيب أو تعطي أوامر عشوائية' },
   ],
 };
-
-const SERVICE_FAQS = [
-  {
-    qEn: 'How soon can a technician arrive at my location?',
-    qAr: 'ما هي سرعة وصول الفني إلى موقعي؟',
-    aEn: 'For standard bookings, we offer same-day service slots within 2 to 4 hours. For emergencies in Jeddah & Makkah, our mobile technicians can reach you in 60 to 90 minutes.',
-    aAr: 'للحجوزات المعتادة نوفر مواعيد في نفس اليوم خلال ساعتين إلى ٤ ساعات. ولحالات الطوارئ في جدة ومكة يصل الفني خلال ٦٠ إلى ٩٠ دقيقة.',
-  },
-  {
-    qEn: 'Do you provide a warranty on repairs and spare parts?',
-    qAr: 'هل تقدمون ضماناً على الصيانة وقطع الغيار؟',
-    aEn: 'Yes! All our services come with an official certified warranty. Any original replacement parts provided by us carry their manufacturer warranty.',
-    aAr: 'نعم بالتأكيد! جميع خدماتنا تشمل ضمان صيانة رسمي ومعتمد. وقطع الغيار الأصلية الموردة من قبلنا تحمل ضمان المصنع.',
-  },
-  {
-    qEn: 'Can I pay after the technician completes the service?',
-    qAr: 'هل يمكنني الدفع بعد انتهاء الفني من العمل؟',
-    aEn: 'Absolutely. You only pay after our certified technician inspects, repairs, tests your appliance, and you are 100% satisfied with the result.',
-    aAr: 'بكل تأكيد. يتم الدفع فقط بعد فحص الجهاز وصيانته وتشغيله والتأكد من رضاك التام عن جودة الخدمة.',
-  },
-  {
-    qEn: 'Which cities and areas do you cover?',
-    qAr: 'ما هي المدن والأحياء التي تغطونها؟',
-    aEn: 'We cover Jeddah and Makkah with our fully-equipped mobile technician fleet.',
-    aAr: 'نغطي جدة ومكة المكرمة عبر أسطول فنيين متنقل ومجهز بالكامل.',
-  },
-];
 
 export default function ServiceDetailPage() {
   const params = useParams();
@@ -216,11 +188,7 @@ export default function ServiceDetailPage() {
   const category = service?.category || 'ac';
   const price = service?.basePrice ?? 150;
   const duration = service?.estimatedDuration || '1-2 hours';
-  const warrantyDays = service?.warrantyDays || 30;
-  const warrantyPeriod =
-    warrantyDays >= 365
-      ? (language === 'ar' ? 'سنة كاملة' : '1 year')
-      : (language === 'ar' ? `${toAr(warrantyDays)} يوماً` : `${warrantyDays} days`);
+  const rating = getServiceRating(serviceId);
   const imgSrc = getServiceImage(service?.name, category);
 
   // Related services (same category or popular, excluding current)
@@ -242,11 +210,24 @@ export default function ServiceDetailPage() {
     return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
   }, [name, language]);
 
-  const handleShare = () => {
-    if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      navigator.clipboard.writeText(window.location.href);
+  // On phones this opens the system share sheet (WhatsApp, Instagram, ...); elsewhere it copies the link.
+  const handleShare = async () => {
+    if (typeof navigator === 'undefined') return;
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: name, text: name, url });
+        return;
+      } catch (err) {
+        if (err?.name === 'AbortError') return; // user closed the share sheet
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // clipboard blocked: nothing else to do
     }
   };
 
@@ -319,16 +300,6 @@ export default function ServiceDetailPage() {
           </span>
           <span className="font-semibold text-slate-800 dark:text-slate-200">
             {language === 'ar' ? 'أصلية معتمدة' : '100% Genuine'}
-          </span>
-        </div>
-
-        <div className="flex items-center justify-between text-slate-700 dark:text-slate-300">
-          <span className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
-            <Shield className="h-4 w-4 text-emerald-500" />
-            {language === 'ar' ? 'حالة الضمان:' : 'Warranty:'}
-          </span>
-          <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
-            {language === 'ar' ? `${warrantyPeriod} • معتمد` : `${warrantyPeriod} • Certified`}
           </span>
         </div>
 
@@ -492,13 +463,9 @@ export default function ServiceDetailPage() {
                 {/* Service Title & Rating inside Hero bottom */}
                 <div className="absolute bottom-4 inset-x-4 sm:bottom-6 sm:inset-x-6 text-white">
                   <div className="flex flex-wrap items-center gap-2 mb-2">
-                    <span className="inline-flex shrink-0 whitespace-nowrap items-center gap-1 rounded-lg bg-emerald-500/90 backdrop-blur-sm px-2.5 py-0.5 text-xs font-semibold text-white">
-                      <Shield className="h-3 w-3" />
-                      {language === 'ar' ? `ضمان رسمي ${warrantyPeriod}` : `${warrantyPeriod} Certified Warranty`}
-                    </span>
                     <span className="inline-flex shrink-0 whitespace-nowrap items-center gap-1 text-xs font-semibold text-amber-300">
                       <Star className="h-3.5 w-3.5 fill-current" />
-                      4.9 / 5.0
+                      {rating.toFixed(1)} / 5.0
                     </span>
                     <span className="hidden sm:inline text-xs text-slate-300 font-medium">
                       (487 {language === 'ar' ? 'عميل راضٍ' : 'Happy Clients'})
@@ -641,35 +608,6 @@ export default function ServiceDetailPage() {
               </div>
             </div>
 
-            {/* FAQS ACCORDION / LIST */}
-            <div className="rounded-3xl border border-slate-200/80 bg-white p-6 sm:p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <div className="mb-6 flex items-center gap-3">
-                <div className="h-6 w-1 rounded-full bg-primary" />
-                <h2 className="text-lg sm:text-xl font-semibold text-slate-900 dark:text-white">
-                  {language === 'ar' ? 'الأسئلة الشائعة حول الخدمة' : 'Frequently Asked Questions'}
-                </h2>
-              </div>
-
-              <div className="space-y-4">
-                {SERVICE_FAQS.map((faq, idx) => (
-                  <div
-                    key={idx}
-                    className="rounded-2xl border border-slate-100 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-800/40"
-                  >
-                    <div className="flex items-center gap-2">
-                      <HelpCircle className="h-4 w-4 text-primary shrink-0" />
-                      <h4 className="text-sm font-semibold text-slate-900 dark:text-white">
-                        {language === 'ar' ? faq.qAr : faq.qEn}
-                      </h4>
-                    </div>
-                    <p className="mt-2 text-xs sm:text-sm font-medium leading-relaxed text-slate-600 dark:text-slate-300 ps-6">
-                      {language === 'ar' ? faq.aAr : faq.aEn}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             {/* ═══ 7. CUSTOMER REVIEWS & COMMENTS SECTION ═══ */}
             <div className="rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-6">
@@ -691,11 +629,11 @@ export default function ServiceDetailPage() {
                 <div className="flex items-center gap-3 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/40 p-3.5 self-start sm:self-auto shrink-0">
                   <div className="text-center">
                     <span className="block text-2xl font-semibold text-slate-900 dark:text-white leading-none">
-                      4.9
+                      {rating.toFixed(1)}
                     </span>
                     <div className="flex items-center justify-center gap-0.5 mt-1 text-amber-400">
                       {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-3.5 w-3.5 fill-amber-400" />
+                        <Star key={i} className={`h-3.5 w-3.5 ${i < Math.round(rating) ? 'fill-amber-400' : 'fill-slate-200 text-slate-300 dark:fill-slate-700 dark:text-slate-600'}`} />
                       ))}
                     </div>
                   </div>

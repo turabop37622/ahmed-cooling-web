@@ -1,7 +1,7 @@
 const SERVICES_META = {
   '1': {
     title: 'AC Repair & Diagnostics in Jeddah & Makkah | صيانة وفحص المكيفات',
-    description: 'Certified AC diagnostics and repair for split, window, and central air conditioning in Jeddah & Makkah. Emergency dispatch in 60-90 minutes, original spare parts, and 30-day warranty.',
+    description: 'Certified AC diagnostics and repair for split, window, and central air conditioning in Jeddah & Makkah. Emergency dispatch in 60-90 minutes, and original spare parts.',
     keywords: ['AC repair Jeddah', 'صيانة مكيفات جدة', 'تصليح مكيفات سبليت مكة', 'فني تكييف جدة', 'AC repair expert technician'],
   },
   '2': {

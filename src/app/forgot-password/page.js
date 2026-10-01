@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Mail, Lock, Eye, EyeOff, AlertCircle, Loader2, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
 import { useTranslation } from '../../contexts/TranslationContext';
 import { forgotPassword, verifyResetOTP, resetPassword } from '../../lib/api';
 
@@ -244,7 +244,6 @@ export default function ForgotPasswordPage() {
 
           <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700 text-center">
             <Link href="/login" className="inline-flex items-center gap-2 py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline">
-              <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
               {language === 'ar' ? 'العودة لتسجيل الدخول' : 'Back to Login'}
             </Link>
           </div>

@@ -196,6 +196,10 @@ export default function BookingPage() {
   const [isManualAddress, setIsManualAddress] = useState(false);
   const [manualAddress, setManualAddress] = useState('');
   const [coords, setCoords] = useState(null);
+  const isOutsideSaudi = !!coords && (coords.latitude < 16 || coords.latitude > 32.5 || coords.longitude < 34.5 || coords.longitude > 56);
+  const outsideSaudiMsg = language === 'ar'
+    ? 'عذراً، الخدمة متاحة داخل المملكة العربية السعودية فقط (جدة ومكة المكرمة). موقعك الحالي خارج المملكة، لذلك لا يمكن إتمام الحجز.'
+    : 'Sorry, our service is available in Saudi Arabia only (Jeddah & Makkah). Your location is outside the Kingdom, so the booking cannot be completed.';
   const [locating, setLocating] = useState(false);
   const [locationError, setLocationError] = useState('');
   const [errors, setErrors] = useState({});
@@ -243,6 +247,18 @@ export default function BookingPage() {
       setLocationError(language === 'ar' ? 'المتصفح لا يدعم تحديد الموقع التلقائي. اكتب العنوان يدوياً.' : 'Your browser does not support location detection. Please type your address.');
       return;
     }
+    // A browser never shows its permission question again once it was blocked, so tell the person how to undo that.
+    try {
+      const perm = await navigator.permissions?.query({ name: 'geolocation' });
+      if (perm?.state === 'denied') {
+        setLocationError(language === 'ar'
+          ? 'إذن الموقع محظور لهذا الموقع. اضغط على أيقونة القفل بجانب عنوان الموقع في المتصفح، ثم اختر «الموقع» ← «سماح»، وأعد المحاولة. أو اكتب العنوان يدوياً.'
+          : 'Location is blocked for this site. Tap the lock icon next to the web address, choose Location, then Allow, and try again. Or type your address.');
+        return;
+      }
+    } catch {
+      // Permissions API not available: just try
+    }
     setLocating(true);
     let pos;
     try {
@@ -269,12 +285,7 @@ export default function BookingPage() {
     try {
       const { latitude, longitude } = pos.coords;
 
-      // The service is for Saudi Arabia only.
-      if (latitude < 16 || latitude > 32.5 || longitude < 34.5 || longitude > 56) {
-        setCoords(null);
-        setLocationError(language === 'ar' ? 'موقعك الحالي خارج المملكة العربية السعودية. الخدمة متاحة داخل السعودية فقط، اكتب عنوان الخدمة يدوياً.' : 'Your current location is outside Saudi Arabia. We only serve Saudi Arabia, so please type the service address.');
-        return;
-      }
+      // Detection works anywhere in the world; booking is limited to Saudi Arabia (see isOutsideSaudi).
       setCoords({ latitude, longitude });
 
           let resolvedAddress = '';
@@ -531,6 +542,7 @@ export default function BookingPage() {
 
     if (isManualAddress) {
       if (!manualAddress.trim()) e.manualAddress = language === 'ar' ? 'أدخل عنوانك بالتفصيل' : 'Please enter your full address';
+      else if (isOutsideSaudi) e.manualAddress = outsideSaudiMsg;
     } else {
       if (!selectedCity) e.city = language === 'ar' ? 'اختر المدينة' : 'City is required';
       if (selectedCity && !selectedArea) e.area = language === 'ar' ? 'اختر المنطقة' : 'Area is required';
@@ -1065,6 +1077,7 @@ export default function BookingPage() {
             type="button"
             onClick={() => {
               setIsManualAddress((prev) => !prev);
+              setCoords(null);
               setErrors((prev) => ({ ...prev, city: null, area: null, customArea: null, subLocation: null, manualAddress: null }));
             }}
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline dark:text-blue-400"
@@ -1111,7 +1124,17 @@ export default function BookingPage() {
           </div>
 
           {locationError && (
-            <p className="mb-4 -mt-2 text-xs font-semibold text-red-500">{locationError}</p>
+            <div role="alert" className="mb-4 -mt-2 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-xs font-semibold leading-relaxed text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>{locationError}</span>
+            </div>
+          )}
+
+          {isOutsideSaudi && (
+            <div role="alert" className="mb-4 -mt-2 flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2.5 text-xs font-semibold leading-relaxed text-amber-800 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-300">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>{outsideSaudiMsg}</span>
+            </div>
           )}
 
           {isManualAddress ? (
@@ -1125,6 +1148,7 @@ export default function BookingPage() {
                 value={manualAddress}
                 onChange={(e) => {
                   setManualAddress(e.target.value);
+                  setCoords(null); // typed address replaces the detected GPS point
                   if (errors.manualAddress) setErrors((prev) => ({ ...prev, manualAddress: null }));
                 }}
                 placeholder={

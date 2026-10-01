@@ -11,7 +11,6 @@ import {
   Shield,
   Star,
   LogOut,
-  ChevronRight,
   Loader2,
   Check,
 } from 'lucide-react';
@@ -190,7 +189,6 @@ function MenuItem({ item, t, onClick }) {
         <p className="text-sm font-semibold text-text dark:text-white">{t[item.labelKey] || item.labelKey}</p>
         <p className="text-xs text-sub dark:text-slate-500">{t[item.descKey] || item.descKey}</p>
       </div>
-      <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 dark:text-slate-600" />
     </button>
   );
 }

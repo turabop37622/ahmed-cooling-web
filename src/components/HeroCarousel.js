@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from '../contexts/TranslationContext';
 
 // Hero banners (from the project's assets folder, optimised to WebP in public/hero-banners).
@@ -46,7 +46,6 @@ export default function HeroCarousel() {
   const lang = isAr ? 'ar' : 'en';
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false); // keyboard focus
-  const [userPaused, setUserPaused] = useState(false); // pause button
   const [cycle, setCycle] = useState(0); // bumps on resume so the progress bar restarts together with the timer
   const [reduceMotion, setReduceMotion] = useState(false);
   const touchStartX = useRef(null);
@@ -65,10 +64,10 @@ export default function HeroCarousel() {
 
   // Auto-advance; restarts whenever the slide changes so manual clicks get a full interval
   useEffect(() => {
-    if (paused || userPaused || reduceMotion) return undefined;
+    if (paused || reduceMotion) return undefined;
     const id = setTimeout(() => go(index + 1), INTERVAL_MS);
     return () => clearTimeout(id);
-  }, [index, paused, userPaused, reduceMotion, go]);
+  }, [index, paused, reduceMotion, go]);
 
   const pause = () => setPaused(true);
   const resume = () => {
@@ -175,7 +174,7 @@ export default function HeroCarousel() {
                       ? undefined
                       : {
                           animation: `hero-progress ${INTERVAL_MS}ms linear forwards`,
-                          animationPlayState: paused || userPaused ? 'paused' : 'running',
+                          animationPlayState: paused ? 'paused' : 'running',
                         }
                   }
                 />
@@ -184,28 +183,6 @@ export default function HeroCarousel() {
           </button>
         ))}
       </div>
-
-      {/* Pause / play (needed for anything that moves on its own for more than 5 seconds) */}
-      <button
-        type="button"
-        onClick={() => {
-          if (userPaused) setCycle((c) => c + 1);
-          setUserPaused((p) => !p);
-        }}
-        aria-pressed={userPaused}
-        aria-label={
-          userPaused
-            ? (isAr ? 'تشغيل العرض التلقائي' : 'Play slideshow')
-            : (isAr ? 'إيقاف العرض التلقائي' : 'Pause slideshow')
-        }
-        className="absolute bottom-1.5 start-2 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-slate-900/40 text-white backdrop-blur-sm transition hover:bg-slate-900/60 active:scale-95 sm:bottom-3 sm:start-4 sm:h-8 sm:w-8"
-      >
-        {userPaused ? (
-          <Play className="h-3 w-3 fill-current sm:h-4 sm:w-4" aria-hidden="true" />
-        ) : (
-          <Pause className="h-3 w-3 fill-current sm:h-4 sm:w-4" aria-hidden="true" />
-        )}
-      </button>
 
       {/* Arrows (hover/focus on desktop, always available on touch via swipe) */}
       <button
