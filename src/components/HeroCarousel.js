@@ -148,7 +148,7 @@ export default function HeroCarousel() {
 
       {/* Dots */}
       <div
-        className="absolute bottom-1.5 start-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full bg-slate-900/45 px-2 backdrop-blur-sm rtl:translate-x-1/2 sm:bottom-4 sm:gap-1.5 sm:px-3"
+        className="absolute bottom-1.5 start-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full px-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] rtl:translate-x-1/2 sm:bottom-4 sm:gap-1.5 sm:px-3"
         role="tablist"
         aria-label={isAr ? 'اختيار الشريحة' : 'Choose slide'}
       >
