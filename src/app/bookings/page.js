@@ -437,7 +437,7 @@ export default function BookingsPage() {
                         {t.cancelBooking || 'Cancel'}
                       </button>
                     )}
-                    {status === 'confirmed' && !showReschedule && (
+                    {(status === 'confirmed' || status === 'pending') && !showReschedule && (
                       <button onClick={() => { setShowReschedule(true); setRescheduleDate(''); setRescheduleTime(''); }}
                         className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-sm font-semibold text-white transition hover:bg-primary-dark dark:bg-blue-600"
                       >
