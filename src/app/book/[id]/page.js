@@ -1105,7 +1105,7 @@ export default function BookingPage() {
 
         {/* Contact Section */}
         <div className="flex items-center justify-between mb-2">
-          <SectionTitle step={toAr(1)} icon={<User className="h-5 w-5" />} title={t.contactInfo || 'Contact Information'} />
+          <SectionTitle icon={<User className="h-5 w-5" />} title={t.contactInfo || 'Contact Information'} />
           {user && (
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50">
               <CheckCircle2 className="w-3.5 h-3.5" />
@@ -1218,7 +1218,7 @@ export default function BookingPage() {
         </div>
 
         {/* Date Section */}
-        <SectionTitle step={toAr(2)} icon={<Calendar className="h-5 w-5" />} title={t.selectDate || (language === 'ar' ? 'تحديد التاريخ' : 'Select Date')} />
+        <SectionTitle icon={<Calendar className="h-5 w-5" />} title={t.selectDate || (language === 'ar' ? 'تحديد التاريخ' : 'Select Date')} />
         <div id="field-date" className="scroll-reveal delay-100 mb-6 rounded-2xl border border-border bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
           {/* Quick date buttons */}
           <div className="mb-4 flex gap-2">
@@ -1322,7 +1322,7 @@ export default function BookingPage() {
 
         {/* Location Section */}
         <div className="mb-2 flex items-center justify-between">
-          <SectionTitle step={toAr(3)} icon={<MapPin className="h-5 w-5" />} title={t.serviceLocation || 'Service Location'} />
+          <SectionTitle icon={<MapPin className="h-5 w-5" />} title={t.serviceLocation || 'Service Location'} />
           <button
             type="button"
             onClick={() => {
@@ -1600,7 +1600,7 @@ export default function BookingPage() {
         </div>
 
         {/* Notes Section */}
-        <SectionTitle step={toAr(4)} icon={<FileText className="h-5 w-5" />} title={t.additionalNotes || 'Additional Notes (Optional)'} />
+        <SectionTitle icon={<FileText className="h-5 w-5" />} title={t.additionalNotes || 'Additional Notes (Optional)'} />
         <div className="scroll-reveal mb-6 rounded-2xl border border-border bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <label htmlFor="field-notes" className="sr-only">
             {t.additionalNotes || 'Additional Notes (Optional)'}
@@ -1719,14 +1719,9 @@ export default function BookingPage() {
   );
 }
 
-function SectionTitle({ icon, title, step }) {
+function SectionTitle({ icon, title }) {
   return (
     <div className="scroll-reveal mb-3 flex items-center gap-2">
-      {step && (
-        <span aria-hidden="true" className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white dark:bg-blue-600">
-          {step}
-        </span>
-      )}
       <div className="text-primary dark:text-blue-400">{icon}</div>
       <h2 className="text-sm font-semibold text-text dark:text-white">{title}</h2>
     </div>
