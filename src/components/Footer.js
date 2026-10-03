@@ -4,6 +4,19 @@ import { Mail, MapPin, Phone } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from '../contexts/TranslationContext';
+import { pathForLang } from '../lib/lang';
+
+// Same category ids as the database and the /services?cat= filter; same labels as the home page tabs
+const FOOTER_CATEGORIES = [
+  { id: 'ac', en: 'AC', ar: 'المكيفات' },
+  { id: 'refrigerator', en: 'Refrigerators', ar: 'الثلاجات' },
+  { id: 'washing-machine', en: 'Washing machines', ar: 'الغسالات' },
+  { id: 'stove', en: 'Stoves', ar: 'الأفران والبوتاجاز' },
+  { id: 'general', en: 'General', ar: 'عام' },
+];
+
+// At least 44px tall on touch screens
+const LINK_CLASS = 'inline-flex items-center py-2 pointer-coarse:min-h-11 hover:text-white transition-colors';
 
 export default function Footer() {
   const pathname = usePathname();
@@ -21,7 +34,7 @@ export default function Footer() {
 
           {/* 1. Brand */}
           <div className="space-y-4 scroll-reveal">
-            <Link href="/" className="inline-block group py-1">
+            <Link href={pathForLang('/', language)} className="inline-block group py-1">
               <img
                 src={isAr ? "/logo-ar-white.png" : "/logo-en-white.png"}
                 alt="Ahmed Cooling Workshop"
@@ -74,31 +87,13 @@ export default function Footer() {
               {isAr ? 'الخدمات الرئيسية' : 'Services'}
             </h4>
             <ul className="space-y-0.5 text-sm">
-              <li>
-                <Link href="/services?cat=ac" className="inline-block py-2 hover:text-white transition-colors">
-                  {isAr ? 'صيانة وإصلاح المكيفات' : 'AC Repair & Diagnostics'}
-                </Link>
-              </li>
-              <li>
-                <Link href="/services?cat=cleaning" className="inline-block py-2 hover:text-white transition-colors">
-                  {isAr ? 'غسيل وتنظيف عميق' : 'AC Deep Jet Wash'}
-                </Link>
-              </li>
-              <li>
-                <Link href="/services?cat=gas" className="inline-block py-2 hover:text-white transition-colors">
-                  {isAr ? 'شحن فريون أصلي' : 'Freon Gas Refill'}
-                </Link>
-              </li>
-              <li>
-                <Link href="/services?cat=refrigerator" className="inline-block py-2 hover:text-white transition-colors">
-                  {isAr ? 'صيانة الثلاجات والفريزر' : 'Refrigerator Repair'}
-                </Link>
-              </li>
-              <li>
-                <Link href="/services?cat=washing" className="inline-block py-2 hover:text-white transition-colors">
-                  {isAr ? 'صيانة الغسالات' : 'Washing Machine Repair'}
-                </Link>
-              </li>
+              {FOOTER_CATEGORIES.map((cat) => (
+                <li key={cat.id}>
+                  <Link href={`${pathForLang('/services', language)}?cat=${cat.id}`} className={LINK_CLASS}>
+                    {isAr ? cat.ar : cat.en}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -109,27 +104,27 @@ export default function Footer() {
             </h4>
             <ul className="space-y-0.5 text-sm">
               <li>
-                <Link href="/about" className="inline-block py-2 hover:text-white transition-colors">
+                <Link href={pathForLang('/about', language)} className={LINK_CLASS}>
                   {isAr ? 'عن الورشة' : 'About Us'}
                 </Link>
               </li>
               <li>
-                <Link href="/services" className="inline-block py-2 hover:text-white transition-colors">
+                <Link href={pathForLang('/services', language)} className={LINK_CLASS}>
                   {isAr ? 'قائمة الأسعار' : 'Pricing & Services'}
                 </Link>
               </li>
               <li>
-                <Link href="/bookings" className="inline-block py-2 hover:text-white transition-colors">
+                <Link href="/bookings" className={LINK_CLASS}>
                   {isAr ? 'متابعة الحجوزات' : 'Track Bookings'}
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="inline-block py-2 hover:text-white transition-colors">
+                <Link href={pathForLang('/contact', language)} className={LINK_CLASS}>
                   {isAr ? 'تواصل معنا' : 'Contact Us'}
                 </Link>
               </li>
               <li>
-                <Link href="/privacy" className="inline-block py-2 hover:text-white transition-colors">
+                <Link href={pathForLang('/privacy', language)} className={LINK_CLASS}>
                   {isAr ? 'سياسة الخصوصية' : 'Privacy Policy'}
                 </Link>
               </li>
@@ -143,13 +138,13 @@ export default function Footer() {
             </h4>
             <ul className="space-y-3 text-sm">
               <li>
-                <a href="tel:+966590192146" className="flex items-center gap-2.5 py-2 hover:text-white transition-colors" dir="ltr">
+                <a href="tel:+966590192146" className="flex items-center gap-2.5 py-2 pointer-coarse:min-h-11 hover:text-white transition-colors rtl:justify-end" dir="ltr">
                   <Phone className="w-4 h-4 text-blue-500 shrink-0" />
-                  <span>+966 590 192 146</span>
+                  <span>+966 59 019 2146</span>
                 </a>
               </li>
               <li>
-                <a href="mailto:ahmedcoolingworkshop@gmail.com" className="flex items-center gap-2.5 py-2 hover:text-white transition-colors">
+                <a href="mailto:ahmedcoolingworkshop@gmail.com" className="flex items-center gap-2.5 py-2 pointer-coarse:min-h-11 hover:text-white transition-colors">
                   <Mail className="w-4 h-4 text-blue-500 shrink-0" />
                   <span className="min-w-0 break-all">ahmedcoolingworkshop@gmail.com</span>
                 </a>
@@ -168,22 +163,22 @@ export default function Footer() {
         <div className="scroll-reveal-fade mt-12 pt-6 border-t border-slate-800/60 text-center text-xs text-slate-400 space-y-1">
           <p>
             {isAr
-              ? 'الأسعار شاملة الضرائب المعمول بها • قطع الغيار غير مشمولة وتُحدد عند الفحص الميداني • أسعار الصيانة تبدأ من وتختلف حسب المعاينة الفنية.'
-              : 'Prices include applicable VAT • Spare parts not included (quoted upon on-site diagnosis) • Prices start from and vary based on inspection.'}
+              ? 'الأسعار شاملة الضرائب المعمول بها • قطع الغيار غير مشمولة وتُحدد عند الفحص الميداني • الأسعار تبدأ من المبلغ المذكور وقد تختلف بعد المعاينة.'
+              : 'Prices include applicable VAT • Spare parts not included (quoted upon on-site diagnosis) • Prices start from the listed amount and may vary after inspection.'}
           </p>
         </div>
 
         {/* Bottom bar */}
-        <div className="scroll-reveal-fade mt-6 pt-6 border-t border-slate-800/40 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+        <div id="site-footer-bottom" className="scroll-reveal-fade mt-6 pt-6 border-t border-slate-800/40 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
           <p>
-            &copy; {new Date().getFullYear()} {isAr ? 'ورشة أحمد للتبريد. جميع الحقوق محفوظة.' : 'Ahmed Cooling Workshop. All rights reserved.'}
+            &copy; {new Intl.NumberFormat(isAr ? 'ar-SA' : 'en-US', { useGrouping: false }).format(new Date().getFullYear())} {isAr ? 'ورشة أحمد للتبريد. جميع الحقوق محفوظة.' : 'Ahmed Cooling Workshop. All rights reserved.'}
           </p>
 
           <div className="flex items-center gap-5">
             <button
               type="button"
               onClick={() => window.dispatchEvent(new Event('open-cookie-settings'))}
-              className="py-2 underline underline-offset-2 hover:text-white"
+              className="py-2 pointer-coarse:min-h-11 underline underline-offset-2 hover:text-white"
             >
               {isAr ? 'إعدادات ملفات تعريف الارتباط' : 'Cookie settings'}
             </button>

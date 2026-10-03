@@ -26,7 +26,7 @@ import ServiceIcon from '@/components/ServiceIcon';
 import { useTranslation } from '@/contexts/TranslationContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { getServices, createBooking, updateProfile } from '@/lib/api';
-import { FALLBACK_SERVICES as SHARED_SERVICES, VISIT_FEE } from '@/lib/servicesData';
+import { FALLBACK_SERVICES as SHARED_SERVICES, PACKAGES, VISIT_FEE } from '@/lib/servicesData';
 
 const COUNTRY_CODES = [
   { code: '+966', label: 'SA +966', country: 'SA' },
@@ -126,42 +126,96 @@ function isSameDay(a, b) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
-function isPast(date) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return date < today;
+// How far ahead a visit can be booked.
+const MAX_DAYS_AHEAD = 60;
+
+// "Today" as a calendar day in Saudi Arabia, whatever the device time zone is.
+// Returned as a local-midnight Date so the calendar grid math keeps working with getDate()/getMonth().
+function saudiToday() {
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Riyadh', year: 'numeric', month: 'numeric', day: 'numeric',
+    }).formatToParts(new Date());
+    const get = (type) => Number(parts.find((p) => p.type === type)?.value);
+    const y = get('year');
+    const m = get('month');
+    const d = get('day');
+    if (y && m && d) return new Date(y, m - 1, d);
+  } catch {
+    // Intl time zones unavailable: fall back to the device day
+  }
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
 }
+
+// Arabic-Indic (٠-٩) and Persian (۰-۹) digits to Latin 0-9
+const toLatinDigits = (s) => String(s ?? '').replace(/[٠-٩۰-۹]/g, (ch) => {
+  const c = ch.charCodeAt(0);
+  return String(c >= 0x06f0 ? c - 0x06f0 : c - 0x0660);
+});
+
+// Any common way of writing a Saudi mobile (05XXXXXXXX, 5XXXXXXXX, 9665XXXXXXXX, +966 5X XXX XXXX,
+// 00966..., with spaces or dashes, in Latin/Arabic/Persian digits) to the 9-digit national number.
+function normalizeSaudiMobile(raw) {
+  let d = toLatinDigits(raw).replace(/\D/g, '');
+  d = d.replace(/^0+/, ''); // 05..., 00966...
+  if (d.startsWith('966') && d.length > 3) d = d.slice(3).replace(/^0+/, ''); // 966 5..., +966 05...
+  return d.slice(0, 9);
+}
+
+const isValidSaudiMobile = (n) => /^5\d{8}$/.test(n);
+
+// Simplified outline of Saudi Arabia ([lng, lat]), drawn slightly offshore so coastal cities are inside
+// while Bahrain, Qatar, Kuwait, Jordan, Iraq, Yemen, Egypt and Sudan stay outside.
+const SAUDI_OUTLINE = [
+  [34.75, 29.4], [36.07, 29.19], [36.5, 29.5], [36.76, 29.87], [37.67, 30.34], [37.99, 30.5], [37.0, 31.5],
+  [39.2, 32.15], [40.4, 31.95], [42.1, 31.1], [44.7, 29.2], [46.55, 29.1], [47.7, 28.53], [48.45, 28.53],
+  [48.75, 28.35], [49.3, 27.6], [49.9, 27.05], [50.3, 26.6], [50.3, 25.9], [50.45, 25.4], [50.75, 24.75],
+  [51.2, 24.5], [51.55, 24.25], [52.6, 22.95], [55.1, 22.62], [55.67, 22.0], [55.0, 20.0], [52.0, 19.0],
+  [49.1, 18.6], [48.2, 18.17], [47.0, 16.95], [46.4, 17.25], [45.2, 17.4], [44.2, 17.3], [43.4, 17.45],
+  [43.2, 16.7], [42.78, 16.37], [42.3, 16.6], [40.9, 19.1], [40.0, 20.2], [38.9, 21.5], [38.8, 22.8],
+  [37.8, 24.1], [37.0, 25.1], [36.2, 26.3], [35.4, 27.4], [34.6, 28.1],
+];
+
+function isInsideSaudiOutline(lat, lng) {
+  let inside = false;
+  for (let i = 0, j = SAUDI_OUTLINE.length - 1; i < SAUDI_OUTLINE.length; j = i++) {
+    const [xi, yi] = SAUDI_OUTLINE[i];
+    const [xj, yj] = SAUDI_OUTLINE[j];
+    if ((yi > lat) !== (yj > lat) && lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
+// Distance in km between two points (haversine)
+function distanceKm(lat1, lng1, lat2, lng2) {
+  const rad = (v) => (v * Math.PI) / 180;
+  const dLat = rad(lat2 - lat1);
+  const dLng = rad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// Service area centres and how far from them we normally travel
+const SERVICE_CENTRES = [
+  { lat: 21.5433, lng: 39.1728 }, // Jeddah
+  { lat: 21.4225, lng: 39.8262 }, // Makkah
+];
+const SERVICE_RADIUS_KM = 60;
+
+// Packages already include the visit fee in their price
+const PACKAGE_IDS = new Set(['pkg_diagnostic', 'pkg_summer', 'pkg_villa']);
 
 const SERVICE_ICONS = {
   '1': '❄️', '2': '🔧', '3': '🧹', '4': '🧊', '5': '🧺', '6': '💨', '7': '🔥', '8': '⚡', '9': '🏢', pkg_villa: '🏡',
 };
 
-const FALLBACK_SERVICES = [
-  {
-    _id: 'pkg_diagnostic',
-    id: 'pkg_diagnostic',
-    name: 'Diagnostic Repair Visit',
-    nameAr: 'فحص وتشخيص عطل بالمنزل',
-    basePrice: 150,
-    icon: '🔍',
-    category: 'ac',
-    description: 'Comprehensive on-site diagnostic of cooling faults, electrical issues, and upfront written quote with warranty.',
-    descriptionAr: 'فحص شامل للعطل بالمنزل مع تسعير مسبق معتمد وضمان رسمي على الصيانة.',
-  },
-  {
-    _id: 'pkg_summer',
-    id: 'pkg_summer',
-    name: 'Summer AC Prep - Deep Wash + Gas Topup',
-    nameAr: 'باقة التبريد المثالي - غسيل عميق وشحن فريون',
-    basePrice: 280,
-    icon: '❄️',
-    category: 'ac',
-    description: 'High pressure coil & blower wash, refrigerant gas check and top-up, antimicrobial sanitization, and drain clearing.',
-    descriptionAr: 'غسيل ضغط عالي للمبخر والمروحة وشحن فريون أصلي مع تعقيم ومكافحة الروائح وتسليك مجرى التصريف.',
-  },
-  // Regular services come from the shared catalogue so names, prices and descriptions match every page
-  ...SHARED_SERVICES.map((s) => ({ ...s, icon: SERVICE_ICONS[s._id] || '🔧' })),
-];
+// Packages and regular services both come from the shared catalogue so names and prices match every page
+const FALLBACK_SERVICES = [...PACKAGES, ...SHARED_SERVICES].map((s) => ({
+  ...s,
+  icon: s.icon || SERVICE_ICONS[s.legacyId] || SERVICE_ICONS[s._id] || '🔧',
+}));
 
 // YYYY-MM-DD of the day the customer picked, in their own time zone.
 // (toISOString() converts to UTC, which is the previous day for local midnight in Saudi Arabia.)
@@ -196,7 +250,16 @@ export default function BookingPage() {
   const [isManualAddress, setIsManualAddress] = useState(false);
   const [manualAddress, setManualAddress] = useState('');
   const [coords, setCoords] = useState(null);
-  const isOutsideSaudi = !!coords && (coords.latitude < 16 || coords.latitude > 32.5 || coords.longitude < 34.5 || coords.longitude > 56);
+  // ISO country code from reverse geocoding, when the provider returned one
+  const [geoCountry, setGeoCountry] = useState('');
+  const isOutsideSaudi = !!coords && (geoCountry
+    ? geoCountry !== 'SA'
+    : !isInsideSaudiOutline(coords.latitude, coords.longitude));
+  // Inside the Kingdom but far from Jeddah/Makkah: allowed, with a soft warning
+  const isFarFromServiceArea = !!coords && !isOutsideSaudi && SERVICE_CENTRES.every(
+    (c) => distanceKm(coords.latitude, coords.longitude, c.lat, c.lng) > SERVICE_RADIUS_KM
+  );
+  const [phoneTouched, setPhoneTouched] = useState(false);
   const outsideSaudiMsg = language === 'ar'
     ? 'عذراً، الخدمة متاحة داخل المملكة العربية السعودية فقط (جدة ومكة المكرمة). موقعك الحالي خارج المملكة، لذلك لا يمكن إتمام الحجز.'
     : 'Sorry, our service is available in Saudi Arabia only (Jeddah & Makkah). Your location is outside the Kingdom, so the booking cannot be completed.';
@@ -229,12 +292,8 @@ export default function BookingPage() {
   };
 
   const handlePhoneChange = (e) => {
-    let val = e.target.value.replace(/\D/g, '');
-    if (val.startsWith('0')) {
-      val = val.replace(/^0+/, '');
-    }
-    const maxLen = 9;
-    setPhoneNumber(val.slice(0, maxLen));
+    // Normalise first (country code, leading zero, separators, Arabic digits), then cap at 9 digits
+    setPhoneNumber(normalizeSaudiMobile(e.target.value));
     if (errors.phone) setErrors((prev) => ({ ...prev, phone: null }));
   };
 
@@ -287,8 +346,10 @@ export default function BookingPage() {
 
       // Detection works anywhere in the world; booking is limited to Saudi Arabia (see isOutsideSaudi).
       setCoords({ latitude, longitude });
+      setGeoCountry('');
 
           let resolvedAddress = '';
+          let countryCode2 = '';
 
           // 1. Call high-speed internal Next.js geocoding API (runs on Vercel serverless)
           try {
@@ -298,6 +359,9 @@ export default function BookingPage() {
               if (data?.success && data?.address) {
                 resolvedAddress = data.address;
               }
+              // Used when the geocode route returns a country code (the outline check covers it otherwise)
+              const cc = data?.countryCode || data?.country_code;
+              if (typeof cc === 'string' && /^[a-z]{2}$/i.test(cc)) countryCode2 = cc.toUpperCase();
             }
           } catch (apiErr) {
             console.warn('Internal geocode API warning:', apiErr);
@@ -312,6 +376,9 @@ export default function BookingPage() {
               );
               if (bdcRes.ok) {
                 const bdc = await bdcRes.json();
+                if (typeof bdc?.countryCode === 'string' && /^[a-z]{2}$/i.test(bdc.countryCode)) {
+                  countryCode2 = bdc.countryCode.toUpperCase();
+                }
                 const sep = language === 'ar' ? '، ' : ', ';
                 const parts = [
                   bdc.locality,
@@ -336,6 +403,7 @@ export default function BookingPage() {
                 : `GPS Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`;
           }
 
+          setGeoCountry(countryCode2);
           setIsManualAddress(true);
           setManualAddress(resolvedAddress);
           if (errors.manualAddress) setErrors((prev) => ({ ...prev, manualAddress: null }));
@@ -347,9 +415,13 @@ export default function BookingPage() {
     }
   };
 
-  const today = useMemo(() => {
-    const d = new Date(); d.setHours(0, 0, 0, 0); return d;
-  }, []);
+  const today = useMemo(() => saudiToday(), []);
+  const maxDate = useMemo(() => {
+    const d = new Date(today);
+    d.setDate(d.getDate() + MAX_DAYS_AHEAD);
+    return d;
+  }, [today]);
+  const isBookable = (date) => !!date && date >= today && date <= maxDate;
   const [calMonth, setCalMonth] = useState(today.getMonth());
   const [calYear, setCalYear] = useState(today.getFullYear());
 
@@ -369,17 +441,10 @@ export default function BookingPage() {
       }
 
       const rawPhone = String(currentUser.phone || currentUser.phoneNumber || '').trim();
-      if (rawPhone) {
-        if (rawPhone.startsWith('+966')) {
-          setCountryCode('+966');
-          setPhoneNumber(rawPhone.replace('+966', '').replace(/^0/, ''));
-        } else if (rawPhone.startsWith('966')) {
-          setCountryCode('+966');
-          setPhoneNumber(rawPhone.replace('966', '').replace(/^0/, ''));
-        } else if (!rawPhone.startsWith('+')) {
-          // A local Saudi number typed without the country code (e.g. 05XXXXXXXX)
-          setPhoneNumber(rawPhone.replace(/^0/, ''));
-        }
+      // Saudi numbers in any format (+966..., 966..., 00966..., 05...); other countries are left for the customer to type
+      if (rawPhone && (!rawPhone.startsWith('+') || rawPhone.startsWith('+966'))) {
+        setCountryCode('+966');
+        setPhoneNumber(normalizeSaudiMobile(rawPhone));
       }
 
       if (currentUser.address) {
@@ -418,9 +483,17 @@ export default function BookingPage() {
       if (savedDraft) {
         const draft = JSON.parse(savedDraft);
         if (draft.fullName) setFullName(draft.fullName);
-        if (draft.phoneNumber) setPhoneNumber(draft.phoneNumber);
+        if (draft.phoneNumber) setPhoneNumber(normalizeSaudiMobile(draft.phoneNumber));
         if (draft.countryCode) setCountryCode(draft.countryCode);
-        if (draft.selectedDate) setSelectedDate(new Date(draft.selectedDate));
+        if (draft.selectedDate) {
+          // A saved day that has since passed (or is beyond the booking window) is dropped
+          const d = new Date(draft.selectedDate);
+          if (!Number.isNaN(d.getTime()) && isBookable(d)) {
+            setSelectedDate(d);
+            setCalMonth(d.getMonth());
+            setCalYear(d.getFullYear());
+          }
+        }
         if (draft.selectedTime) setSelectedTime(draft.selectedTime);
         if (draft.selectedCity) setSelectedCity(draft.selectedCity);
         if (draft.selectedArea) setSelectedArea(draft.selectedArea);
@@ -430,6 +503,7 @@ export default function BookingPage() {
         if (draft.manualAddress) setManualAddress(draft.manualAddress);
         if (draft.notes) setNotes(draft.notes);
         if (draft.coords) setCoords(draft.coords);
+        if (draft.geoCountry) setGeoCountry(draft.geoCountry);
       }
     } catch (e) {}
   }, [params.id]);
@@ -476,14 +550,21 @@ export default function BookingPage() {
   const dayNames = language === 'ar' ? DAY_NAMES_AR : DAY_NAMES_EN;
   const monthNames = language === 'ar' ? MONTH_NAMES_AR : MONTH_NAMES_EN;
 
+  // No navigating before the current month or past the month of the last bookable day
+  const canGoPrev = calYear * 12 + calMonth > today.getFullYear() * 12 + today.getMonth();
+  const canGoNext = calYear * 12 + calMonth < maxDate.getFullYear() * 12 + maxDate.getMonth();
   const prevMonth = () => {
+    if (!canGoPrev) return;
     if (calMonth === 0) { setCalMonth(11); setCalYear((y) => y - 1); }
     else setCalMonth((m) => m - 1);
   };
   const nextMonth = () => {
+    if (!canGoNext) return;
     if (calMonth === 11) { setCalMonth(0); setCalYear((y) => y + 1); }
     else setCalMonth((m) => m + 1);
   };
+  const dateLocale = language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-GB';
+  const longDate = (d) => d.toLocaleDateString(dateLocale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   const selectQuickDate = (offset) => {
     const d = new Date(today);
@@ -491,6 +572,7 @@ export default function BookingPage() {
     setSelectedDate(d);
     setCalMonth(d.getMonth());
     setCalYear(d.getFullYear());
+    if (errors.date) setErrors((prev) => ({ ...prev, date: null }));
   };
 
   const getFullAddress = () => {
@@ -509,9 +591,10 @@ export default function BookingPage() {
       areaName = language === 'ar' ? area?.ar : area?.en;
     }
 
+    const sep = language === 'ar' ? '، ' : ', ';
     if (!areaName && !subLocation.trim()) return cityName || '';
-    if (!subLocation.trim()) return `${areaName}, ${cityName}`;
-    return `${subLocation.trim()}, ${areaName}, ${cityName}`;
+    if (!subLocation.trim()) return [areaName, cityName].filter(Boolean).join(sep);
+    return [subLocation.trim(), areaName, cityName].filter(Boolean).join(sep);
   };
 
   const getCanonicalAddress = () => {
@@ -528,17 +611,41 @@ export default function BookingPage() {
   };
 
   const servicePrice = service?.basePrice || service?.price || 0;
-  const totalAmount = servicePrice + VISIT_FEE;
+  // Package ids, or an explicit flag from the API if the catalogue provides one
+  const isPackage = !!service?.visitFeeIncluded || !!service?.isPackage
+    || [service?._id, service?.id, params.id].some((v) => v && PACKAGE_IDS.has(String(v)));
+  const visitFee = isPackage ? 0 : VISIT_FEE;
+  const totalAmount = servicePrice + visitFee;
+
+  // Shared by the progress bar and the submit validator so both always agree
+  const nameValid = !!fullName.trim();
+  const phoneValid = countryCode !== '+966' ? !!phoneNumber.trim() : isValidSaudiMobile(phoneNumber);
+  const phoneProblem = (() => {
+    if (!phoneNumber) return language === 'ar' ? 'رقم الجوال مطلوب' : 'Mobile number is required';
+    if (phoneValid) return '';
+    if (!phoneNumber.startsWith('5')) {
+      return language === 'ar' ? 'رقم الجوال السعودي يبدأ بـ ٥ (مثال: ٥٠١٢٣٤٥٦٧)' : 'Saudi mobile numbers start with 5 (e.g. 501234567)';
+    }
+    return language === 'ar' ? 'رقم الجوال السعودي يتكون من ٩ أرقام يبدأ بـ ٥ (مثال: ٥٠١٢٣٤٥٦٧)' : 'Enter all 9 digits of your Saudi mobile number (5XXXXXXXX)';
+  })();
+  // Live feedback once the field was left, or as soon as 9 digits are there
+  const livePhoneError = phoneNumber && (phoneTouched || phoneNumber.length === 9) ? phoneProblem : '';
+  const phoneError = errors.phone || livePhoneError;
+
+  const addressComplete = isManualAddress
+    ? !!manualAddress.trim() && !isOutsideSaudi
+    : !!selectedCity && !!selectedArea && (selectedArea !== 'OTHER' || !!customArea.trim()) && !!subLocation.trim();
 
   const validate = () => {
     const e = {};
-    if (!fullName.trim()) e.fullName = t.enterNameMsg || (language === 'ar' ? 'الاسم مطلوب' : 'Full name is required');
-    if (!phoneNumber.trim()) {
-      e.phone = language === 'ar' ? 'رقم الجوال مطلوب' : 'Mobile number is required';
-    } else if (countryCode === '+966' && (phoneNumber.length !== 9 || !phoneNumber.startsWith('5'))) {
-      e.phone = language === 'ar' ? 'رقم الجوال السعودي يجب أن يتكون من 9 أرقام يبدأ بـ 5 (مثال: 501234567)' : 'Valid 9-digit Saudi mobile number required (5XXXXXXXX)';
+    if (!nameValid) e.fullName = t.enterNameMsg || (language === 'ar' ? 'الاسم مطلوب' : 'Full name is required');
+    if (!phoneValid) e.phone = phoneProblem;
+    if (!selectedDate) e.date = t.selectDateMsg || (language === 'ar' ? 'اختر تاريخ الزيارة' : 'Select a date');
+    else if (!isBookable(selectedDate)) {
+      e.date = language === 'ar'
+        ? `اختر تاريخاً من اليوم وحتى ${toAr(MAX_DAYS_AHEAD)} يوماً قادمة`
+        : `Choose a date between today and ${MAX_DAYS_AHEAD} days ahead`;
     }
-    if (!selectedDate) e.date = t.selectDateMsg || 'Select a date';
 
     if (isManualAddress) {
       if (!manualAddress.trim()) e.manualAddress = language === 'ar' ? 'أدخل عنوانك بالتفصيل' : 'Please enter your full address';
@@ -551,6 +658,7 @@ export default function BookingPage() {
     }
 
     setErrors(e);
+    if (e.phone) setPhoneTouched(true);
 
     const keys = Object.keys(e);
     if (keys.length > 0) {
@@ -584,6 +692,54 @@ export default function BookingPage() {
     return true;
   };
 
+  // Backend messages are English only: map status codes to localized text, and only show the raw
+  // server message in the English UI when it is a plain validation message.
+  const describeBookingError = (err, serverMsg) => {
+    const ar = language === 'ar';
+    const generic = ar ? 'تعذر إنشاء الحجز. حاول مرة أخرى.' : 'Failed to create booking. Please try again.';
+    if (err && !err.response) {
+      if (err.code === 'ECONNABORTED') {
+        return ar
+          ? 'الاتصال بطيء. اضغط «تأكيد الحجز» مرة أخرى، ولن يتم تكرار الحجز.'
+          : 'The connection is slow. Tap Confirm again, your booking will not be duplicated.';
+      }
+      return ar
+        ? 'تعذر الاتصال بالخادم. تحقق من اتصالك بالإنترنت ثم اضغط «تأكيد الحجز» مرة أخرى، ولن يتم تكرار الحجز.'
+        : 'We could not reach our server. Check your internet connection and tap Confirm again, your booking will not be duplicated.';
+    }
+    const status = err?.response?.status;
+    if (status === 409) {
+      return ar
+        ? 'لديك حجز مماثل لهذه الخدمة في نفس التاريخ. راجع «حجوزاتي» أو اختر تاريخاً آخر.'
+        : 'You already have a similar booking for this service on that date. Check My Bookings or choose another date.';
+    }
+    if (status === 404) {
+      return ar
+        ? 'هذه الخدمة غير متاحة للحجز حالياً. اختر خدمة أخرى أو تواصل معنا.'
+        : 'This service is not available for booking right now. Please choose another service or contact us.';
+    }
+    if (status === 429) {
+      return ar
+        ? 'محاولات كثيرة خلال وقت قصير. انتظر دقيقة ثم حاول مرة أخرى.'
+        : 'Too many attempts in a short time. Please wait a minute and try again.';
+    }
+    if (status === 401 || status === 403) {
+      return ar
+        ? 'انتهت جلسة الدخول. سجّل الدخول مرة أخرى لإتمام الحجز.'
+        : 'Your session has expired. Please sign in again to complete the booking.';
+    }
+    if (status >= 500) {
+      return ar
+        ? 'حدث خطأ في الخادم. حاول مرة أخرى بعد قليل، ولن يتم تكرار الحجز.'
+        : 'Something went wrong on our side. Please try again in a moment, your booking will not be duplicated.';
+    }
+    if (status === 400 || status === 422 || !err) {
+      if (ar) return 'تعذر قبول بيانات الحجز. تحقق من الحقول وحاول مرة أخرى.';
+      return serverMsg || generic;
+    }
+    return ar ? generic : (serverMsg || generic);
+  };
+
   const handleSubmit = async () => {
     if (!validate()) return;
 
@@ -603,6 +759,7 @@ export default function BookingPage() {
           manualAddress,
           notes,
           coords,
+          geoCountry,
         }));
       } catch (e) {}
       router.push(`/login?redirect=/book/${params.id}`);
@@ -683,18 +840,11 @@ export default function BookingPage() {
           total: formatPrice(totalAmount, currency),
         });
       } else {
-        setSubmitError(res?.message || t.bookingErrorMsg || (language === 'ar' ? 'تعذر إنشاء الحجز. حاول مرة أخرى.' : 'Failed to create booking.'));
+        setSubmitError(describeBookingError(null, res?.message));
       }
     } catch (err) {
       // A timeout does not mean the booking failed on the server, so keep the same key and let the customer retry safely
-      const timedOut = err?.code === 'ECONNABORTED' || !err?.response;
-      const msg = err?.response?.data?.message;
-      setSubmitError(
-        msg
-          || (timedOut
-            ? (language === 'ar' ? 'الاتصال بطيء. اضغط «تأكيد الحجز» مرة أخرى، ولن يتم تكرار الحجز.' : 'The connection is slow. Tap Confirm again, your booking will not be duplicated.')
-            : (t.bookingErrorMsg || (language === 'ar' ? 'تعذر إنشاء الحجز. حاول مرة أخرى.' : 'Failed to create booking. Please try again.')))
-      );
+      setSubmitError(describeBookingError(err, err?.response?.data?.message));
     } finally {
       setSubmitting(false);
     }
@@ -735,6 +885,14 @@ export default function BookingPage() {
 
   const svcName = language === 'ar' && service.nameAr ? service.nameAr : service.name;
   const svcDesc = language === 'ar' && service.descriptionAr ? service.descriptionAr : service.description;
+  // 15% written with the locale's own digits and percent sign (١٥٪ in Arabic)
+  const vatPercent = new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', { style: 'percent' }).format(0.15);
+  const vatText = (t.vatIncluded || (language === 'ar' ? 'الأسعار شاملة ضريبة القيمة المضافة 15%' : 'Prices include 15% VAT'))
+    .replace(/15\s?%/, vatPercent);
+  const sparePartsText = t.sparePartsNotIncluded || (language === 'ar' ? 'قطع الغيار غير مشمولة' : 'Spare parts not included');
+  const priceNote = language === 'ar'
+    ? 'الأسعار تبدأ من المبلغ المذكور وقد تختلف بعد المعاينة'
+    : 'Prices start from the listed amount and may vary after inspection';
 
   if (bookingSuccess) {
     return (
@@ -761,7 +919,13 @@ export default function BookingPage() {
           </p>
 
           {/* Order ID */}
-          {bookingSuccess.profileSaveFailed && <p role="alert" className="text-sm text-amber-700">Booking saved, but your profile details could not be updated. You can edit them from your profile.</p>}
+          {bookingSuccess.profileSaveFailed && (
+            <p role="alert" className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-center text-sm font-medium text-amber-800 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-300">
+              {language === 'ar'
+                ? 'تم حفظ الحجز، لكن تعذر تحديث بيانات ملفك الشخصي. يمكنك تعديلها من صفحة الملف الشخصي.'
+                : 'Booking saved, but your profile details could not be updated. You can edit them from your profile.'}
+            </p>
+          )}
           {bookingSuccess.orderId && (
             <div className="mb-6 rounded-xl bg-blue-50 px-5 py-2.5 dark:bg-blue-950/30">
               <p className="text-center text-xs font-semibold text-sub dark:text-slate-400">
@@ -804,7 +968,7 @@ export default function BookingPage() {
 
             {/* Payment Note */}
             <div className="border-t border-border bg-emerald-50 px-5 py-3 dark:border-slate-700 dark:bg-emerald-950/20">
-              <p className="text-center text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
+              <p className="text-center text-xs font-semibold text-emerald-700 dark:text-emerald-400">
                 <Banknote className="me-1.5 inline h-3.5 w-3.5 align-[-2px]" aria-hidden="true" />
                 {language === 'ar' ? 'الدفع نقداً بعد إتمام الخدمة' : 'Cash payment after service completion'}
               </p>
@@ -830,7 +994,7 @@ export default function BookingPage() {
           {/* Trust Badge */}
           <div className="mt-6 flex items-center gap-1.5">
             <Shield className="h-3.5 w-3.5 text-emerald-500" />
-            <p className="text-[11px] font-semibold text-sub dark:text-slate-500">
+            <p className="text-xs font-semibold text-sub dark:text-slate-500">
               {language === 'ar' ? 'حجزك مؤمّن ومشفّر' : 'Your booking is secured & encrypted'}
             </p>
           </div>
@@ -864,7 +1028,7 @@ export default function BookingPage() {
                 try {
                   sessionStorage.setItem(`pending_booking_${params.id}`, JSON.stringify({
                     fullName, phoneNumber, countryCode, selectedDate: selectedDate ? selectedDate.toISOString() : null,
-                    selectedTime, selectedCity, selectedArea, customArea, subLocation, isManualAddress, manualAddress, notes, coords,
+                    selectedTime, selectedCity, selectedArea, customArea, subLocation, isManualAddress, manualAddress, notes, coords, geoCountry,
                   }));
                 } catch (e) {}
                 router.push(`/login?redirect=/book/${params.id}`);
@@ -884,26 +1048,66 @@ export default function BookingPage() {
                 <ServiceIcon service={service} className="w-6 h-6 stroke-[2]" />
               </div>
               <div className="min-w-0 flex-1">
-                <h1 className="truncate text-lg font-semibold text-white">{svcName}</h1>
-                <p className="mt-0.5 text-sm text-blue-100">{svcDesc}</p>
+                <h1 className="line-clamp-2 text-lg font-semibold leading-snug text-white" title={svcName}>{svcName}</h1>
+                {svcDesc && <p className="mt-0.5 line-clamp-3 text-sm text-blue-100 sm:line-clamp-none">{svcDesc}</p>}
               </div>
             </div>
           </div>
           <div className="flex items-center justify-between border-t border-blue-500/20 bg-blue-50 px-5 py-3 dark:bg-slate-800">
-            <span className="text-xs font-semibold text-sub dark:text-slate-400">{t.servicePrice || 'Service Price'}</span>
+            <span className="text-xs font-semibold text-sub dark:text-slate-400">
+              {isPackage
+                ? (language === 'ar' ? 'سعر الباقة (شامل رسوم الزيارة)' : 'Package price (visit fee included)')
+                : (t.servicePrice || 'Service Price')}
+            </span>
             <span className="text-lg font-semibold text-primary dark:text-blue-400">{formatPrice(servicePrice, currency)}</span>
           </div>
-          <div className="border-t border-blue-100 bg-blue-50/60 px-5 py-2.5 text-[11px] font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300 flex flex-wrap items-center justify-between gap-2">
-            <span>{t.vatIncluded || (language === 'ar' ? 'الأسعار شاملة ضريبة القيمة المضافة 15%' : 'Prices include 15% VAT')} • {t.sparePartsNotIncluded || (language === 'ar' ? 'قطع الغيار غير مشمولة' : 'Spare parts not included')}</span>
-            <span className="font-semibold text-primary dark:text-blue-400">{t.pricesVaryInspection || (language === 'ar' ? 'الأسعار تبدأ من وتختلف حسب المعاينة والفحص الميداني.' : 'Prices start from and may vary after inspection.')}</span>
+          <div className="border-t border-blue-100 bg-blue-50/60 px-5 py-2.5 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300 flex flex-wrap items-center justify-between gap-2">
+            <span>{vatText} • {sparePartsText}</span>
+            <span className="font-semibold text-primary dark:text-blue-400">{priceNote}</span>
           </div>
         </div>
 
+        {/* Progress: the four sections of the form */}
+        <ol
+          aria-label={language === 'ar' ? 'خطوات الحجز' : 'Booking steps'}
+          className="mb-5 grid grid-cols-4 gap-2"
+        >
+          {[
+            { short: language === 'ar' ? 'التواصل' : 'Contact', done: nameValid && phoneValid },
+            { short: language === 'ar' ? 'التاريخ' : 'Date', done: isBookable(selectedDate) },
+            { short: language === 'ar' ? 'الموقع' : 'Location', done: addressComplete },
+            // Optional: never shown as missing, only highlighted once something was written
+            { short: language === 'ar' ? 'ملاحظات' : 'Notes', done: !!notes.trim(), optional: true },
+          ].map((step, i) => (
+            <li key={i} className="min-w-0">
+              <div
+                className={`h-1.5 rounded-full transition-colors ${
+                  step.done
+                    ? 'bg-primary dark:bg-blue-500'
+                    : step.optional
+                      ? 'border border-dashed border-slate-300 bg-transparent dark:border-slate-600'
+                      : 'bg-slate-200 dark:bg-slate-700'
+                }`}
+              />
+              <p className={`mt-1.5 flex items-center gap-1 truncate text-xs font-semibold ${step.done ? 'text-primary dark:text-blue-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                <span aria-hidden="true">{toAr(i + 1)}.</span>
+                <span className="truncate">{step.short}</span>
+                {step.done && <CheckCircle2 className="h-3 w-3 shrink-0" aria-label={language === 'ar' ? 'مكتمل' : 'completed'} />}
+              </p>
+              {step.optional && !step.done && (
+                <p className="truncate text-[11px] font-medium text-slate-400 dark:text-slate-500">
+                  {language === 'ar' ? 'اختياري' : 'Optional'}
+                </p>
+              )}
+            </li>
+          ))}
+        </ol>
+
         {/* Contact Section */}
         <div className="flex items-center justify-between mb-2">
-          <SectionTitle icon={<User className="h-5 w-5" />} title={t.contactInfo || 'Contact Information'} />
+          <SectionTitle step={toAr(1)} icon={<User className="h-5 w-5" />} title={t.contactInfo || 'Contact Information'} />
           {user && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>{language === 'ar' ? 'تم تعبئة بيانات حسابك' : 'Auto-filled from Account'}</span>
             </span>
@@ -911,31 +1115,41 @@ export default function BookingPage() {
         </div>
         <div className="scroll-reveal delay-100 mb-6 space-y-3 rounded-2xl border border-border bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <div>
-            <label className="mb-1.5 block text-xs font-semibold text-sub dark:text-slate-400">
+            <label htmlFor="field-fullName" className="mb-1.5 block text-xs font-semibold text-sub dark:text-slate-400">
               {t.fullNameInput || (language === 'ar' ? 'الاسم الكامل' : 'Full Name')} <span className="text-red-500">*</span>
             </label>
             <div className="relative">
-              <User className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-sub dark:text-slate-500" />
+              <User className="pointer-events-none absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2 text-sub dark:text-slate-500" />
               <input
                 id="field-fullName"
+                name="fullName"
                 type="text"
+                autoComplete="name"
+                required
+                aria-required="true"
+                aria-invalid={!!errors.fullName}
+                aria-describedby={errors.fullName ? 'err-fullName' : undefined}
                 value={fullName}
                 onChange={(e) => {
                   setFullName(e.target.value);
                   if (errors.fullName) setErrors((prev) => ({ ...prev, fullName: null }));
                 }}
                 placeholder={language === 'ar' ? 'أدخل اسمك الكريم' : 'Enter your full name'}
-                className={`w-full rounded-xl border py-3 pr-4 pl-10 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${errors.fullName ? 'border-red-400' : 'border-border dark:border-slate-600'}`}
+                className={`w-full rounded-xl border py-3 pe-4 ps-10 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${errors.fullName ? 'border-red-400' : 'border-border dark:border-slate-600'}`}
               />
             </div>
-            {errors.fullName && <p className="mt-1 text-xs font-semibold text-red-500">{errors.fullName}</p>}
+            {errors.fullName && <p id="err-fullName" role="alert" className="mt-1 text-xs font-semibold text-red-500">{errors.fullName}</p>}
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-semibold text-sub dark:text-slate-400">
+            <label htmlFor="field-phone" className="mb-1.5 block text-xs font-semibold text-sub dark:text-slate-400">
               {t.mobileNumber || (language === 'ar' ? 'رقم الجوال' : 'Mobile Number')} <span className="text-red-500">*</span>
             </label>
             <div className="flex gap-2">
               <select
+                id="field-countryCode"
+                name="countryCode"
+                aria-label={language === 'ar' ? 'رمز الدولة' : 'Country code'}
+                autoComplete="tel-country-code"
                 value={countryCode}
                 onChange={(e) => handleCountryCodeChange(e.target.value)}
                 className="shrink-0 rounded-xl border border-border bg-white px-2 py-3 text-sm font-semibold text-text dark:border-slate-600 dark:bg-slate-800 dark:text-white cursor-pointer"
@@ -943,41 +1157,60 @@ export default function BookingPage() {
                 {COUNTRY_CODES.map((c) => <option key={c.code} value={c.code}>{c.label}</option>)}
               </select>
               <div className="relative flex-1">
-                <Phone className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-sub dark:text-slate-500" />
+                <Phone className="pointer-events-none absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2 text-sub dark:text-slate-500" />
                 <input
                   id="field-phone"
+                  name="phone"
                   type="tel"
+                  autoComplete="tel-national"
                   inputMode="numeric"
-                  maxLength={9}
+                  required
+                  aria-required="true"
+                  aria-invalid={!!phoneError}
+                  aria-describedby={phoneError ? 'field-phone-hint err-phone' : 'field-phone-hint'}
                   value={phoneNumber}
                   onChange={handlePhoneChange}
+                  onBlur={() => setPhoneTouched(true)}
                   placeholder="501234567"
-                  className={`w-full rounded-xl border py-3 pr-4 pl-10 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${errors.phone ? 'border-red-400' : 'border-border dark:border-slate-600'}`}
+                  className={`w-full rounded-xl border py-3 pe-4 ps-10 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white ${phoneError ? 'border-red-400' : 'border-border dark:border-slate-600'}`}
                 />
               </div>
             </div>
-            <div className="mt-1.5 flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500">
-              <span>
-                {language === 'ar' ? 'أدخل 9 أرقام تبدأ بـ 5 (مثال: 501234567)' : '9 digits starting with 5 (e.g. 501234567)'}
+            <div className="mt-1.5 flex items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+              <span id="field-phone-hint">
+                {language === 'ar' ? 'أدخل ٩ أرقام تبدأ بـ ٥ (مثال: ٥٠١٢٣٤٥٦٧)' : '9 digits starting with 5 (e.g. 501234567)'}
               </span>
-              <span className={`font-mono font-semibold ${phoneNumber.length === 9 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}>
-                {phoneNumber.length}/9
+              <span aria-hidden="true" className={`shrink-0 font-mono font-semibold ${phoneValid ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}>
+                {toAr(phoneNumber.length)}/{toAr(9)}
               </span>
             </div>
-            {errors.phone && <p className="mt-1 text-xs font-semibold text-red-500">{errors.phone}</p>}
+            {phoneError && (
+              <p
+                id="err-phone"
+                role={errors.phone ? 'alert' : undefined}
+                aria-live={errors.phone ? undefined : 'polite'}
+                className="mt-1 text-xs font-semibold text-red-500"
+              >
+                {phoneError}
+              </p>
+            )}
           </div>
           {user?.email && (
             <div>
-              <label className="mb-1.5 block text-xs font-semibold text-sub dark:text-slate-400">
+              <label htmlFor="field-email" className="mb-1.5 block text-xs font-semibold text-sub dark:text-slate-400">
                 {language === 'ar' ? 'البريد الإلكتروني المرتبط بالحساب' : 'Account Email'}
               </label>
               <div className="relative">
-                <Mail className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-sub dark:text-slate-500" />
+                <Mail className="pointer-events-none absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2 text-sub dark:text-slate-500" />
                 <input
+                  id="field-email"
+                  name="email"
                   type="email"
+                  inputMode="email"
+                  autoComplete="email"
                   disabled
                   value={user.email}
-                  className="w-full rounded-xl border border-border bg-slate-50 py-3 pr-4 pl-10 text-sm font-semibold text-slate-500 outline-none dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400 cursor-not-allowed"
+                  className="w-full rounded-xl border border-border bg-slate-50 py-3 pe-4 ps-10 text-sm font-semibold text-slate-500 outline-none dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400 cursor-not-allowed"
                 />
               </div>
             </div>
@@ -985,7 +1218,7 @@ export default function BookingPage() {
         </div>
 
         {/* Date Section */}
-        <SectionTitle icon={<Calendar className="h-5 w-5" />} title={t.selectDate || (language === 'ar' ? 'تحديد التاريخ' : 'Select Date')} />
+        <SectionTitle step={toAr(2)} icon={<Calendar className="h-5 w-5" />} title={t.selectDate || (language === 'ar' ? 'تحديد التاريخ' : 'Select Date')} />
         <div id="field-date" className="scroll-reveal delay-100 mb-6 rounded-2xl border border-border bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
           {/* Quick date buttons */}
           <div className="mb-4 flex gap-2">
@@ -997,7 +1230,7 @@ export default function BookingPage() {
               const d = new Date(today); d.setDate(d.getDate() + offset);
               const active = selectedDate && isSameDay(selectedDate, d);
               return (
-                <button key={offset} onClick={() => selectQuickDate(offset)}
+                <button key={offset} type="button" aria-pressed={!!active} onClick={() => selectQuickDate(offset)}
                   className={`flex-1 rounded-xl border px-3 py-2 text-xs font-semibold transition ${active ? 'border-primary bg-primary text-white' : 'border-border bg-white text-text hover:border-primary/40 dark:border-slate-600 dark:bg-slate-800 dark:text-white'}`}
                 >{label}</button>
               );
@@ -1005,21 +1238,32 @@ export default function BookingPage() {
           </div>
 
           {/* Calendar grid */}
-          <div className="rounded-xl border border-border bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/50">
+          <div
+            role="group"
+            aria-label={language === 'ar' ? 'اختر تاريخ الزيارة' : 'Choose a visit date'}
+            aria-invalid={!!errors.date}
+            aria-describedby={errors.date ? 'err-date' : undefined}
+            className={`rounded-xl border bg-slate-50 p-3 dark:bg-slate-800/50 ${errors.date ? 'border-red-400' : 'border-border dark:border-slate-700'}`}
+          >
             <div className="mb-3 flex items-center justify-between">
-              <button onClick={prevMonth} className="rounded-lg p-1.5 transition hover:bg-slate-200 dark:hover:bg-slate-700">
-                <ChevronLeft className="h-4 w-4 text-text dark:text-white" />
+              {/* Previous sits at the start edge, so its arrow points left in English and right in Arabic */}
+              <button type="button" aria-label={language === 'ar' ? 'الشهر السابق' : 'Previous month'} onClick={prevMonth} disabled={!canGoPrev} className="rounded-lg p-1.5 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent dark:hover:bg-slate-700">
+                {isRTL
+                  ? <ChevronRight className="h-4 w-4 text-text dark:text-white" aria-hidden="true" />
+                  : <ChevronLeft className="h-4 w-4 text-text dark:text-white" aria-hidden="true" />}
               </button>
-              <span className="text-sm font-semibold text-text dark:text-white">
-                {monthNames[calMonth]} {language === 'ar' ? toAr(calYear) : calYear}
+              <span className="text-sm font-semibold text-text dark:text-white" aria-live="polite">
+                {monthNames[calMonth]} {toAr(calYear)}
               </span>
-              <button onClick={nextMonth} className="rounded-lg p-1.5 transition hover:bg-slate-200 dark:hover:bg-slate-700">
-                <ChevronRight className="h-4 w-4 text-text dark:text-white" />
+              <button type="button" aria-label={language === 'ar' ? 'الشهر التالي' : 'Next month'} onClick={nextMonth} disabled={!canGoNext} className="rounded-lg p-1.5 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent dark:hover:bg-slate-700">
+                {isRTL
+                  ? <ChevronLeft className="h-4 w-4 text-text dark:text-white" aria-hidden="true" />
+                  : <ChevronRight className="h-4 w-4 text-text dark:text-white" aria-hidden="true" />}
               </button>
             </div>
             <div className="mb-1 grid grid-cols-7 gap-1">
               {dayNames.map((d) => (
-                <div key={d} className="py-1 text-center text-[11px] font-semibold text-sub dark:text-slate-500">{d}</div>
+                <div key={d} className="py-1 text-center text-xs font-semibold text-sub dark:text-slate-500">{d}</div>
               ))}
             </div>
             {monthGrid.map((week, wi) => (
@@ -1027,19 +1271,25 @@ export default function BookingPage() {
                 {week.map((day, di) => {
                   if (!day) return <div key={di} />;
                   const date = new Date(calYear, calMonth, day);
-                  const past = isPast(date);
+                  const past = !isBookable(date); // before today (Saudi time) or beyond the booking window
                   const isToday = isSameDay(date, today);
                   const selected = selectedDate && isSameDay(date, selectedDate);
                   return (
-                    <button key={di} disabled={past}
-                      onClick={() => setSelectedDate(date)}
+                    <button key={di} type="button" disabled={past}
+                      aria-pressed={!!selected}
+                      aria-label={longDate(date)}
+                      aria-current={isToday ? 'date' : undefined}
+                      onClick={() => {
+                        setSelectedDate(date);
+                        if (errors.date) setErrors((prev) => ({ ...prev, date: null }));
+                      }}
                       className={`flex h-9 w-full items-center justify-center rounded-lg text-xs font-semibold transition
                         ${past ? 'cursor-not-allowed text-slate-300 dark:text-slate-600' : ''}
                         ${selected ? 'bg-primary text-white shadow-md' : ''}
                         ${isToday && !selected ? 'border border-primary text-primary dark:text-blue-400' : ''}
                         ${!past && !selected && !isToday ? 'text-text hover:bg-blue-50 dark:text-white dark:hover:bg-slate-700' : ''}
                       `}
-                    >{language === 'ar' ? toAr(day) : day}</button>
+                    >{toAr(day)}</button>
                   );
                 })}
               </div>
@@ -1050,15 +1300,15 @@ export default function BookingPage() {
               <Calendar className="h-4 w-4 shrink-0 text-primary dark:text-blue-400" />
               <span>
                 {language === 'ar' ? 'الموعد المختار:' : 'Scheduled Date:'}{' '}
-                {selectedDate.toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US', {
-                  weekday: 'long',
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                })}
+                {longDate(selectedDate)}
               </span>
             </div>
           )}
+          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+            {language === 'ar'
+              ? `يمكن الحجز حتى ${toAr(MAX_DAYS_AHEAD)} يوماً مقدماً (بتوقيت السعودية).`
+              : `Bookings open up to ${MAX_DAYS_AHEAD} days ahead (Saudi time).`}
+          </p>
           <p className="mt-3 flex items-start gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
             <Phone className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary dark:text-blue-400" />
             <span>
@@ -1067,17 +1317,19 @@ export default function BookingPage() {
                 : 'Our technician will call you before the visit to agree on a time that suits you.'}
             </span>
           </p>
-          {errors.date && <p className="mt-2 text-xs font-semibold text-red-500">{errors.date}</p>}
+          {errors.date && <p id="err-date" role="alert" className="mt-2 text-xs font-semibold text-red-500">{errors.date}</p>}
         </div>
 
         {/* Location Section */}
         <div className="mb-2 flex items-center justify-between">
-          <SectionTitle icon={<MapPin className="h-5 w-5" />} title={t.serviceLocation || 'Service Location'} />
+          <SectionTitle step={toAr(3)} icon={<MapPin className="h-5 w-5" />} title={t.serviceLocation || 'Service Location'} />
           <button
             type="button"
             onClick={() => {
+              // Switching mode starts a new address, so the detected GPS point no longer applies
               setIsManualAddress((prev) => !prev);
               setCoords(null);
+              setGeoCountry('');
               setErrors((prev) => ({ ...prev, city: null, area: null, customArea: null, subLocation: null, manualAddress: null }));
             }}
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline dark:text-blue-400"
@@ -1106,7 +1358,7 @@ export default function BookingPage() {
                   {language === 'ar' ? 'تحديد العنوان عبر GPS' : 'Auto-detect address via GPS'}
                 </p>
                 {coords && (
-                  <p className="text-[11px] font-mono text-primary dark:text-blue-400 font-semibold">
+                  <p className="text-xs font-mono text-primary dark:text-blue-400 font-semibold">
                     GPS: {coords.latitude.toFixed(4)}, {coords.longitude.toFixed(4)}
                   </p>
                 )}
@@ -1137,18 +1389,37 @@ export default function BookingPage() {
             </div>
           )}
 
+          {isFarFromServiceArea && (
+            <div role="status" className="mb-4 -mt-2 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50/70 px-3 py-2.5 text-xs font-semibold leading-relaxed text-amber-800 dark:border-amber-800/50 dark:bg-amber-950/20 dark:text-amber-300">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>
+                {language === 'ar'
+                  ? 'موقعك يبدو بعيداً عن منطقة خدمتنا المعتادة (جدة ومكة المكرمة). يمكنك متابعة الحجز، وسنتواصل معك لتأكيد إمكانية الوصول.'
+                  : 'Your location looks far from our usual service area (Jeddah & Makkah). You can still book; we will call you to confirm we can reach you.'}
+              </span>
+            </div>
+          )}
+
           {isManualAddress ? (
             /* Mode B: Full Manual Address Entry */
             <div id="field-manualAddress" className="space-y-2">
-              <label className="block text-xs font-semibold text-sub dark:text-slate-400">
+              <label htmlFor="field-manualAddress-input" className="block text-xs font-semibold text-sub dark:text-slate-400">
                 {language === 'ar' ? 'العنوان الكامل بالتفصيل' : 'Full Detailed Address'} <span className="text-red-500">*</span>
               </label>
               <textarea
+                id="field-manualAddress-input"
+                name="streetAddress"
+                autoComplete="street-address"
+                required
+                aria-required="true"
+                aria-invalid={!!errors.manualAddress}
+                aria-describedby={errors.manualAddress ? 'err-manualAddress' : undefined}
                 rows={3}
                 value={manualAddress}
                 onChange={(e) => {
+                  // Keep the detected GPS point: edits here usually add a flat number or fix a street name,
+                  // and the location check must still apply. Switching address mode clears it.
                   setManualAddress(e.target.value);
-                  setCoords(null); // typed address replaces the detected GPS point
                   if (errors.manualAddress) setErrors((prev) => ({ ...prev, manualAddress: null }));
                 }}
                 placeholder={
@@ -1160,7 +1431,7 @@ export default function BookingPage() {
                   errors.manualAddress ? 'border-red-400' : manualAddress ? 'border-primary dark:border-blue-500' : 'border-border dark:border-slate-600'
                 }`}
               />
-              {errors.manualAddress && <p className="text-xs font-semibold text-red-500">{errors.manualAddress}</p>}
+              {errors.manualAddress && <p id="err-manualAddress" role="alert" className="text-xs font-semibold text-red-500">{errors.manualAddress}</p>}
             </div>
           ) : (
             /* Mode A: Guided City & District Selection */
@@ -1169,14 +1440,14 @@ export default function BookingPage() {
               {/* City Selection: Filtered by Selected Country */}
               <div>
                 <div className="mb-2 flex items-center justify-between">
-                  <label className="block text-xs font-semibold text-sub dark:text-slate-400">
+                  <span id="label-city" className="block text-xs font-semibold text-sub dark:text-slate-400">
                     {language === 'ar' ? 'المدينة' : 'City'} <span className="text-red-500">*</span>
-                  </label>
-                  <span className="text-[11px] font-semibold text-primary dark:text-blue-400">
+                  </span>
+                  <span className="text-xs font-semibold text-primary dark:text-blue-400">
                     {language === 'ar' ? 'مدن ومناطق السعودية' : 'Saudi Arabia Cities'}
                   </span>
                 </div>
-                <div id="field-city" className="grid grid-cols-2 gap-2.5">
+                <div id="field-city" role="group" aria-labelledby="label-city" aria-required="true" aria-invalid={!!errors.city} aria-describedby={errors.city ? 'err-city' : undefined} className="grid grid-cols-2 gap-2.5">
                   {Object.entries(LOCATION_DATA)
                     .map(([key, city]) => {
                       const active = selectedCity === key;
@@ -1185,6 +1456,7 @@ export default function BookingPage() {
                           key={key}
                           type="button"
                           onClick={() => handleSelectCity(key)}
+                          aria-pressed={active}
                           className={`flex items-center justify-center gap-2 rounded-xl border py-3 px-4 text-sm font-semibold transition-all duration-200 cursor-pointer ${
                             active
                               ? 'border-primary bg-primary text-white shadow-md shadow-primary/25 ring-2 ring-primary/20'
@@ -1196,22 +1468,27 @@ export default function BookingPage() {
                       );
                     })}
                 </div>
-                {errors.city && <p className="mt-1 text-xs font-semibold text-red-500">{errors.city}</p>}
+                {errors.city && <p id="err-city" role="alert" className="mt-1 text-xs font-semibold text-red-500">{errors.city}</p>}
               </div>
 
               {/* Area Selection: Automatically revealed once city is selected! */}
               {selectedCity && (
                 <div className="space-y-1.5 transition-all duration-300">
                   <div className="flex items-center justify-between">
-                    <label className="block text-xs font-semibold text-sub dark:text-slate-400">
+                    <label htmlFor="field-area" className="block text-xs font-semibold text-sub dark:text-slate-400">
                       {language === 'ar' ? 'الحي / المنطقة' : 'District / Area'} <span className="text-red-500">*</span>
                     </label>
-                    <span className="text-[11px] font-semibold text-primary dark:text-blue-400">
-                      {LOCATION_DATA[selectedCity]?.areas?.length || 0} {language === 'ar' ? 'حي متاح' : 'districts available'}
+                    <span className="text-xs font-semibold text-primary dark:text-blue-400">
+                      {toAr(LOCATION_DATA[selectedCity]?.areas?.length || 0)} {language === 'ar' ? 'حي متاح' : 'districts available'}
                     </span>
                   </div>
                   <select
                     id="field-area"
+                    name="district"
+                    required
+                    aria-required="true"
+                    aria-invalid={!!errors.area}
+                    aria-describedby={errors.area ? 'err-area' : undefined}
                     value={selectedArea}
                     onChange={(e) => {
                       setSelectedArea(e.target.value);
@@ -1229,19 +1506,25 @@ export default function BookingPage() {
                     ))}
                     <option value="OTHER">{language === 'ar' ? 'حي آخر (كتابة اسم الحي يدوياً)' : 'Other District (Type Manually)'}</option>
                   </select>
-                  {errors.area && <p className="text-xs font-semibold text-red-500">{errors.area}</p>}
+                  {errors.area && <p id="err-area" role="alert" className="text-xs font-semibold text-red-500">{errors.area}</p>}
                 </div>
               )}
 
               {/* Custom Area if user chooses OTHER */}
               {selectedCity && selectedArea === 'OTHER' && (
                 <div className="space-y-1.5 transition-all duration-300">
-                  <label className="block text-xs font-semibold text-sub dark:text-slate-400">
+                  <label htmlFor="field-customArea" className="block text-xs font-semibold text-sub dark:text-slate-400">
                     {language === 'ar' ? 'اسم الحي يدوياً' : 'District Name (Manual)'} <span className="text-red-500">*</span>
                   </label>
                   <input
                     id="field-customArea"
+                    name="customArea"
                     type="text"
+                    autoComplete="address-level3"
+                    required
+                    aria-required="true"
+                    aria-invalid={!!errors.customArea}
+                    aria-describedby={errors.customArea ? 'err-customArea' : undefined}
                     value={customArea}
                     onChange={(e) => {
                       setCustomArea(e.target.value);
@@ -1252,19 +1535,25 @@ export default function BookingPage() {
                       errors.customArea ? 'border-red-400' : customArea ? 'border-primary dark:border-blue-500' : 'border-border dark:border-slate-600'
                     }`}
                   />
-                  {errors.customArea && <p className="text-xs font-semibold text-red-500">{errors.customArea}</p>}
+                  {errors.customArea && <p id="err-customArea" role="alert" className="text-xs font-semibold text-red-500">{errors.customArea}</p>}
                 </div>
               )}
 
               {/* SubLocation / Detailed Street details */}
               {selectedCity && selectedArea && (
                 <div className="space-y-1.5 transition-all duration-300">
-                  <label className="block text-xs font-semibold text-sub dark:text-slate-400">
+                  <label htmlFor="field-subLocation" className="block text-xs font-semibold text-sub dark:text-slate-400">
                     {language === 'ar' ? 'العنوان التفصيلي (الشارع / رقم المبنى / الشقة)' : 'Street / Building / Apt Details'} <span className="text-red-500">*</span>
                   </label>
                   <input
                     id="field-subLocation"
+                    name="addressLine1"
                     type="text"
+                    autoComplete="address-line1"
+                    required
+                    aria-required="true"
+                    aria-invalid={!!errors.subLocation}
+                    aria-describedby={errors.subLocation ? 'err-subLocation' : undefined}
                     value={subLocation}
                     onChange={(e) => {
                       setSubLocation(e.target.value);
@@ -1275,32 +1564,51 @@ export default function BookingPage() {
                       errors.subLocation ? 'border-red-400' : subLocation ? 'border-primary dark:border-blue-500' : 'border-border dark:border-slate-600'
                     }`}
                   />
-                  {errors.subLocation && <p className="text-xs font-semibold text-red-500">{errors.subLocation}</p>}
+                  {errors.subLocation && <p id="err-subLocation" role="alert" className="text-xs font-semibold text-red-500">{errors.subLocation}</p>}
                 </div>
               )}
             </div>
           )}
 
           {/* Real-time Full Address Confirmation Box */}
-          {getFullAddress() && (
+          {/* Green "for the technician" only once every required part is there; a neutral preview before that */}
+          {getFullAddress() && (addressComplete ? (
             <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3.5 dark:border-emerald-900/40 dark:bg-emerald-950/20">
-              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
               <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-semibold uppercase text-emerald-800 dark:text-emerald-300">
-                  {language === 'ar' ? 'العنوان الذي سيصل للفني' : 'Confirmed Technician Address'}
+                <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+                  {language === 'ar' ? 'العنوان الذي سيصل للفني' : 'Address the technician will receive'}
                 </p>
                 <p className="text-xs font-semibold text-text dark:text-white mt-0.5 break-words">
                   {getFullAddress()}
                 </p>
               </div>
             </div>
-          )}
+          ) : (
+            <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-3.5 dark:border-slate-600 dark:bg-slate-800/40">
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                  {language === 'ar' ? 'معاينة العنوان (غير مكتمل بعد)' : 'Address preview (not complete yet)'}
+                </p>
+                <p className="text-xs font-semibold text-text dark:text-white mt-0.5 break-words">
+                  {getFullAddress()}
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Notes Section */}
-        <SectionTitle icon={<FileText className="h-5 w-5" />} title={t.additionalNotes || 'Additional Notes (Optional)'} />
+        <SectionTitle step={toAr(4)} icon={<FileText className="h-5 w-5" />} title={t.additionalNotes || 'Additional Notes (Optional)'} />
         <div className="scroll-reveal mb-6 rounded-2xl border border-border bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <label htmlFor="field-notes" className="sr-only">
+            {t.additionalNotes || 'Additional Notes (Optional)'}
+          </label>
           <textarea
+            id="field-notes"
+            name="notes"
+            autoComplete="off"
             value={notes} onChange={(e) => setNotes(e.target.value)} rows={3}
             placeholder={t.specialInstructions || 'Any special instructions for the technician...'}
             className="w-full resize-none rounded-xl border border-border bg-white py-3 px-4 text-sm font-semibold text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
@@ -1309,11 +1617,11 @@ export default function BookingPage() {
 
         {/* Summary Card */}
         <div className="scroll-reveal-scale mb-6 overflow-hidden rounded-2xl border border-border bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
-          <div className="border-b border-border px-5 py-3.5 dark:border-slate-700 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-text dark:text-white">{t.bookingSummary || 'Booking Summary'}</h3>
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary dark:text-blue-400">
-              <ServiceIcon service={service} className="w-3.5 h-3.5 stroke-[2]" />
-              <span>{svcName}</span>
+          <div className="border-b border-border px-5 py-3.5 dark:border-slate-700 flex items-center justify-between gap-3">
+            <h3 className="shrink-0 text-sm font-semibold text-text dark:text-white">{t.bookingSummary || 'Booking Summary'}</h3>
+            <span className="inline-flex min-w-0 items-center gap-1.5 text-xs font-semibold text-primary dark:text-blue-400">
+              <ServiceIcon service={service} className="w-3.5 h-3.5 shrink-0 stroke-[2]" />
+              <span className="line-clamp-2">{svcName}</span>
             </span>
           </div>
 
@@ -1322,14 +1630,14 @@ export default function BookingPage() {
             <div className="flex items-center justify-between text-sub dark:text-slate-400">
               <span>{language === 'ar' ? 'العميل:' : 'Customer:'}</span>
               <span className="font-semibold text-text dark:text-white truncate max-w-[200px]">
-                {fullName.trim() || '—'} {phoneNumber ? `(${countryCode}${phoneNumber})` : ''}
+                {fullName.trim() || '—'} {phoneNumber ? <bdi dir="ltr">({countryCode}{phoneNumber})</bdi> : ''}
               </span>
             </div>
             <div className="flex items-center justify-between text-sub dark:text-slate-400">
               <span>{language === 'ar' ? 'الموعد:' : 'Scheduled:'}</span>
               <span className="font-semibold text-text dark:text-white">
                 {selectedDate
-                  ? selectedDate.toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US', {
+                  ? selectedDate.toLocaleDateString(dateLocale, {
                       weekday: 'short',
                       day: 'numeric',
                       month: 'short',
@@ -1347,12 +1655,20 @@ export default function BookingPage() {
 
           <div className="space-y-3 px-5 py-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-sub dark:text-slate-400">{t.serviceCharge || 'Service Charge'}</span>
+              <span className="text-sm text-sub dark:text-slate-400">
+                {isPackage ? (language === 'ar' ? 'سعر الباقة' : 'Package price') : (t.serviceCharge || 'Service Charge')}
+              </span>
               <span className="text-sm font-semibold text-text dark:text-white">{formatPrice(servicePrice, currency)}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-sub dark:text-slate-400">{t.visitFee || 'Visit Fee'}</span>
-              <span className="text-sm font-semibold text-text dark:text-white">{formatPrice(VISIT_FEE, currency)}</span>
+              {isPackage ? (
+                <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                  {language === 'ar' ? 'رسوم الزيارة مشمولة' : 'Visit fee included'}
+                </span>
+              ) : (
+                <span className="text-sm font-semibold text-text dark:text-white">{formatPrice(visitFee, currency)}</span>
+              )}
             </div>
             <div className="border-t border-dashed border-border pt-3 dark:border-slate-700">
               <div className="flex items-center justify-between">
@@ -1362,15 +1678,15 @@ export default function BookingPage() {
             </div>
           </div>
           <div className="border-t border-border bg-blue-50/50 px-5 py-3 dark:border-slate-700 dark:bg-slate-800/50 space-y-1.5 text-center">
-            <p className="text-[11px] font-semibold text-sub dark:text-slate-400">
+            <p className="text-xs font-semibold text-sub dark:text-slate-400">
               <Banknote className="me-1.5 inline h-3.5 w-3.5 align-[-2px]" aria-hidden="true" />
               {t.cashPaymentNote || 'Cash payment after service completion'}
             </p>
-            <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-              {t.vatIncluded || (language === 'ar' ? 'الأسعار شاملة ضريبة القيمة المضافة 15%' : 'Prices include 15% VAT')} • {t.sparePartsNotIncluded || (language === 'ar' ? 'قطع الغيار غير مشمولة' : 'Spare parts not included')}
+            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+              {vatText} • {sparePartsText}
             </p>
-            <p className="pt-1 text-[11px] font-semibold text-primary dark:text-blue-400 border-t border-blue-100/60 dark:border-slate-700/60">
-              {t.pricesVaryInspection || (language === 'ar' ? 'الأسعار تبدأ من وتختلف حسب المعاينة والفحص الميداني.' : 'Prices start from and may vary after inspection.')}
+            <p className="pt-1 text-xs font-semibold text-primary dark:text-blue-400 border-t border-blue-100/60 dark:border-slate-700/60">
+              {priceNote}
             </p>
           </div>
         </div>
@@ -1396,16 +1712,21 @@ export default function BookingPage() {
 
         <div className="mt-3 flex items-center justify-center gap-1.5 pb-4">
           <Shield className="h-3.5 w-3.5 text-emerald-500" />
-          <p className="text-[11px] font-semibold text-sub dark:text-slate-500">{t.bookingSecure || 'Your booking is secured & encrypted'}</p>
+          <p className="text-xs font-semibold text-sub dark:text-slate-500">{t.bookingSecure || 'Your booking is secured & encrypted'}</p>
         </div>
       </div>
     </div>
   );
 }
 
-function SectionTitle({ icon, title }) {
+function SectionTitle({ icon, title, step }) {
   return (
     <div className="scroll-reveal mb-3 flex items-center gap-2">
+      {step && (
+        <span aria-hidden="true" className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white dark:bg-blue-600">
+          {step}
+        </span>
+      )}
       <div className="text-primary dark:text-blue-400">{icon}</div>
       <h2 className="text-sm font-semibold text-text dark:text-white">{title}</h2>
     </div>
@@ -1417,7 +1738,7 @@ function DetailRow({ icon, label, value }) {
     <div className="flex items-start gap-3 px-5 py-3.5">
       <div className="mt-0.5 text-primary dark:text-blue-400">{icon}</div>
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-semibold uppercase text-sub dark:text-slate-500">{label}</p>
+        <p className="text-xs font-semibold uppercase text-sub dark:text-slate-500">{label}</p>
         <p className="text-sm font-semibold text-text dark:text-white">{value}</p>
       </div>
     </div>

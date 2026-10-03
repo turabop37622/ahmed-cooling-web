@@ -65,7 +65,9 @@ export default function BookingsPage() {
 
   useEffect(() => {
     if (!authLoading && !token) {
-      router.replace('/login');
+      // Guests sign in first and come back here (login reads ?redirect through safeRedirect)
+      const here = window.location.pathname + window.location.search;
+      router.replace(`/login?redirect=${encodeURIComponent(here)}&reason=auth`);
     }
   }, [authLoading, token, router]);
 
@@ -216,7 +218,7 @@ export default function BookingsPage() {
                 }`}
               >
                 {filterLabels[f]}
-                <span className={`rounded-full px-1.5 py-0.5 text-[11px] font-semibold ${active ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-700'}`}>{language === 'ar' ? toAr(count) : count}</span>
+                <span className={`rounded-full px-1.5 py-0.5 text-xs font-semibold ${active ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-700'}`}>{language === 'ar' ? toAr(count) : count}</span>
               </button>
             );
           })}
@@ -249,12 +251,12 @@ export default function BookingsPage() {
                           <p className="truncate text-sm font-semibold text-text dark:text-white">
                             {booking.serviceName || booking.service?.name || (t.acService || 'Service')}
                           </p>
-                          <p className="text-[11px] font-semibold text-sub dark:text-slate-500">
+                          <p className="text-xs font-semibold text-sub dark:text-slate-500">
                             {t.orderLabel || 'Order:'} #{language === 'ar' ? toAr((id || '').slice(-6).toUpperCase()) : (id || '').slice(-6).toUpperCase()}
                           </p>
                         </div>
                       </div>
-                      <span className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${cfg.color}`}>
+                      <span className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${cfg.color}`}>
                         <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
                         {statusLabel(status, t)}
                       </span>
@@ -485,5 +487,5 @@ export default function BookingsPage() {
 }
 
 function SectionLabel({ text }) {
-  return <p className="mb-2 text-[11px] font-semibold text-sub uppercase dark:text-slate-500">{text}</p>;
+  return <p className="mb-2 text-xs font-semibold text-sub uppercase dark:text-slate-500">{text}</p>;
 }

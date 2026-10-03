@@ -1,4 +1,5 @@
 import "./globals.css";
+import { Poppins, IBM_Plex_Sans_Arabic } from "next/font/google";
 import { ThemeProvider } from "../contexts/ThemeContext";
 import { TranslationProvider } from "../contexts/TranslationContext";
 import { AuthProvider } from "../contexts/AuthContext";
@@ -7,14 +8,60 @@ import Footer from "../components/Footer";
 import WhatsAppButton from "../components/WhatsAppButton";
 import ScrollObserver from "../components/ScrollObserver";
 import ConsentBanner from "../components/ConsentBanner";
+import { getRequestLang, ogLocale, BRAND, OG_IMAGE } from "../lib/seo";
+import { absoluteUrl, langAlternates } from "../lib/lang";
 
-export const metadata = {
+// Self-hosted by next/font (no render-blocking Google Fonts stylesheet). Weights are the ones the site uses (300-700).
+// globals.css reads var(--font-sans) / var(--font-arabic); those variables are pointed at these fonts on <html> below.
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
+  preload: false, // the default (Arabic) pages mostly need the Arabic font; Poppins loads when English text renders
+  fallback: ["Segoe UI", "system-ui", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+});
+const plexArabic = IBM_Plex_Sans_Arabic({
+  subsets: ["arabic"],
+  weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
+  fallback: ["Tahoma", "system-ui", "sans-serif"],
+});
+const fontVars = {
+  "--font-sans": poppins.style.fontFamily,
+  "--font-arabic": plexArabic.style.fontFamily,
+};
+
+export const viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F0F4FF" },
+    { media: "(prefers-color-scheme: dark)", color: "#0F172A" },
+  ],
+  colorScheme: "light dark",
+};
+
+const HOME = {
+  ar: {
+    title: 'ورشة أحمد للتبريد | صيانة مكيفات جدة ومكة',
+    description: 'ورشة أحمد للتبريد: صيانة وغسيل وتعبئة فريون للمكيفات وإصلاح الثلاجات والغسالات في جدة ومكة. طوارئ 24/7 مع ضمان وقطع غيار أصلية.',
+    ogDescription: 'صيانة وإصلاح المكيفات والأجهزة المنزلية في جدة ومكة المكرمة. خدمة طوارئ 24/7 مع فنيين مؤهلين وضمان معتمد.',
+  },
+  en: {
+    title: 'AC Repair Jeddah & Makkah | Ahmed Cooling Workshop',
+    description: 'Certified AC repair, cleaning and gas refill, plus fridge and washing machine repair in Jeddah & Makkah. 24/7 emergency service with warranty.',
+    ogDescription: 'AC and home appliance repair in Jeddah & Makkah. 24/7 emergency service with certified technicians and an official warranty.',
+  },
+};
+
+export async function generateMetadata() {
+  const lang = await getRequestLang();
+  const home = HOME[lang];
+  return {
   metadataBase: new URL('https://www.ahmedcoolingworkshop.com'),
   title: {
-    default: 'ورشة أحمد للتبريد | صيانة مكيفات وأجهزة منزلية جدة ومكة | Ahmed Cooling Workshop KSA',
-    template: '%s | Ahmed Cooling Workshop',
+    default: home.title,
+    template: `%s | ${BRAND[lang]}`,
   },
-  description: 'ورشة أحمد للتبريد - صيانة وإصلاح المكيفات (سبليت، شباك، مركزي) والأجهزة المنزلية بجدة ومكة. خدمة طوارئ 24/7. Trusted AC repair in Jeddah & Makkah for residents & expats.',
+  description: home.description,
   keywords: [
     // Saudi Arabic Primary Keywords
     'ورشة أحمد للتبريد', 'صيانة مكيفات جدة', 'تصليح مكيفات مكة', 'فني مكيفات اسبليت جدة',
@@ -29,32 +76,30 @@ export const metadata = {
     'home appliance maintenance Saudi Arabia', 'central AC maintenance Makkah', 'freon leak fix Jeddah',
   ],
   icons: {
-    icon: '/logo-icon.png',
-    shortcut: '/logo-icon.png',
+    icon: [
+      { url: '/favicon.ico', sizes: '16x16 32x32 48x48 64x64' },
+      { url: '/logo-icon.png', type: 'image/png', sizes: '98x98' },
+    ],
+    shortcut: '/favicon.ico',
     apple: '/logo-icon.png',
   },
   openGraph: {
     type: 'website',
-    locale: 'ar_SA',
-    alternateLocale: ['en_US', 'en_GB'],
-    url: 'https://www.ahmedcoolingworkshop.com',
-    title: 'ورشة أحمد للتبريد | صيانة مكيفات وأجهزة منزلية جدة ومكة | Ahmed Cooling Workshop KSA',
-    description: 'ورشة أحمد للتبريد - صيانة وإصلاح المكيفات والأجهزة المنزلية في جدة ومكة المكرمة. خدمة طوارئ 24/7 مع فنيين مؤهلين وضمان رسمي معتمد.',
+    locale: ogLocale(lang),
+    alternateLocale: [ogLocale(lang === 'en' ? 'ar' : 'en')],
+    url: absoluteUrl('/', lang),
+    title: home.title,
+    description: home.ogDescription,
     siteName: 'Ahmed Cooling Workshop - ورشة أحمد للتبريد',
+    images: [OG_IMAGE[lang]],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ورشة أحمد للتبريد | Ahmed Cooling Workshop KSA',
-    description: 'ورشة أحمد للتبريد - صيانة وإصلاح المكيفات والأجهزة المنزلية في جدة ومكة المكرمة. خدمة طوارئ 24/7 مع ضمان معتمد.',
+    title: home.title,
+    description: home.ogDescription,
+    images: [OG_IMAGE[lang].url],
   },
-  alternates: {
-    canonical: 'https://www.ahmedcoolingworkshop.com',
-    languages: {
-      'ar-SA': 'https://www.ahmedcoolingworkshop.com',
-      'en-SA': 'https://www.ahmedcoolingworkshop.com',
-      'x-default': 'https://www.ahmedcoolingworkshop.com',
-    },
-  },
+  alternates: langAlternates('/', lang),
   robots: {
     index: true,
     follow: true,
@@ -75,29 +120,27 @@ export const metadata = {
     'geo.position': '21.4858;39.1925',
     'ICBM': '21.4858, 39.1925',
   },
-};
+  };
+}
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const lang = await getRequestLang();
   return (
     <html
-      lang="ar"
-      dir="rtl"
+      lang={lang}
+      dir={lang === 'ar' ? 'rtl' : 'ltr'}
       className="h-full"
+      style={fontVars}
       translate="no"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800;900&display=swap"
-          rel="stylesheet"
-        />
-        {/* Prevent dark mode flash — runs before React hydration */}
+        {/* Prevent dark mode flash — runs before React hydration. A saved choice wins; with no choice the
+            system preference decides (ThemeContext mirrors whatever class this sets). */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{if(localStorage.getItem('darkMode')==='true'){document.documentElement.classList.add('dark')}}catch(e){}})();`,
+            __html: `(function(){try{var s=localStorage.getItem('darkMode');var d=s==='true'||(s!=='false'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d){document.documentElement.classList.add('dark')}}catch(e){}})();`,
           }}
         />
         <meta name="google" content="notranslate" />
@@ -186,7 +229,7 @@ export default function RootLayout({ children }) {
       </head>
       <body className="min-h-full flex flex-col bg-[#F0F4FF] text-[#0F172A] dark:bg-[#0F172A] dark:text-[#F1F5F9] antialiased" suppressHydrationWarning>
         <ThemeProvider>
-          <TranslationProvider>
+          <TranslationProvider initialLang={lang}>
             <AuthProvider>
               <Navbar />
               <ScrollObserver />

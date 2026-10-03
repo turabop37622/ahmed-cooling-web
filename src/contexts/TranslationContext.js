@@ -1,32 +1,93 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { translations } from '../lib/translations';
+import { hasEnPrefix, isLangPath, pathForLang } from '../lib/lang';
 
 const TranslationContext = createContext(null);
 
-export const TranslationProvider = ({ children }) => {
-  const [language, setLang] = useState('ar');
+const writeCookie = (lang) => {
+  try {
+    document.cookie = `lang=${lang}; path=/; max-age=31536000; samesite=lax`;
+  } catch {}
+};
+
+const readCookie = () => {
+  const m = document.cookie.match(/(?:^|;\s*)lang=(en|ar)/);
+  return m ? m[1] : null;
+};
+
+const applyDocument = (lang) => {
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  document.documentElement.lang = lang;
+};
+
+// initialLang comes from the server (URL prefix /en or the lang cookie, see src/proxy.js), so the first paint is already correct.
+export const TranslationProvider = ({ children, initialLang = 'ar' }) => {
+  const pathname = usePathname();
+  const [language, setLang] = useState(initialLang === 'en' ? 'en' : 'ar');
 
   useEffect(() => {
     try {
+      const path = window.location.pathname;
+      const onLangPath = isLangPath(path) || hasEnPrefix(path);
       const saved = localStorage.getItem('language');
-      if (saved === 'en' || saved === 'ar') {
-        setLang(saved);
-      } else {
-        setLang('ar');
+      const cookie = readCookie();
+      let lang = language;
+      if (onLangPath) {
+        // Public pages: the URL decides (a shared Arabic link stays Arabic even if the visitor prefers English)
+        lang = hasEnPrefix(path) ? 'en' : 'ar';
+        if (lang !== language) setLang(lang);
+      } else if (saved === 'en' || saved === 'ar') {
+        // App pages (login, booking ...) have one URL: use the remembered choice
+        lang = saved;
+        if (lang !== language) setLang(lang);
       }
-      const lang = saved === 'en' ? 'en' : 'ar';
-      document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-      document.documentElement.lang = lang;
+      // Only the language toggle changes a saved preference; a first visit seeds it from the page language
+      const pref = saved === 'en' || saved === 'ar' ? saved : cookie || lang;
+      localStorage.setItem('language', pref);
+      if (cookie !== pref) writeCookie(pref);
+      applyDocument(lang);
     } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Back/forward or a link between /x and /en/x: keep the language in step with the URL of public pages.
+  // Moving on to an app page (login ...) uses the saved preference, like the server does.
+  useEffect(() => {
+    try {
+      const path = window.location.pathname;
+      let next;
+      if (isLangPath(path) || hasEnPrefix(path)) {
+        next = hasEnPrefix(path) ? 'en' : 'ar';
+      } else {
+        const saved = localStorage.getItem('language');
+        next = saved === 'en' || saved === 'ar' ? saved : readCookie() || language;
+      }
+      if (next !== language) {
+        setLang(next);
+        applyDocument(next);
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
   const setLanguage = (lang) => {
+    if (lang !== 'en' && lang !== 'ar') return;
     setLang(lang);
-    localStorage.setItem('language', lang);
-    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-    document.documentElement.lang = lang;
+    try {
+      localStorage.setItem('language', lang);
+    } catch {}
+    writeCookie(lang);
+    applyDocument(lang);
+    // Public pages have a separate URL per language: go to the equivalent page
+    const { pathname, search, hash } = window.location;
+    if (isLangPath(pathname)) {
+      const next = pathForLang(pathname, lang);
+      // Full navigation: the server renders <html lang/dir>, title and hreflang for the new language
+      if (next !== pathname) window.location.assign(next + search + hash);
+    }
   };
 
   const t = translations[language] || translations.en;

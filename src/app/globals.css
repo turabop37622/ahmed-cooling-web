@@ -10,6 +10,11 @@
   --color-text: #0F172A;
   --color-sub: #64748B;
   --color-border: #E2E8F0;
+}
+
+/* Not "inline": the font-* utilities must read the variables, because layout.js points them at the
+   hashed next/font family names on <html>. These values are only the fallback. */
+@theme {
   --font-sans: 'Poppins', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --font-arabic: 'IBM Plex Sans Arabic', Tahoma, system-ui, sans-serif;
 }
@@ -94,12 +99,13 @@ h2 {
    HIGH-PERFORMANCE SCROLL REVEAL ANIMATIONS
    ═════════════════════════════════════════════════════════════ */
 
-/* Base transition parameters */
-.scroll-reveal,
-.scroll-reveal-scale,
-.scroll-reveal-left,
-.scroll-reveal-right,
-.scroll-reveal-fade {
+/* Hidden state only applies once ScrollObserver has added .js-reveal to <html>,
+   so content stays visible if the script never runs. */
+html.js-reveal .scroll-reveal,
+html.js-reveal .scroll-reveal-scale,
+html.js-reveal .scroll-reveal-left,
+html.js-reveal .scroll-reveal-right,
+html.js-reveal .scroll-reveal-fade {
   opacity: 0;
   transition-property: opacity, transform;
   transition-duration: 0.45s;
@@ -108,60 +114,60 @@ h2 {
 }
 
 /* 1. Fade Up (default) */
-.scroll-reveal {
+html.js-reveal .scroll-reveal {
   transform: translate3d(0, 16px, 0);
 }
-.scroll-reveal.revealed {
+html.js-reveal .scroll-reveal.revealed {
   opacity: 1;
   transform: translate3d(0, 0, 0);
 }
 
 /* 2. Scale In (cards, impact boxes) */
-.scroll-reveal-scale {
+html.js-reveal .scroll-reveal-scale {
   transform: scale3d(0.97, 0.97, 1) translate3d(0, 10px, 0);
 }
-.scroll-reveal-scale.revealed {
+html.js-reveal .scroll-reveal-scale.revealed {
   opacity: 1;
   transform: scale3d(1, 1, 1) translate3d(0, 0, 0);
 }
 
 /* 3. Slide Left -> Right */
-.scroll-reveal-left {
+html.js-reveal .scroll-reveal-left {
   transform: translate3d(-16px, 0, 0);
 }
-.scroll-reveal-left.revealed {
+html.js-reveal .scroll-reveal-left.revealed {
   opacity: 1;
   transform: translate3d(0, 0, 0);
 }
 
 /* 4. Slide Right -> Left */
-.scroll-reveal-right {
+html.js-reveal .scroll-reveal-right {
   transform: translate3d(16px, 0, 0);
 }
-.scroll-reveal-right.revealed {
+html.js-reveal .scroll-reveal-right.revealed {
   opacity: 1;
   transform: translate3d(0, 0, 0);
 }
 
 /* 5. Pure Fade */
-.scroll-reveal-fade {
+html.js-reveal .scroll-reveal-fade {
   transform: none;
 }
-.scroll-reveal-fade.revealed {
+html.js-reveal .scroll-reveal-fade.revealed {
   opacity: 1;
 }
 
 /* RTL Direction adjustments */
-[dir="rtl"] .scroll-reveal-left {
+html.js-reveal[dir="rtl"] .scroll-reveal-left {
   transform: translate3d(16px, 0, 0);
 }
-[dir="rtl"] .scroll-reveal-left.revealed {
+html.js-reveal[dir="rtl"] .scroll-reveal-left.revealed {
   transform: translate3d(0, 0, 0);
 }
-[dir="rtl"] .scroll-reveal-right {
+html.js-reveal[dir="rtl"] .scroll-reveal-right {
   transform: translate3d(-16px, 0, 0);
 }
-[dir="rtl"] .scroll-reveal-right.revealed {
+html.js-reveal[dir="rtl"] .scroll-reveal-right.revealed {
   transform: translate3d(0, 0, 0);
 }
 
@@ -197,4 +203,25 @@ h2 {
     transform: none !important;
     transition: none !important;
   }
+}
+
+/* Screen-reader-only helper that becomes visible on focus (skip link) */
+.skip-link {
+  position: absolute;
+  inset-inline-start: 0.75rem;
+  top: -4rem;
+  z-index: 100;
+  border-radius: 0.5rem;
+  background: #1d4ed8;
+  color: #fff;
+  padding: 0.6rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: top 0.15s;
+}
+.skip-link:focus {
+  top: 0.75rem;
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px #1d4ed8;
 }

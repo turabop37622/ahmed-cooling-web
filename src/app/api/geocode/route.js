@@ -2,6 +2,12 @@ import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
+// Uppercase ISO 3166-1 alpha-2 code (e.g. "SA"), or null. The booking page uses it for the outside-Saudi check.
+function isoCountry(v) {
+  const c = typeof v === 'string' ? v.trim().toUpperCase() : '';
+  return /^[A-Z]{2}$/.test(c) ? c : null;
+}
+
 function formatNominatim(data, lang) {
   if (!data) return null;
   const a = data.address || {};
@@ -62,8 +68,24 @@ function isRateLimited(ip) {
   return entry.count > MAX_PER_WINDOW;
 }
 
+// Client IP for rate limiting. The first x-forwarded-for entry is whatever the client sent, so it is never trusted.
+// On Vercel, x-vercel-forwarded-for and x-real-ip are set by the edge from the real connection (not spoofable).
+function clientIp(request) {
+  const h = request.headers;
+  const first = (v) => (v || '').split(',')[0].trim();
+  return (
+    first(h.get('x-vercel-forwarded-for')) ||
+    first(h.get('x-real-ip')) ||
+    // Elsewhere (behind one trusted proxy) the proxy appends the real address as the LAST x-forwarded-for entry
+    (h.get('x-forwarded-for') || '').split(',').map((s) => s.trim()).filter(Boolean).pop() ||
+    'unknown'
+  );
+}
+
+// Note: `hits` lives in this server instance's memory. On serverless (Vercel) every instance keeps its own counter and
+// it resets on cold start, so this is a best-effort brake, not a global limit (that would need a shared store).
 export async function GET(request) {
-  const ip = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'unknown';
+  const ip = clientIp(request);
   if (isRateLimited(ip)) {
     return NextResponse.json(
       { success: false, message: 'Too many requests, please try again in a minute' },
@@ -145,6 +167,7 @@ async function lookup(request) {
             address: formatted,
             coordinates: { latitude: lat, longitude: lng },
             provider: 'nominatim',
+            countryCode: isoCountry(osmData?.address?.country_code),
           });
         }
       }
@@ -175,6 +198,7 @@ async function lookup(request) {
             address: parts.join(sep),
             coordinates: { latitude: lat, longitude: lng },
             provider: 'bigdatacloud',
+            countryCode: isoCountry(bdcData?.countryCode),
           });
         }
       }
@@ -206,6 +230,7 @@ async function lookup(request) {
               address: parts.join(sep),
               coordinates: { latitude: lat, longitude: lng },
               provider: 'photon',
+              countryCode: isoCountry(feat.countrycode),
             });
           }
         }
@@ -223,6 +248,7 @@ async function lookup(request) {
           : `GPS Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`,
       coordinates: { latitude: lat, longitude: lng },
       provider: 'fallback',
+      countryCode: null, // unknown: no provider answered
     });
   } catch (err) {
     return NextResponse.json(

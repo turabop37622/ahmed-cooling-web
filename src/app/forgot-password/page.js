@@ -3,13 +3,19 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Mail, Lock, Eye, EyeOff, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, Loader2, CheckCircle2, MessageCircle } from 'lucide-react';
 import { useTranslation } from '../../contexts/TranslationContext';
 import { forgotPassword, verifyResetOTP, resetPassword } from '../../lib/api';
+import { authErrorMessage } from '../login/authMessages';
+
+// The backend resets passwords by email code only (routes/auth.js: /forgot-password, /verify-reset-otp, /reset-password).
+// Accounts registered with a phone number are helped over WhatsApp instead.
+const WHATSAPP_RESET_URL = 'https://wa.me/966590192146?text=' + encodeURIComponent('Hello, I registered with my phone number and need help resetting my password. / مرحباً، سجلت برقم جوالي وأحتاج مساعدة في إعادة تعيين كلمة المرور.');
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
-  const { t, language, isRTL } = useTranslation();
+  const { t, language, toAr } = useTranslation();
+  const ar = language === 'ar';
 
   const [step, setStep] = useState('email'); // 'email' | 'otp' | 'reset'
   const [email, setEmail] = useState('');
@@ -34,7 +40,7 @@ export default function ForgotPasswordPage() {
       await forgotPassword(email);
       setStep('otp');
     } catch (err) {
-      setError(err?.response?.data?.message || (language === 'ar' ? 'فشل إرسال الرمز. يرجى المحاولة لاحقاً.' : 'Failed to send reset code.'));
+      setError(authErrorMessage(err, language, ['فشل إرسال الرمز. يرجى المحاولة لاحقاً.', 'Failed to send the reset code. Please try again later.']));
     } finally {
       setLoading(false);
     }
@@ -67,7 +73,7 @@ export default function ForgotPasswordPage() {
       await verifyResetOTP(email, code);
       setStep('reset');
     } catch (err) {
-      setError(err?.response?.data?.message || t.invalidOTP);
+      setError(authErrorMessage(err, language, [t.invalidOTP, t.invalidOTP]));
     } finally {
       setLoading(false);
     }
@@ -85,7 +91,7 @@ export default function ForgotPasswordPage() {
       setSuccess(language === 'ar' ? 'تمت إعادة تعيين كلمة المرور بنجاح!' : 'Password reset successful!');
       setTimeout(() => router.push('/login'), 2000);
     } catch (err) {
-      setError(err?.response?.data?.message || 'Reset failed');
+      setError(authErrorMessage(err, language, ['تعذرت إعادة تعيين كلمة المرور. حاول مرة أخرى.', 'Password reset failed. Please try again.']));
     } finally {
       setLoading(false);
     }
@@ -97,7 +103,7 @@ export default function ForgotPasswordPage() {
         {/* Brand */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 p-2.5 mb-4 ring-4 ring-blue-500/10">
-            <img src="/logo-icon.png" alt="Ahmed Cooling" className="w-full h-full object-contain" />
+            <img src="/logo-icon.png" alt="" className="w-full h-full object-contain" />
           </div>
           <p className="text-2xl font-semibold text-slate-800 dark:text-white">{t.brandName}</p>
           <p className="text-sm text-slate-500 dark:text-slate-400">{t.brandTagline}</p>
@@ -110,14 +116,14 @@ export default function ForgotPasswordPage() {
           </h1>
 
           {error && (
-            <div className="flex items-start gap-2 p-3 mb-5 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-              <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+            <div role="alert" className="flex items-start gap-2 p-3 mb-5 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+              <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" aria-hidden="true" />
               <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
             </div>
           )}
 
           {success && (
-            <div className="flex items-start gap-2 p-3 mb-5 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+            <div role="status" className="flex items-start gap-2 p-3 mb-5 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
               <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
               <p className="text-sm text-emerald-600 dark:text-emerald-400">{success}</p>
             </div>
@@ -153,6 +159,29 @@ export default function ForgotPasswordPage() {
             </form>
           )}
 
+          {step === 'email' && (
+            <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 text-sm dark:border-emerald-800 dark:bg-emerald-950/30">
+              <p className="font-semibold text-slate-800 dark:text-white">
+                {ar ? 'سجّلت برقم الجوال؟' : 'Registered with a phone number?'}
+              </p>
+              <p className="mt-1 text-slate-600 dark:text-slate-300">
+                {ar
+                  ? 'إعادة التعيين عبر الرمز متاحة للبريد الإلكتروني فقط حالياً. تواصل معنا عبر واتساب وسنساعدك في إعادة تعيين كلمة المرور.'
+                  : 'Code reset currently works by email only. Contact us on WhatsApp and we will help you reset your password.'}
+              </p>
+              <a
+                href={WHATSAPP_RESET_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 font-semibold text-white hover:bg-emerald-700"
+              >
+                <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                {ar ? 'تواصل معنا عبر واتساب' : 'Contact us on WhatsApp'}
+                <span dir="ltr" className="font-normal opacity-90">{ar ? '+٩٦٦ ٥٩ ٠١٩ ٢١٤٦' : '+966 59 019 2146'}</span>
+              </a>
+            </div>
+          )}
+
           {step === 'otp' && (
             <div className="space-y-6">
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
@@ -160,7 +189,8 @@ export default function ForgotPasswordPage() {
               </p>
               <div className="flex justify-center gap-2" dir="ltr">
                 {otp.map((digit, idx) => (
-                  <input id="forgot-otp" name="otp" autoComplete="one-time-code" inputMode="numeric"
+                  <input name={`otp-${idx}`} autoComplete={idx === 0 ? 'one-time-code' : 'off'} inputMode="numeric"
+                    aria-label={ar ? `الرقم ${toAr(idx + 1)} من ${toAr(6)}` : `Digit ${idx + 1} of 6`}
                     key={idx}
                     id={`otp-${idx}`}
                     type="text"
@@ -173,6 +203,7 @@ export default function ForgotPasswordPage() {
                 ))}
               </div>
               <button
+                type="button"
                 onClick={handleVerifyOTP}
                 disabled={loading || otp.join('').length < 6}
                 className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 disabled:opacity-60 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
@@ -182,6 +213,7 @@ export default function ForgotPasswordPage() {
               </button>
               <div className="text-center">
                 <button
+                  type="button"
                   onClick={handleSendOTP}
                   className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
                   disabled={loading}
@@ -250,7 +282,7 @@ export default function ForgotPasswordPage() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-6">© 2026 {t.brandName}</p>
+        <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-6">© {toAr(2026)} {t.brandName}</p>
       </div>
     </div>
   );

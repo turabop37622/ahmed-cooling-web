@@ -13,11 +13,12 @@ export const SERVICE_IMAGES = {
   'AC Shifting': '/services/ac-installation.jpg',
   'Central AC Service': '/services/central-ac.jpg',
 
-  // Refrigerator & Freezer Services
+  // Refrigerator & Freezer Services (two photos, alternated so neighbouring cards differ):
+  // compressor/gas work at the back of the fridge vs. electrical testing with the door open
   'Refrigerator Repair': '/services/refrigerator-repair.jpg',
   'Freezer Repair': '/services/freezer-repair.jpg',
   'Fridge Gas Refill': '/services/refrigerator-repair.jpg',
-  'Fridge Thermostat Fix': '/services/refrigerator-repair.jpg',
+  'Fridge Thermostat Fix': '/services/freezer-repair.jpg',
 
   // Washing Machine
   'Washing Machine Repair': '/services/washing-machine-repair.jpg',
@@ -29,7 +30,7 @@ export const SERVICE_IMAGES = {
 
   // Electrical & Power
   'Electrical Wiring Fix': '/services/electrical-repair.jpg',
-  'UPS & Inverter Repair': '/services/electrical-repair.jpg',
+  'UPS & Inverter Repair': '/services/ac-pcb-repair.jpg',
 };
 
 export const CATEGORY_FALLBACKS = {
@@ -61,7 +62,10 @@ export const getServiceImage = (serviceName, category) => {
     }
 
     // Refrigerator & Freezer
-    if (s.includes('refrigerator') || s.includes('fridge') || s.includes('freezer') || s.includes('ثلاج') || s.includes('فريزر')) {
+    if ((s.includes('freezer') || s.includes('فريزر')) && !s.includes('refrigerator') && !s.includes('ثلاج')) {
+      return SERVICE_IMAGES['Freezer Repair'];
+    }
+    if (s.includes('refrigerator') || s.includes('fridge') || s.includes('ثلاج')) {
       return SERVICE_IMAGES['Refrigerator Repair'];
     }
 

@@ -3,9 +3,44 @@
 import Link from 'next/link';
 import { Shield, Mail } from 'lucide-react';
 import { useTranslation } from '@/contexts/TranslationContext';
+import { pathForLang } from '@/lib/lang';
+
+// Page-specific text that corrects the shared translations: the site has no online payments (customers pay the
+// technician after the service), and the cookie section describes what the consent banner really does.
+const LOCAL = {
+  ar: {
+    paymentBullet: 'طريقة الدفع التي تختارها عند الحجز (الدفع للفني بعد إتمام الخدمة). لا نجمع بيانات بطاقات بنكية عبر الموقع أو التطبيق.',
+    shareAnalytics: 'مزودو القياس: ',
+    shareAnalyticsDesc: 'أداة قياس TikTok فقط إذا وافقت عليها في إشعار ملفات تعريف الارتباط (انظر القسم ٦).',
+    cookiesTitle: '٦. ملفات تعريف الارتباط وأداة قياس TikTok',
+    cookiesIntro: 'نستخدم في الموقع ما يلي:',
+    cookies: [
+      'تخزين ضروري على جهازك: اللغة المختارة (ملف تعريف ارتباط «lang» وlocalStorage)، والوضع الليلي، وجلسة تسجيل الدخول (localStorage). هذه لازمة لعمل الموقع ولا تُستخدم للتتبع.',
+      'أداة قياس TikTok (Pixel): تقيس زيارات الصفحات لمعرفة أداء إعلاناتنا على TikTok، وقد تضع TikTok ملفات تعريف ارتباط خاصة بها وتستقبل بيانات مثل عنوان IP ومعلومات المتصفح والصفحة التي زرتها.',
+      'لا يتم تحميل أداة TikTok إلا بعد أن تضغط «أوافق» في إشعار ملفات تعريف الارتباط. إذا رفضت أو لم تختر، فلن يتم تحميلها.',
+      'نحفظ اختيارك على جهازك (localStorage باسم «cookie-consent») حتى لا نسألك في كل زيارة.',
+      'لسحب موافقتك أو تغييرها في أي وقت: اضغط «إعدادات ملفات تعريف الارتباط» في أسفل الصفحة واختر «لا أوافق»، أو احذف بيانات هذا الموقع من متصفحك.',
+    ],
+  },
+  en: {
+    paymentBullet: 'The payment method you choose when booking (you pay the technician after the service). We do not collect card details on the website or app.',
+    shareAnalytics: 'Measurement providers: ',
+    shareAnalyticsDesc: 'the TikTok pixel, only if you accept it in the cookie notice (see section 6).',
+    cookiesTitle: '6. Cookies and the TikTok pixel',
+    cookiesIntro: 'The website uses:',
+    cookies: [
+      'Essential storage on your device: your language (the "lang" cookie and localStorage), dark mode, and your sign-in session (localStorage). These are needed for the site to work and are not used for tracking.',
+      'The TikTok pixel: it measures page visits so we can see how our TikTok ads perform. TikTok may set its own cookies and receive data such as your IP address, browser details and the page you visited.',
+      'The TikTok pixel is loaded only after you press "Accept" in the cookie notice. If you decline or make no choice, it is not loaded.',
+      'Your choice is saved on your device (localStorage, "cookie-consent") so we do not ask on every visit.',
+      'To withdraw or change your consent at any time, press "Cookie settings" at the bottom of the page and choose "Decline", or clear this site\'s data in your browser.',
+    ],
+  },
+};
 
 export default function PrivacyPage() {
-  const { t, isRTL } = useTranslation();
+  const { t, isRTL, language } = useTranslation();
+  const L = LOCAL[language === 'en' ? 'en' : 'ar'];
   const email = String(t.aboutContactEmailValue || 'ahmedcoolingworkshop@gmail.com')
     .trim()
     .replace(/\s+/g, '');
@@ -21,7 +56,7 @@ export default function PrivacyPage() {
           bullets: [
             t.privacyBullet1,
             t.privacyBullet2,
-            t.privacyBullet3,
+            L.paymentBullet,
             t.privacyBullet4,
             t.privacyBullet5,
           ],
@@ -49,8 +84,7 @@ export default function PrivacyPage() {
         {
           bullets: [
             `${t.privacyShareTech}${t.privacyShareTechDesc}`,
-            `${t.privacySharePay}${t.privacySharePayDesc}`,
-            `${t.privacyShareAnalytics}${t.privacyShareAnalyticsDesc}`,
+            `${L.shareAnalytics}${L.shareAnalyticsDesc}`,
             `${t.privacyShareLegal}${t.privacyShareLegalDesc}`,
           ],
         },
@@ -81,8 +115,9 @@ export default function PrivacyPage() {
       ],
     },
     {
-      title: t.privacySection6,
-      blocks: [{ text: t.privacyCookiesText }],
+      title: L.cookiesTitle,
+      id: 'cookies',
+      blocks: [{ text: L.cookiesIntro, bullets: L.cookies }],
     },
     {
       title: t.privacySection7,
@@ -126,7 +161,7 @@ export default function PrivacyPage() {
 
         <div className="space-y-12">
           {sections.map((section) => (
-            <section key={section.title} className="scroll-mt-24">
+            <section key={section.title} id={section.id} className="scroll-mt-24">
               <h2 className="border-b border-border pb-2 text-lg font-semibold text-text dark:border-slate-700 dark:text-white">
                 {section.title}
               </h2>
@@ -162,7 +197,7 @@ export default function PrivacyPage() {
             {t.privacyContactBtn}
           </a>
           <Link
-            href="/about#contact"
+            href={pathForLang('/contact', language)}
             className="inline-flex w-full items-center justify-center rounded-xl border border-border bg-white px-6 py-3.5 text-sm font-semibold text-text transition-colors hover:border-primary dark:border-slate-600 dark:bg-slate-900 dark:text-white dark:hover:border-blue-500 sm:w-auto"
           >
             {t.contactInformation}

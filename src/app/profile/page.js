@@ -41,7 +41,9 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!authLoading && !token) {
-      router.replace('/login');
+      // Guests sign in first and come back here (login reads ?redirect through safeRedirect)
+      const here = window.location.pathname + window.location.search;
+      router.replace(`/login?redirect=${encodeURIComponent(here)}&reason=auth`);
     }
   }, [authLoading, token, router]);
 
@@ -169,7 +171,7 @@ export default function ProfilePage() {
 
         <div className="mt-3 flex items-center justify-center gap-1.5 pb-4">
           <Shield className="h-3.5 w-3.5 text-emerald-500" />
-          <p className="text-[11px] font-semibold text-sub dark:text-slate-500">{t.dataSecure || 'Your data is always secure'}</p>
+          <p className="text-xs font-semibold text-sub dark:text-slate-500">{t.dataSecure || 'Your data is always secure'}</p>
         </div>
       </div>
     </div>

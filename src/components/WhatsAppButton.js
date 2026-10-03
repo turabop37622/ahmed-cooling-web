@@ -1,11 +1,41 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from '../contexts/TranslationContext';
+import { stripLang } from '../lib/lang';
 
 export default function WhatsAppButton() {
-  const pathname = usePathname();
+  const rawPathname = usePathname();
+  const pathname = rawPathname ? stripLang(rawPathname) : rawPathname;
   const { isRTL, language } = useTranslation();
+  // How far the footer's bottom row has scrolled into view; the button moves up by this much so it never covers it
+  const [footerLift, setFooterLift] = useState(0);
+
+  useEffect(() => {
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      const bar = document.getElementById('site-footer-bottom');
+      if (!bar) {
+        setFooterLift(0);
+        return;
+      }
+      const overlap = window.innerHeight - bar.getBoundingClientRect().top;
+      setFooterLift(overlap > 0 ? Math.ceil(overlap) : 0);
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(measure);
+    };
+    measure();
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+    return () => {
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', schedule);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [rawPathname]);
 
   if (pathname?.startsWith('/admin')) return null;
 
@@ -25,15 +55,18 @@ export default function WhatsAppButton() {
   const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 
   return (
-    <div className={`fixed bottom-4 sm:bottom-6 z-50 ${isRTL ? 'left-4 sm:left-6' : 'right-4 sm:right-6'}`}>
+    <div
+      // --consent-offset is set by the cookie banner while it is open on phones, so the two never overlap
+      style={{ transform: `translateY(calc(-1 * (var(--consent-offset, 0px) + ${footerLift}px)))` }}
+      className={`fixed bottom-[max(1rem,env(safe-area-inset-bottom))] sm:bottom-6 z-40 transition-transform duration-200 ease-out ${isRTL ? 'left-[max(1rem,env(safe-area-inset-left))] sm:left-6' : 'right-[max(1rem,env(safe-area-inset-right))] sm:right-6'}`}>
       <a
         href={whatsappUrl}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="Chat on WhatsApp"
+        aria-label={language === 'ar' ? 'تواصل عبر واتساب' : 'Chat on WhatsApp'}
         className="group relative flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-xl shadow-green-600/30 transition-all hover:scale-110 active:scale-95 hover:shadow-green-600/50 cursor-pointer"
       >
-        <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+        <span className="absolute -top-1 -end-1 flex h-3.5 w-3.5">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75"></span>
           <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-400"></span>
         </span>

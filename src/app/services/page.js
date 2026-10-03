@@ -1,203 +1,47 @@
-'use client';
+import { getRequestLang, ogLocale } from '../../lib/seo';
+import { langAlternates, absoluteUrl } from '../../lib/lang';
+import { loadServices } from '../../lib/servicesData';
+import ServicesClient from './ServicesClient';
+import { normalizeFilter } from './filters';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { Loader2, Inbox, RefreshCw } from 'lucide-react';
-import { useTranslation } from '@/contexts/TranslationContext';
-import { getServices } from '@/lib/api';
-import { FALLBACK_SERVICES } from '@/lib/servicesData';
-import ServiceCard from '@/components/ServiceCard';
+const META = {
+  ar: {
+    title: 'خدماتنا | صيانة مكيفات وأجهزة منزلية جدة ومكة',
+    description: 'صيانة وتركيب وغسيل المكيفات وتعبئة الفريون وإصلاح الثلاجات والغسالات والأجهزة المنزلية في جدة ومكة.',
+  },
+  en: {
+    title: 'Our Services | AC & Appliance Repair Jeddah',
+    description: 'AC repair, installation, deep cleaning and freon refill, plus refrigerator, washing machine and appliance repair in Jeddah & Makkah.',
+  },
+};
 
-const FILTERS = [
-  { id: 'all', labelKey: 'catAll' },
-  { id: 'ac', labelKey: 'catAC' },
-  { id: 'refrigerator', labelKey: 'catFridge' },
-  { id: 'washing-machine', labelKey: 'catWasher' },
-  { id: 'stove', labelKey: 'catStove' },
-  { id: 'general', labelKey: 'catGeneral' },
-  { id: 'popular', labelKey: 'popular' },
-  { id: 'emergency', labelKey: 'emergency' },
-];
-
-function normalizeCategory(raw) {
-  if (raw == null) return '';
-  const s = String(raw).toLowerCase().trim();
-  if (s === 'fridge') return 'refrigerator';
-  if (s === 'washer' || s === 'washing machine' || s === 'washing_machine') {
-    return 'washing-machine';
-  }
-  return s;
-}
-
-function serviceMatchesFilter(service, filterId) {
-  if (filterId === 'all') return true;
-  if (filterId === 'popular') return !!(service.isPopular || service.popular);
-  if (filterId === 'emergency') return !!(service.isEmergency || service.emergency);
-  return normalizeCategory(service.category) === filterId;
-}
-
-export default function ServicesPage() {
-  const { t, language, isRTL } = useTranslation();
-  const router = useRouter();
-  const [allServices, setAllServices] = useState(FALLBACK_SERVICES);
-  const [loading, setLoading] = useState(false);
-  const [activeFilter, setActiveFilter] = useState('all');
-
-  const loadServices = useCallback(async () => {
-    try {
-      const res = await getServices();
-      const list = res?.services ?? res?.data ?? res;
-      // Keep the built-in list when the API is down or returns nothing, so the page is never empty
-      if (Array.isArray(list) && list.length) setAllServices(list);
-    } catch {
-      // API unreachable: keep FALLBACK_SERVICES
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadServices();
-  }, [loadServices]);
-
-  const filteredServices = useMemo(
-    () => allServices.filter((s) => serviceMatchesFilter(s, activeFilter)),
-    [allServices, activeFilter],
-  );
-
-  const serviceCountLabel = useMemo(() => {
-    const n = filteredServices.length;
-    if (n === 1) return `1 ${t.service}`;
-    return `${n} ${t.services}`;
-  }, [filteredServices.length, t.service, t.services]);
-
-  const handleBook = useCallback(
-    (service) => {
-      const id = service._id || service.id;
-      if (id) router.push(`/book/${id}`);
+export async function generateMetadata() {
+  const lang = await getRequestLang();
+  const m = META[lang];
+  return {
+    title: { absolute: m.title },
+    description: m.description,
+    keywords: [
+      'AC repair Jeddah', 'refrigerator repair Makkah', 'washing machine repair Jeddah',
+      'appliance service Saudi Arabia', 'split AC cleaning Jeddah', 'freon gas refill Makkah',
+      'صيانة مكيفات جدة', 'إصلاح ثلاجات مكة', 'غسيل مكيفات سبليت', 'تصليح غسالات أوتوماتيك',
+    ],
+    // ?cat= filtered views share the canonical /services URL
+    alternates: langAlternates('/services', lang),
+    openGraph: {
+      title: m.title,
+      description: m.description,
+      url: absoluteUrl('/services', lang),
+      locale: ogLocale(lang),
+      type: 'website',
     },
-    [router],
-  );
+  };
+}
 
-  const resetFilter = () => setActiveFilter('all');
-
-  return (
-    <div className="min-h-[60vh] bg-bg pb-12 dark:bg-slate-950">
-      <div className="mx-auto max-w-[1560px] px-4 pt-8 pb-6 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-6 scroll-reveal">
-          <div className="mb-3 flex flex-wrap items-end gap-3">
-            <div className="h-8 w-1 shrink-0 rounded-full bg-primary dark:bg-blue-500" />
-            <div className="min-w-0 flex-1">
-              <h1 className="text-2xl font-semibold text-text dark:text-white sm:text-3xl">
-                {t.ourServices}
-              </h1>
-              <p className="mt-1 text-sm font-semibold text-primary dark:text-blue-400">
-                {t.appName}
-              </p>
-            </div>
-            {!loading && (
-              <p className="text-xs font-semibold text-sub dark:text-slate-400">{serviceCountLabel}</p>
-            )}
-          </div>
-        </div>
-
-        {/* Category chips */}
-        <div
-          className="-mx-1 mb-8 flex gap-2 overflow-x-auto px-1 pb-1 scrollbar-none no-scrollbar [&::-webkit-scrollbar]:hidden scroll-reveal delay-100"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          dir={isRTL ? 'rtl' : 'ltr'}
-        >
-          {FILTERS.filter((f) => f.id === 'all' || allServices.some((svc) => serviceMatchesFilter(svc, f.id))).map((f) => {
-            const active = activeFilter === f.id;
-            return (
-              <button
-                key={f.id}
-                type="button"
-                onClick={() => setActiveFilter(f.id)}
-                className={`shrink-0 rounded-full border px-4 py-2 text-xs font-semibold transition-colors ${
-                  active
-                    ? 'border-primary bg-primary text-white dark:border-blue-500 dark:bg-blue-600'
-                    : 'border-border bg-white text-text hover:border-primary/40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-blue-500/50'
-                }`}
-              >
-                {t[f.labelKey] ?? f.id}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Loading - only if no services loaded yet */}
-        {loading && allServices.length === 0 && (
-          <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4">
-            <Loader2 className="h-10 w-10 animate-spin text-primary dark:text-blue-400" />
-            <p className="text-sm font-semibold text-sub dark:text-slate-400">{t.loadingServices}</p>
-          </div>
-        )}
-
-        {/* Grid: 3 cards per row */}
-        {filteredServices.length > 0 && (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredServices.map((svc, idx) => (
-              <ServiceCard
-                key={svc._id || svc.id || svc.name}
-                service={svc}
-                onBook={handleBook}
-                index={idx}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Pricing Terms & VAT Banner */}
-        {filteredServices.length > 0 && (
-          <div className="mt-8 rounded-2xl border border-blue-100 bg-blue-50/70 p-4 text-xs font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300 scroll-reveal">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-start">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
-                <span>
-                  {language === 'ar'
-                    ? 'جميع الأسعار تشمل ضريبة القيمة المضافة 15% • قطع الغيار غير مشمولة وتُحدد حسب الحاجة'
-                    : 'All prices include 15% VAT • Spare parts are not included and quoted separately'}
-                </span>
-              </div>
-              <p className="font-semibold text-primary dark:text-blue-400">
-                {language === 'ar'
-                  ? 'الأسعار تبدأ من وتختلف حسب المعاينة والفحص الميداني.'
-                  : 'Prices start from and may vary after inspection.'}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Empty */}
-        {!loading && filteredServices.length === 0 && (
-          <div className="flex min-h-[36vh] flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-border bg-white/50 px-6 py-14 dark:border-slate-700 dark:bg-slate-900/40">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800">
-              <Inbox className="h-7 w-7 text-sub dark:text-slate-500" />
-            </div>
-            <p className="text-center text-sm font-semibold text-text dark:text-white">
-              {t.noServicesFound}
-            </p>
-            <button
-              type="button"
-              onClick={resetFilter}
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-primary-dark dark:bg-blue-600 dark:hover:bg-blue-700"
-            >
-              <RefreshCw className="h-4 w-4" />
-              {t.resetFilters}
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Footer info */}
-      {!loading && (
-        <div className="flex items-center justify-center gap-2 pt-2 scroll-reveal-fade">
-          <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" aria-hidden />
-          <p className="text-xs font-semibold text-sub dark:text-slate-500">{t.servicesUpdated}</p>
-        </div>
-      )}
-    </div>
-  );
+// Server component: the list is fetched from the database API on the server (cached 5 minutes) and rendered into the
+// HTML, so the prices shown here are the same database prices the detail and booking pages use.
+export default async function ServicesPage({ searchParams }) {
+  const sp = await searchParams;
+  const { services, live } = await loadServices();
+  return <ServicesClient initialServices={services} live={live} initialFilter={normalizeFilter(sp?.cat)} />;
 }

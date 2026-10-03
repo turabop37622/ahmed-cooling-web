@@ -9,6 +9,9 @@ export default function ScrollObserver() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
+    const SELECTOR = ".scroll-reveal, .scroll-reveal-scale, .scroll-reveal-left, .scroll-reveal-right, .scroll-reveal-fade";
+    const root = document.documentElement;
+
     // Check if user prefers reduced motion
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) {
@@ -23,6 +26,14 @@ export default function ScrollObserver() {
         .forEach((el) => el.classList.add('revealed'));
       return;
     }
+
+    // Content is visible by default (CSS). Only now that the observer can reveal it do we allow the hidden state.
+    // Anything already on screen is revealed first so nothing flashes out and back in.
+    const vh = window.innerHeight || document.documentElement.clientHeight;
+    document.querySelectorAll(SELECTOR).forEach((el) => {
+      if (el.getBoundingClientRect().top < vh + 200) el.classList.add("revealed");
+    });
+    root.classList.add("js-reveal");
 
     const observer = new IntersectionObserver(
       (entries) => {

@@ -1,20 +1,41 @@
-export const metadata = {
-  title: 'Contact Us Jeddah & Makkah | اتصل بنا',
-  description: 'Contact Ahmed Cooling Workshop for 24/7 emergency AC repair, maintenance, and home appliance services in Jeddah and Makkah. Call or WhatsApp +966 590 192 146.',
-  keywords: [
-    'contact Ahmed cooling', 'AC technician phone Jeddah', 'رقم فني مكيفات جدة',
-    'طوارئ صيانة مكيفات مكة', 'WhatsApp AC repair KSA', 'AC repair technician Jeddah',
-    'ورشة أحمد للتبريد اتصال', 'صيانة مكيفات طوارئ جدة',
-  ],
-  alternates: {
-    canonical: 'https://www.ahmedcoolingworkshop.com/contact',
+import { getRequestLang, ogLocale, OG_IMAGE } from '../../lib/seo';
+import { langAlternates, absoluteUrl } from '../../lib/lang';
+
+const META = {
+  ar: {
+    title: 'اتصل بنا في جدة ومكة | ورشة أحمد للتبريد',
+    description: 'تواصل مع ورشة أحمد للتبريد لطوارئ المكيفات وصيانة الأجهزة المنزلية في جدة ومكة. اتصال أو واتساب على ‎+966 59 019 2146.',
   },
-  openGraph: {
-    title: 'Contact Us | اتصل بنا | Ahmed Cooling Workshop',
-    description: '24/7 Emergency AC repair and home appliance service across Jeddah and Makkah, Saudi Arabia. Call or WhatsApp +966 590 192 146.',
-    url: 'https://www.ahmedcoolingworkshop.com/contact',
+  en: {
+    title: 'Contact Us Jeddah & Makkah | Ahmed Cooling Workshop',
+    description: '24/7 emergency AC repair and home appliance service in Jeddah & Makkah. Call or WhatsApp +966 59 019 2146.',
   },
 };
+
+export async function generateMetadata() {
+  const lang = await getRequestLang();
+  const m = META[lang];
+  return {
+    title: { absolute: m.title },
+    description: m.description,
+    keywords: [
+      'contact Ahmed cooling', 'AC technician phone Jeddah', 'رقم فني مكيفات جدة',
+      'طوارئ صيانة مكيفات مكة', 'WhatsApp AC repair KSA', 'AC repair technician Jeddah',
+      'ورشة أحمد للتبريد اتصال', 'صيانة مكيفات طوارئ جدة',
+    ],
+    alternates: langAlternates('/contact', lang),
+    openGraph: {
+      title: m.title,
+      description: m.description,
+      url: absoluteUrl('/contact', lang),
+      locale: ogLocale(lang),
+      type: 'website',
+      siteName: 'Ahmed Cooling Workshop - ورشة أحمد للتبريد',
+      // A page-level openGraph replaces the root one, so the share image is repeated here
+      images: [OG_IMAGE[lang]],
+    },
+  };
+}
 
 export default function ContactLayout({ children }) {
   return children;

@@ -1,520 +1,383 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+// Operator "Today" board: action tiles (each opens the matching filtered list), today's schedule with
+// quick actions, then all-time KPIs from GET /admin/stats. No invented fallbacks: failures show an
+// error banner with retry instead of zeros.
+
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { adminApi } from '../adminApi';
 import {
-  TrendingUp,
-  ClipboardList,
-  Clock,
-  CheckCircle2,
-  Users,
-  RefreshCw,
-
-  Wrench,
-  Phone,
-  MessageCircle,
-  Calendar,
-  Sparkles,
-  Plus,
-  Star,
-  Snowflake,
-  Refrigerator,
-  WashingMachine,
-  Flame,
-  Wind,
-  Zap,
-  ShieldCheck,
-  MapPin,
-  Crosshair,
-  ExternalLink,
+  CalendarClock, AlertTriangle, Siren, UserX, MessageSquare, Star, RefreshCw, Loader2, Check, ChevronRight,
+  ChevronLeft, Banknote, Users, Wrench, ClipboardList,
 } from 'lucide-react';
+import { useAdminLang } from '../AdminI18n';
+import { useAdminToast } from '../components/AdminToast';
+import { StatusBadge, PriorityBadge, STATUS_META } from '../components/Badges';
+import { getStats, getBookings, getAdminServices, updateBookingStatus } from '../adminApi';
+import {
+  STATUSES, normalizeStatus, serviceInfo, serviceName, customerNameOf, phoneOf, orderRef, telLink,
+  bookingTime, fmtSlot, timeToMinutes, riyadhYmd,
+} from '../bookings/bookingUtils';
 
-function getBookingCoordinates(booking) {
-  if (!booking) return null;
-  let lat = null;
-  let lng = null;
-  if (booking.coordinates) {
-    if (typeof booking.coordinates.latitude === 'number' && booking.coordinates.latitude !== 0) {
-      lat = booking.coordinates.latitude;
-      lng = booking.coordinates.longitude;
-    } else if (Array.isArray(booking.coordinates) && booking.coordinates.length >= 2) {
-      lng = booking.coordinates[0];
-      lat = booking.coordinates[1];
-    }
-  }
-  if (!lat && typeof booking.latitude === 'number' && booking.latitude !== 0) {
-    lat = booking.latitude;
-    lng = booking.longitude;
-  }
-  if (!lat && typeof booking.address === 'string') {
-    const match = booking.address.match(/(-?\d+\.\d{3,})\s*,\s*(-?\d+\.\d{3,})/);
-    if (match) {
-      lat = parseFloat(match[1]);
-      lng = parseFloat(match[2]);
-    }
-  }
-  if (lat != null && lng != null && (lat !== 0 || lng !== 0)) {
-    return { latitude: Number(lat), longitude: Number(lng) };
-  }
-  return null;
-}
+const REFRESH_MS = 30000;
 
-function getBookingCurrency(b) {
-  if (b?.currency) return b.currency;
-  return 'SAR';
-}
-
-function renderServiceOutlineIcon(service, serviceName) {
-  const text = ((service?.name || '') + ' ' + (serviceName || '') + ' ' + (service?.category || '')).toLowerCase();
-  const iconSize = 'w-5 h-5 stroke-[1.8]';
-  const boxSize = 'w-10 h-10 rounded-2xl';
-
-  if (text.includes('clean') || text.includes('jet') || text.includes('sanitiz') || text.includes('غسيل')) {
-    return (
-      <div className={`${boxSize} bg-cyan-50 dark:bg-cyan-500/10 border border-cyan-200/60 dark:border-cyan-500/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shrink-0`}>
-        <Sparkles className={iconSize} />
-      </div>
-    );
-  }
-  if (text.includes('wash') || text.includes('laundry') || text.includes('غسال')) {
-    return (
-      <div className={`${boxSize} bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200/60 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0`}>
-        <WashingMachine className={iconSize} />
-      </div>
-    );
-  }
-  if (text.includes('ref') || text.includes('fridge') || text.includes('freezer') || text.includes('ثلاج') || text.includes('ice')) {
-    return (
-      <div className={`${boxSize} bg-teal-50 dark:bg-teal-500/10 border border-teal-200/60 dark:border-teal-500/20 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0`}>
-        <Refrigerator className={iconSize} />
-      </div>
-    );
-  }
-  if (text.includes('gas') || text.includes('freon') || text.includes('فريون')) {
-    return (
-      <div className={`${boxSize} bg-sky-50 dark:bg-sky-500/10 border border-sky-200/60 dark:border-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0`}>
-        <Wind className={iconSize} />
-      </div>
-    );
-  }
-  if (text.includes('stove') || text.includes('oven') || text.includes('cook') || text.includes('فرن') || text.includes('بوتجاز')) {
-    return (
-      <div className={`${boxSize} bg-amber-50 dark:bg-amber-500/10 border border-amber-200/60 dark:border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0`}>
-        <Flame className={iconSize} />
-      </div>
-    );
-  }
-  if (text.includes('plan') || text.includes('annual') || text.includes('contract') || text.includes('عقد') || text.includes('صيانة سنوية')) {
-    return (
-      <div className={`${boxSize} bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200/60 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0`}>
-        <ShieldCheck className={iconSize} />
-      </div>
-    );
-  }
-  if (text.includes('emergency') || text.includes('24/7') || text.includes('urgent') || text.includes('طوارئ')) {
-    return (
-      <div className={`${boxSize} bg-rose-50 dark:bg-rose-500/10 border border-rose-200/60 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0`}>
-        <Zap className={iconSize} />
-      </div>
-    );
-  }
-  if (text.includes('ac') || text.includes('cool') || text.includes('air') || text.includes('تكييف') || text.includes('مكيف')) {
-    return (
-      <div className={`${boxSize} bg-blue-50 dark:bg-blue-500/10 border border-blue-200/60 dark:border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0`}>
-        <Snowflake className={iconSize} />
-      </div>
-    );
-  }
+function ErrorBanner({ message, onRetry, L }) {
   return (
-    <div className={`${boxSize} bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-400 flex items-center justify-center shrink-0`}>
-      <Wrench className={iconSize} />
+    <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800 dark:border-red-500/40 dark:bg-red-950/40 dark:text-red-200">
+      <span className="flex items-center gap-2"><AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />{message}</span>
+      <button type="button" onClick={onRetry} className="min-h-11 rounded-lg px-3 font-semibold underline">{L('Retry', 'إعادة المحاولة')}</button>
     </div>
   );
 }
 
-const STATUS_CONFIG = {
-  pending: {
-    label: 'Pending',
-    bg: 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400 border-amber-200 dark:border-amber-500/30',
-    dot: 'bg-amber-500',
-  },
-  confirmed: {
-    label: 'Confirmed',
-    bg: 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400 border-blue-200 dark:border-blue-500/30',
-    dot: 'bg-blue-500',
-  },
-  assigned: {
-    label: 'Assigned',
-    bg: 'bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-400 border-violet-200 dark:border-violet-500/30',
-    dot: 'bg-violet-500',
-  },
-  in_progress: {
-    label: 'In Progress',
-    bg: 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-400 border-indigo-200 dark:border-indigo-500/30',
-    dot: 'bg-indigo-500',
-  },
-  completed: {
-    label: 'Completed',
-    bg: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/30',
-    dot: 'bg-emerald-500',
-  },
-  cancelled: {
-    label: 'Cancelled',
-    bg: 'bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-400 border-rose-200 dark:border-rose-500/30',
-    dot: 'bg-rose-500',
-  },
-};
-
 export default function AdminDashboardPage() {
-  const router = useRouter();
+  const { L, isAr, fmtDate, fmtMoney, fmtNum } = useAdminLang();
+  const toast = useAdminToast();
+
   const [stats, setStats] = useState(null);
-  const [recentBookings, setRecentBookings] = useState([]);
+  const [statsError, setStatsError] = useState('');
+  const [today, setToday] = useState(null);
+  const [todayError, setTodayError] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [servicesById, setServicesById] = useState(null);
+  const [confirming, setConfirming] = useState(null);
+  const lock = useRef(new Set());
 
-  const fetchData = useCallback(async () => {
+  const loadStats = useCallback(async () => {
     try {
-      const [statsRes, bookingsRes] = await Promise.all([
-        adminApi.getStats(),
-        adminApi.getAllBookings('all', 1, 6),
-      ]);
-      setStats(statsRes.stats || statsRes);
-      const bks = bookingsRes.bookings || bookingsRes.data || [];
-      setRecentBookings(Array.isArray(bks) ? bks.slice(0, 6) : []);
+      const res = await getStats();
+      setStats(res);
+      setStatsError('');
     } catch (err) {
-      console.error('Error fetching admin dashboard data:', err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+      setStatsError(err?.message || L('Could not load statistics.', 'تعذر تحميل الإحصائيات.'));
     }
+  }, [L]);
+
+  const loadToday = useCallback(async () => {
+    const day = riyadhYmd();
+    try {
+      const res = await getBookings({ status: 'all', from: day, to: day, sort: 'schedule', limit: 100, page: 1 });
+      const list = Array.isArray(res?.bookings) ? res.bookings : [];
+      // Sorted by slot time; cancelled at the end
+      list.sort((a, b) => {
+        const ca = normalizeStatus(a.status) === 'cancelled' ? 1 : 0;
+        const cb = normalizeStatus(b.status) === 'cancelled' ? 1 : 0;
+        if (ca !== cb) return ca - cb;
+        return timeToMinutes(bookingTime(a)) - timeToMinutes(bookingTime(b));
+      });
+      setToday({ list, total: Number(res?.total) || list.length });
+      setTodayError('');
+    } catch (err) {
+      setTodayError(err?.message || L("Could not load today's bookings.", 'تعذر تحميل حجوزات اليوم.'));
+    }
+  }, [L]);
+
+  const loadAll = useCallback(async () => {
+    await Promise.all([loadStats(), loadToday()]);
+    setLoading(false);
+    setRefreshing(false);
+  }, [loadStats, loadToday]);
+
+  useEffect(() => { loadAll(); }, [loadAll]);
+
+  const loadRef = useRef(loadAll);
+  useEffect(() => { loadRef.current = loadAll; }, [loadAll]);
+  useEffect(() => {
+    let last = Date.now();
+    const tick = (force) => {
+      if (document.visibilityState !== 'visible') return;
+      // Tab switches refresh at most every 15s (the API rate limit is shared)
+      if (!force && Date.now() - last < 15000) return;
+      last = Date.now();
+      loadRef.current();
+    };
+    const timer = setInterval(() => tick(true), REFRESH_MS);
+    const onVisible = () => tick(false);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, []);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    getAdminServices()
+      .then((res) => {
+        const arr = Array.isArray(res) ? res : res?.services || res?.data || [];
+        const map = {};
+        arr.forEach((s) => { if (s?._id) map[String(s._id)] = s; });
+        setServicesById(map);
+      })
+      .catch(() => {});
+  }, []);
 
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchData();
-  };
-
-  const handleQuickConfirm = async (id, e) => {
-    e.stopPropagation();
+  const quickConfirm = async (b) => {
+    const id = String(b._id);
+    if (lock.current.has(id)) return;
+    lock.current.add(id);
+    setConfirming(id);
     try {
-      await adminApi.confirmBooking(id);
-      fetchData();
+      await updateBookingStatus(id, 'confirmed', { expectedStatus: 'pending' });
+      toast.success(L(`Booking ${orderRef(b)} confirmed`, `تم تأكيد الحجز ${orderRef(b)}`));
     } catch (err) {
-      console.error('Confirm error:', err);
+      if (err?.status === 409) toast.error(L('This booking was just changed — refreshed', 'تم تعديل هذا الحجز للتو — تم التحديث'));
+      else toast.error(err?.message || L('Could not confirm the booking.', 'تعذر تأكيد الحجز.'));
+    } finally {
+      lock.current.delete(id);
+      setConfirming(null);
+      loadAll();
     }
   };
 
-  const openWhatsApp = (phone, customerName, serviceName, e) => {
-    e.stopPropagation();
-    if (!phone) return;
-    const cleanPhone = phone.replace(/[^\d+]/g, '').replace('+', '');
-    const msg = `مرحباً ${customerName || 'عزيزي العميل'}، معك ورشة أحمد للتبريد بخصوص حجز خدمة (${serviceName || 'الصيانة'}). كيف يمكننا مساعدتك؟`;
-    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+  const refresh = () => { setRefreshing(true); loadAll(); };
+
+  const s = stats || {};
+  const tiles = [
+    { key: 'jobs', icon: CalendarClock, en: "Today's jobs", ar: 'مهام اليوم', value: s.today?.jobs, href: '/admin/bookings?date=today', tone: 'blue' },
+    { key: 'overdue', icon: AlertTriangle, en: 'Overdue', ar: 'متأخرة', value: s.today?.overdue, href: '/admin/bookings?status=active&overdue=1', tone: 'amber' },
+    { key: 'emerg', icon: Siren, en: 'Emergencies', ar: 'طوارئ', value: s.today?.emergencies, href: '/admin/bookings?status=active&priority=emergency', tone: 'red' },
+    { key: 'unassigned', icon: UserX, en: 'Unassigned confirmed', ar: 'مؤكدة بدون فني', value: s.today?.unassigned, href: '/admin/bookings?status=confirmed&unassigned=1', tone: 'indigo' },
+    { key: 'msgs', icon: MessageSquare, en: 'New messages', ar: 'رسائل جديدة', value: s.inquiries?.new, href: '/admin/feedback', tone: 'cyan' },
+    { key: 'reviews', icon: Star, en: 'Pending reviews', ar: 'تقييمات بانتظار الموافقة', value: s.reviews?.pending, href: '/admin/reviews?status=pending', tone: 'violet' },
+  ];
+  const TONE = {
+    blue: 'text-blue-700 bg-blue-50 dark:text-blue-300 dark:bg-blue-500/15',
+    amber: 'text-amber-800 bg-amber-50 dark:text-amber-300 dark:bg-amber-500/15',
+    red: 'text-red-700 bg-red-50 dark:text-red-300 dark:bg-red-500/15',
+    indigo: 'text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-500/15',
+    cyan: 'text-cyan-800 bg-cyan-50 dark:text-cyan-300 dark:bg-cyan-500/15',
+    violet: 'text-violet-700 bg-violet-50 dark:text-violet-300 dark:bg-violet-500/15',
   };
+  const Chevron = isAr ? ChevronLeft : ChevronRight;
+  const card = 'rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900';
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh]">
-        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-3" />
-        <p className="text-sm font-medium text-slate-500">Loading Dashboard...</p>
+      <div className="flex min-h-[50vh] items-center justify-center text-sm text-slate-600 dark:text-slate-300">
+        <Loader2 className="me-2 h-5 w-5 animate-spin" aria-hidden="true" />{L('Loading dashboard…', 'جارٍ تحميل لوحة التحكم…')}
       </div>
     );
   }
 
-  const kpiCards = [
-    {
-      title: 'Total Revenue',
-      value: `${(stats?.revenue ?? 0).toLocaleString()} SAR`,
-      subtext: 'Completed service volume',
-      icon: TrendingUp,
-      color: 'text-emerald-600 dark:text-emerald-400',
-      bg: 'bg-emerald-500/10',
-      border: 'border-emerald-200/80 dark:border-emerald-500/20',
-    },
-    {
-      title: 'Total Bookings',
-      value: stats?.totalBookings ?? 0,
-      subtext: 'Lifetime orders placed',
-      icon: ClipboardList,
-      color: 'text-blue-600 dark:text-blue-400',
-      bg: 'bg-blue-500/10',
-      border: 'border-blue-200/80 dark:border-blue-500/20',
-    },
-    {
-      title: 'Pending Action',
-      value: stats?.pending ?? 0,
-      subtext: 'Awaiting review / confirmation',
-      icon: Clock,
-      color: 'text-amber-600 dark:text-amber-400',
-      bg: 'bg-amber-500/10',
-      border: 'border-amber-200/80 dark:border-amber-500/20',
-      badge: stats?.pending > 0 ? 'Urgent' : null,
-    },
-    {
-      title: 'Confirmed & Active',
-      value: (stats?.confirmed ?? 0) + (stats?.inProgress ?? 0),
-      subtext: 'Scheduled or being serviced',
-      icon: CheckCircle2,
-      color: 'text-indigo-600 dark:text-indigo-400',
-      bg: 'bg-indigo-500/10',
-      border: 'border-indigo-200/80 dark:border-indigo-500/20',
-    },
-    {
-      title: 'Active Services',
-      value: stats?.totalServices ?? 12,
-      subtext: 'Available for booking online',
-      icon: Wrench,
-      color: 'text-cyan-600 dark:text-cyan-400',
-      bg: 'bg-cyan-500/10',
-      border: 'border-cyan-200/80 dark:border-cyan-500/20',
-    },
-    {
-      title: 'Registered Users',
-      value: stats?.totalUsers ?? 0,
-      subtext: 'Customer accounts in DB',
-      icon: Users,
-      color: 'text-violet-600 dark:text-violet-400',
-      bg: 'bg-violet-500/10',
-      border: 'border-violet-200/80 dark:border-violet-500/20',
-    },
-  ];
+  const todaySection = (
+    <section className={`${card} order-1 md:order-2`} aria-labelledby="today-title">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-4 py-3 sm:px-5 dark:border-slate-800">
+        <div>
+          <h2 id="today-title" className="text-lg font-bold text-slate-900 dark:text-white">{L("Today's schedule", 'جدول اليوم')}</h2>
+          <p className="text-xs text-slate-600 dark:text-slate-400">{fmtDate(riyadhYmd())}</p>
+        </div>
+        <Link href="/admin/bookings?date=today" className="inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-sm font-semibold text-blue-700 hover:underline dark:text-blue-300">
+          {L('All of today', 'كل حجوزات اليوم')}<Chevron className="h-4 w-4" aria-hidden="true" />
+        </Link>
+      </div>
+      {todayError ? (
+        <div className="p-4"><ErrorBanner message={todayError} onRetry={loadToday} L={L} /></div>
+      ) : !today || today.list.length === 0 ? (
+        <p className="px-5 py-10 text-center text-sm text-slate-600 dark:text-slate-400">{L('No bookings scheduled for today.', 'لا توجد حجوزات مجدولة اليوم.')}</p>
+      ) : (
+        <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+          {today.list.map((b) => {
+            const st = normalizeStatus(b.status);
+            const name = customerNameOf(b);
+            const phone = phoneOf(b);
+            const t = bookingTime(b);
+            const svc = serviceName(serviceInfo(b, servicesById), L);
+            const href = `/admin/bookings?open=${encodeURIComponent(b._id)}`;
+            return (
+              <li key={b._id} className={`flex flex-wrap items-center gap-3 px-4 py-3 sm:flex-nowrap sm:px-5 ${st === 'cancelled' ? 'opacity-70' : ''}`}>
+                <div className="w-20 shrink-0 font-semibold text-slate-900 dark:text-white">{t ? fmtSlot(t, isAr) : L('No time', 'بدون وقت')}</div>
+                <div className="min-w-[12rem] flex-1">
+                  <Link href={href} className="block truncate font-semibold text-slate-900 hover:underline dark:text-white" dir="auto" title={svc}>{svc}</Link>
+                  <p className="truncate text-sm text-slate-700 dark:text-slate-300">
+                    <span dir="auto">{name || L('No name', 'بدون اسم')}</span>
+                    {phone && <> · <a href={telLink(phone)} className="font-mono text-blue-700 hover:underline dark:text-blue-300" dir="ltr">{phone}</a></>}
+                  </p>
+                  <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                    <StatusBadge status={st} size="sm" />
+                    <PriorityBadge priority={b.priority} size="sm" />
+                    <span className="font-mono text-xs text-slate-600 dark:text-slate-400">{orderRef(b)}</span>
+                  </div>
+                </div>
+                <div className="ms-auto flex shrink-0 items-center gap-2">
+                  {st === 'pending' && (
+                    <button
+                      type="button"
+                      onClick={() => quickConfirm(b)}
+                      disabled={confirming === String(b._id)}
+                      className="inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-blue-600 px-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                    >
+                      {confirming === String(b._id) ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Check className="h-4 w-4" aria-hidden="true" />}
+                      {L('Confirm', 'تأكيد')}
+                    </button>
+                  )}
+                  <Link
+                    href={href}
+                    className="inline-flex min-h-11 items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-800 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+                  >
+                    {L('Open', 'فتح')}
+                  </Link>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
+  );
 
   return (
-    <div className="space-y-8">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white">
-            Workshop Dashboard
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Real-time analytics and management for Ahmed Cooling Workshop
-          </p>
+          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl dark:text-white">{L('Today', 'اليوم')}</h1>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{L('What needs attention right now', 'ما يحتاج إلى متابعة الآن')}</p>
         </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 hover:text-blue-600 transition shadow-sm cursor-pointer disabled:opacity-50"
-          >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-            <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
-          </button>
-
-          <Link
-            href="/admin/services"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-md shadow-blue-600/25 transition cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Service</span>
-          </Link>
-        </div>
+        <button
+          type="button"
+          onClick={refresh}
+          disabled={refreshing}
+          className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+        >
+          <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} aria-hidden="true" />{L('Refresh', 'تحديث')}
+        </button>
       </div>
 
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {kpiCards.map((card, i) => {
-          const Icon = card.icon;
-          return (
-            <div
-              key={i}
-              className={`p-6 rounded-3xl bg-white dark:bg-slate-900 border ${card.border} shadow-sm hover:shadow-md transition-shadow relative overflow-hidden`}
-            >
-              <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-6">
+        {/* Action tiles */}
+        <div className="order-2 md:order-1">
+          {statsError ? (
+            <ErrorBanner message={statsError} onRetry={loadStats} L={L} />
+          ) : (
+            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+              {tiles.map((t) => {
+                const Icon = t.icon;
+                const highlight = (t.key === 'overdue' || t.key === 'emerg') && Number(t.value) > 0;
+                return (
+                  <li key={t.key}>
+                    <Link
+                      href={t.href}
+                      className={`flex h-full min-h-24 flex-col justify-between gap-2 rounded-2xl border bg-white p-4 shadow-sm transition hover:border-blue-400 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:bg-slate-900 ${highlight ? 'border-red-300 dark:border-red-500/50' : 'border-slate-200 dark:border-slate-800'}`}
+                    >
+                      <span className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{L(t.en, t.ar)}</span>
+                        <span className={`rounded-lg p-1.5 ${TONE[t.tone]}`}><Icon className="h-4 w-4" aria-hidden="true" /></span>
+                      </span>
+                      <span className="text-2xl font-bold text-slate-900 dark:text-white">{fmtNum(t.value)}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+
+        {todaySection}
+
+        {/* All-time KPIs */}
+        {!statsError && stats && (
+          <div className="order-3 grid gap-4 lg:grid-cols-2">
+            <section className={`${card} p-4 sm:p-5 lg:col-span-2`} aria-labelledby="by-status">
+              <h2 id="by-status" className="mb-3 flex items-center gap-2 text-base font-bold text-slate-900 dark:text-white">
+                <ClipboardList className="h-5 w-5" aria-hidden="true" />{L('Bookings by status', 'الحجوزات حسب الحالة')}
+                <span className="text-sm font-normal text-slate-600 dark:text-slate-400">· {L('total', 'الإجمالي')} {fmtNum(s.byStatus?.all)}</span>
+              </h2>
+              <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-7">
+                {STATUSES.map((st) => (
+                  <li key={st}>
+                    <Link
+                      href={`/admin/bookings?status=${st}`}
+                      className="flex min-h-11 flex-col gap-1 rounded-xl border border-slate-200 p-3 hover:border-blue-400 hover:bg-blue-50/50 dark:border-slate-800 dark:hover:bg-slate-800/60"
+                    >
+                      <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                        <span className={`h-2 w-2 shrink-0 rounded-full ${STATUS_META[st]?.dot}`} aria-hidden="true" />
+                        <span className="truncate">{L(STATUS_META[st]?.en, STATUS_META[st]?.ar)}</span>
+                      </span>
+                      <span className="text-xl font-bold text-slate-900 dark:text-white">{fmtNum(s.byStatus?.[st])}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <section className={`${card} p-4 sm:p-5`} aria-labelledby="revenue">
+              <h2 id="revenue" className="mb-3 flex items-center gap-2 text-base font-bold text-slate-900 dark:text-white">
+                <Banknote className="h-5 w-5" aria-hidden="true" />{L('Revenue', 'الإيرادات')}
+                <span className="text-sm font-normal text-slate-600 dark:text-slate-400">· {L('all time', 'منذ البداية')}</span>
+              </h2>
+              <dl className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-400">
-                    {card.title}
-                  </p>
-                  <p className="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white mt-1">
-                    {card.value}
-                  </p>
-                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{card.subtext}</p>
+                  <dt className="text-xs text-slate-600 dark:text-slate-400">{L('Completed jobs', 'المهام المكتملة')}</dt>
+                  <dd className="text-xl font-bold text-slate-900 dark:text-white">{fmtMoney(s.revenue?.completedSAR)}</dd>
                 </div>
-                <div className={`p-3 rounded-2xl ${card.bg} shrink-0`}>
-                  <Icon className={`w-6 h-6 ${card.color}`} />
+                <div>
+                  <dt className="text-xs text-slate-600 dark:text-slate-400">{L('Paid', 'المدفوع')}</dt>
+                  <dd className="text-xl font-bold text-slate-900 dark:text-white">{fmtMoney(s.revenue?.paidSAR)}</dd>
                 </div>
-              </div>
+              </dl>
+            </section>
 
-              {card.badge && (
-                <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500 text-white uppercase animate-pulse">
-                  {card.badge}
-                </span>
-              )}
-            </div>
-          );
-        })}
-      </div>
+            <section className={`${card} p-4 sm:p-5`} aria-labelledby="reviews-kpi">
+              <h2 id="reviews-kpi" className="mb-3 flex items-center gap-2 text-base font-bold text-slate-900 dark:text-white">
+                <Star className="h-5 w-5" aria-hidden="true" />{L('Customer reviews', 'تقييمات العملاء')}
+              </h2>
+              <dl className="grid grid-cols-2 gap-3">
+                <div>
+                  <dt className="text-xs text-slate-600 dark:text-slate-400">{L('Average rating', 'متوسط التقييم')}</dt>
+                  <dd className="text-xl font-bold text-slate-900 dark:text-white">
+                    {Number(s.reviews?.count) > 0 && Number.isFinite(Number(s.reviews?.average))
+                      ? `${Number(s.reviews.average).toLocaleString(isAr ? 'ar-SA' : 'en-GB', { maximumFractionDigits: 1, minimumFractionDigits: 1 })} / 5`
+                      : '—'}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-slate-600 dark:text-slate-400">{L('Reviews', 'التقييمات')}</dt>
+                  <dd className="text-xl font-bold text-slate-900 dark:text-white">
+                    <Link href="/admin/reviews" className="hover:underline">{fmtNum(s.reviews?.count)}</Link>
+                  </dd>
+                </div>
+              </dl>
+            </section>
 
-      {/* Quick Navigation Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          { label: 'Manage Bookings', href: '/admin/bookings', count: stats?.totalBookings, color: 'text-blue-600', icon: ClipboardList },
-          { label: 'Workshop Services', href: '/admin/services', count: stats?.totalServices, color: 'text-cyan-600', icon: Wrench },
-          { label: 'Customer Directory', href: '/admin/users', count: stats?.totalUsers, color: 'text-violet-600', icon: Users },
-          { label: 'Reviews & Ratings', href: '/admin/reviews', count: '4.9', color: 'text-amber-500', icon: Star },
-        ].map((item, idx) => {
-          const Icon = item.icon;
-          return (
-            <Link
-              key={idx}
-              href={item.href}
-              className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-blue-400 dark:hover:border-blue-500/50 transition-all hover:shadow-md group flex flex-col justify-between"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <Icon className={`w-5 h-5 ${item.color}`} />
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{item.label}</p>
-                <p className="text-lg font-semibold text-slate-900 dark:text-white mt-0.5">{item.count}</p>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
-
-      {/* Recent Bookings Section */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between flex-wrap gap-3">
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Recent Customer Requests</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Latest service bookings across Saudi Arabia</p>
-          </div>
-          <Link
-            href="/admin/bookings"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
-          >
-            <span>View All Bookings</span>
-          </Link>
-        </div>
-
-        {recentBookings.length === 0 ? (
-          <div className="py-12 text-center text-slate-400">
-            <ClipboardList className="w-12 h-12 mx-auto mb-2 opacity-30" />
-            <p className="text-sm font-medium">No bookings logged yet.</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
-            {recentBookings.map((bkg) => {
-              const status = STATUS_CONFIG[bkg.status] || STATUS_CONFIG.pending;
-              const serviceName = bkg.service?.name || bkg.serviceName || 'AC Maintenance';
-              const customerName = bkg.customerName || bkg.user?.name || bkg.user?.fullName || 'Customer';
-
-              return (
-                <div
-                  key={bkg._id}
-                  onClick={() => router.push('/admin/bookings')}
-                  className="p-4 sm:p-6 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4"
-                >
-                  <div className="flex items-start gap-3.5 min-w-0">
-                    {renderServiceOutlineIcon(bkg.service, serviceName)}
-
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-sm sm:text-base text-slate-900 dark:text-white truncate">
-                          {serviceName}
-                        </span>
-                        <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500">
-                          #{bkg.orderNumber || bkg._id?.slice(-5).toUpperCase()}
-                        </span>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/50">
-                            KSA
-                          </span>
-                      </div>
-
-                      <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-1 flex-wrap">
-                        <span className="font-semibold text-slate-700 dark:text-slate-300">{customerName}</span>
-                        {bkg.phone && (
-                          <span className="flex items-center gap-1 font-mono">
-                            <Phone className="w-3 h-3 text-slate-400" />
-                            {bkg.phone}
-                          </span>
-                        )}
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3 text-slate-400" />
-                          {bkg.date ? new Date(bkg.date).toLocaleDateString('en-GB') : 'Today'}
-                        </span>
-                      </div>
-
-                      <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                        {bkg.address && (
-                          <span className="flex items-center gap-1 font-medium truncate max-w-md">
-                            <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                            <span>{bkg.address}</span>
-                          </span>
-                        )}
-                        {(() => {
-                          const coords = getBookingCoordinates(bkg);
-                          if (!coords) return null;
-                          const mapUrl = `https://www.google.com/maps?q=${coords.latitude},${coords.longitude}`;
-                          return (
-                            <div className="flex items-center gap-1.5">
-                              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded">
-                                <Crosshair className="w-2.5 h-2.5" />
-                                {coords.latitude.toFixed(4)}, {coords.longitude.toFixed(4)}
-                              </span>
-                              <a
-                                href={mapUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-blue-600 dark:text-blue-400 hover:underline"
-                              >
-                                <span>Map</span>
-                                <ExternalLink className="w-2.5 h-2.5" />
-                              </a>
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    </div>
+            <section className={`${card} p-4 sm:p-5`} aria-labelledby="users-kpi">
+              <h2 id="users-kpi" className="mb-3 flex items-center gap-2 text-base font-bold text-slate-900 dark:text-white">
+                <Users className="h-5 w-5" aria-hidden="true" />{L('Users', 'المستخدمون')}
+              </h2>
+              <dl className="grid grid-cols-3 gap-3">
+                {[
+                  ['customer', L('Customers', 'العملاء'), s.users?.customers],
+                  ['technician', L('Technicians', 'الفنيون'), s.users?.technicians],
+                  ['admin', L('Admins', 'المشرفون'), s.users?.admins],
+                ].map(([role, label, v]) => (
+                  <div key={role}>
+                    <dt className="text-xs text-slate-600 dark:text-slate-400">{label}</dt>
+                    <dd className="text-xl font-bold text-slate-900 dark:text-white">
+                      <Link href={`/admin/users?role=${role}`} className="hover:underline">{fmtNum(v)}</Link>
+                    </dd>
                   </div>
+                ))}
+              </dl>
+            </section>
 
-                  <div className="flex items-center justify-between md:justify-end gap-3 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800">
-                    <div className="text-right">
-                      <span className="block text-sm font-semibold text-slate-900 dark:text-white">
-                        {bkg.totalAmount ?? 150} {getBookingCurrency(bkg)}
-                      </span>
-                      <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${status.bg}`}
-                      >
-                        <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
-                        {status.label}
-                      </span>
-                    </div>
-
-                    {/* Quick WhatsApp Button */}
-                    {bkg.phone && (
-                      <button
-                        onClick={(e) => openWhatsApp(bkg.phone, customerName, serviceName, e)}
-                        className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 transition"
-                        title="Chat on WhatsApp"
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                      </button>
-                    )}
-
-                    {/* Quick Confirm button if pending */}
-                    {bkg.status === 'pending' && (
-                      <button
-                        onClick={(e) => handleQuickConfirm(bkg._id, e)}
-                        className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition"
-                      >
-                        Confirm
-                      </button>
-                    )}
-                  </div>
+            <section className={`${card} p-4 sm:p-5`} aria-labelledby="services-kpi">
+              <h2 id="services-kpi" className="mb-3 flex items-center gap-2 text-base font-bold text-slate-900 dark:text-white">
+                <Wrench className="h-5 w-5" aria-hidden="true" />{L('Services', 'الخدمات')}
+              </h2>
+              <dl className="grid grid-cols-2 gap-3">
+                <div>
+                  <dt className="text-xs text-slate-600 dark:text-slate-400">{L('Active', 'نشطة')}</dt>
+                  <dd className="text-xl font-bold text-slate-900 dark:text-white"><Link href="/admin/services" className="hover:underline">{fmtNum(s.services?.active)}</Link></dd>
                 </div>
-              );
-            })}
+                <div>
+                  <dt className="text-xs text-slate-600 dark:text-slate-400">{L('Inactive', 'غير نشطة')}</dt>
+                  <dd className="text-xl font-bold text-slate-900 dark:text-white"><Link href="/admin/services" className="hover:underline">{fmtNum(s.services?.inactive)}</Link></dd>
+                </div>
+              </dl>
+            </section>
           </div>
         )}
       </div>
+      <p className="sr-only" aria-live="polite">{refreshing ? L('Refreshing', 'جارٍ التحديث') : ''}</p>
     </div>
   );
 }

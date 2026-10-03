@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -23,6 +23,7 @@ import { getServices, getPublicReviews } from '../lib/api';
 import { FALLBACK_SERVICES, VISIT_FEE } from '../lib/servicesData';
 import HeroCarousel from '../components/HeroCarousel';
 import ServiceCard from '../components/ServiceCard';
+import { pathForLang } from '../lib/lang';
 
 // Same catalogue as the services and detail pages, so names and prices always match
 const SERVICES_FALLBACK = FALLBACK_SERVICES;
@@ -67,14 +68,14 @@ const HOME_FAQS = [
   {
     qEn: 'How fast can a technician reach my home in Jeddah or Makkah?',
     qAr: 'ما هي سرعة وصول الفني إلى منزلي في جدة أو مكة؟',
-    aEn: 'For regular bookings across Jeddah and Makkah, pick your preferred day and our technician will call you to agree on a time, often the same day. For emergency breakdowns (AC failure in summer, leakage), our mobile response team reaches you within 60 to 90 minutes.',
-    aAr: 'للحجوزات العادية في جدة ومكة، اختر اليوم المناسب وسيتصل بك الفني لتحديد الوقت، وغالباً في نفس اليوم. وللطوارئ الحادة (توقف التكييف بالصيف، تسريب مياه) يصل فريقنا المتنقل خلال ٦٠ إلى ٩٠ دقيقة.',
+    aEn: 'For regular bookings across Jeddah and Makkah, pick your preferred day and our technician will call you to agree on a time, often the same day. For emergency breakdowns (AC failure in summer, leakage), our mobile response team reaches you within 1.5 to 2 hours.',
+    aAr: 'للحجوزات العادية في جدة ومكة، اختر اليوم المناسب وسيتصل بك الفني لتحديد الوقت، وغالباً في نفس اليوم. وللطوارئ الحادة (توقف التكييف بالصيف، تسريب مياه) يصل فريقنا المتنقل خلال ساعة ونصف إلى ساعتين.',
   },
   {
     qEn: 'Is there a visit fee?',
     qAr: 'هل هناك رسوم كشف وزيارة؟',
-    aEn: 'Yes, a fixed technician visit fee of SAR 30 is added to the service price. It is shown on every service and in your booking total before you confirm, so there are no surprises.',
-    aAr: 'نعم، تضاف رسوم زيارة ثابتة قدرها ٣٠ ريالاً إلى سعر الخدمة. وتظهر على كل خدمة وفي إجمالي الحجز قبل التأكيد، بدون أي مفاجآت.',
+    aEn: 'Yes, a fixed technician visit fee of SAR 30 is added to the service price. It is shown on every service and in your booking total before you confirm, so there are no surprises. Care packages already include the visit fee.',
+    aAr: 'نعم، تضاف رسوم زيارة ثابتة قدرها ٣٠ ريالاً إلى سعر الخدمة. وتظهر على كل خدمة وفي إجمالي الحجز قبل التأكيد، بدون أي مفاجآت. أما باقات الصيانة فهي شاملة رسوم الزيارة.',
   },
   {
     qEn: 'What is included in the service warranty?',
@@ -102,6 +103,20 @@ const MAKKAH_AREAS = [
 ];
 
 
+// Home category tabs. The ids match the service categories in the database and the /services?cat= filter.
+const CATEGORY_TABS = [
+  { id: 'all', en: 'All Services', ar: 'جميع الخدمات' },
+  { id: 'ac', en: 'AC', ar: 'المكيفات' },
+  { id: 'refrigerator', en: 'Refrigerators', ar: 'الثلاجات' },
+  { id: 'washing-machine', en: 'Washing machines', ar: 'الغسالات' },
+  { id: 'stove', en: 'Stoves', ar: 'الأفران والبوتاجاز' },
+  { id: 'general', en: 'General', ar: 'عام' },
+  { id: 'popular', en: 'Popular', ar: 'الأكثر طلباً' },
+];
+
+// Only the first few popular services get the "Popular" badge, so it still means something
+const MAX_POPULAR_BADGES = 3;
+
 // Area names are stored as "Arabic (English)"; show only the one for the current language
 const areaLabel = (area, lang) => {
   const m = String(area).match(/^(.*?)\s*\((.*)\)$/);
@@ -117,6 +132,24 @@ export default function Home() {
   const [apiReviews, setApiReviews] = useState([]); // approved reviews from real customers
   const [activeTab, setActiveTab] = useState('all');
   const [openFaq, setOpenFaq] = useState(null);
+  const tabsRef = useRef(null);
+  const [tabsMoreEnd, setTabsMoreEnd] = useState(false); // more tabs hidden past the end edge
+
+  // Numbers in the current language (Arabic-Indic digits in Arabic mode)
+  const num = (n, opts) => new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', opts).format(n);
+
+  // Show a fade on the tab row while more chips are hidden past the end (works for LTR and RTL)
+  const updateTabsFade = useCallback(() => {
+    const el = tabsRef.current;
+    if (!el) return;
+    setTabsMoreEnd(Math.abs(el.scrollLeft) + el.clientWidth < el.scrollWidth - 4);
+  }, []);
+
+  useEffect(() => {
+    updateTabsFade();
+    window.addEventListener('resize', updateTabsFade);
+    return () => window.removeEventListener('resize', updateTabsFade);
+  }, [updateTabsFade, language]);
 
   const PHONE = '+966590192146';
 
@@ -161,39 +194,45 @@ export default function Home() {
     window.location.href = `tel:${PHONE}`;
   };
 
+  // Ids of the services that get the "Popular" badge: the first few popular ones in catalogue order
+  const popularBadgeIds = useMemo(
+    () =>
+      new Set(
+        services
+          .filter((s) => s.isPopular || s.popular)
+          .slice(0, MAX_POPULAR_BADGES)
+          .map((s) => s._id || s.id || s.name),
+      ),
+    [services],
+  );
+
   // Filtered services for home page
   const filteredServices = useMemo(() => {
     if (activeTab === 'all') return services;
     if (activeTab === 'popular') return services.filter((s) => s.isPopular || s.popular);
-    if (activeTab === 'emergency') return services.filter((s) => s.isEmergency || s.emergency);
     return services.filter((s) => {
       const cat = String(s.category || '').toLowerCase();
-      if (activeTab === 'ac') return cat.includes('ac');
-      if (activeTab === 'refrigerator') return cat.includes('refrigerator') || cat.includes('fridge');
-      if (activeTab === 'washing') return cat.includes('wash') || cat.includes('washer');
-      if (activeTab === 'stove') return cat.includes('stove') || cat.includes('oven');
-      return true;
+      if (activeTab === 'refrigerator') return cat === 'refrigerator' || cat.includes('fridge');
+      if (activeTab === 'washing-machine') return cat === 'washing-machine' || cat.includes('wash');
+      if (activeTab === 'stove') return cat === 'stove' || cat.includes('oven');
+      return cat === activeTab;
     });
   }, [services, activeTab]);
 
   const howSteps = [
     {
-      step: '01',
       title: language === 'ar' ? 'حدد الخدمة واليوم' : 'Choose Service & Day',
       desc: language === 'ar' ? 'اختر الخدمة واليوم المناسب في دقيقة واحدة، وسيتصل بك الفني لتحديد الوقت.' : 'Pick your service and preferred day in 60 seconds. The technician calls you to agree on a time.',
     },
     {
-      step: '02',
       title: language === 'ar' ? 'وصول الفني المتخصص' : 'Certified Tech Arrives',
       desc: language === 'ar' ? 'يصلك فني معتمد مجهز بجميع أجهزة الفحص المتقدمة وقطع الغيار.' : 'Our vetted technician arrives with advanced diagnostic tools & parts.',
     },
     {
-      step: '03',
       title: language === 'ar' ? 'تسعير شفاف وإصلاح دقيق' : 'Upfront Quote & Fix',
       desc: language === 'ar' ? 'شرح سبب العطل وتكلفة واضحة مسبقة بدون أي مصاريف خفية.' : 'Clear explanation of root cause and transparent price before repair starts.',
     },
     {
-      step: '04',
       title: language === 'ar' ? 'فحص تشغيل وضمان معتمد' : 'Testing & Certified Warranty',
       desc: language === 'ar' ? 'اختبار كفاءة الجهاز بعد الصيانة مع سند ضمان رسمي ومعتمد.' : 'Post-repair cooling performance test with an official certified warranty receipt.',
     },
@@ -207,7 +246,7 @@ export default function Home() {
     },
     {
       icon: <Zap className="h-7 w-7 text-primary dark:text-blue-400" />,
-      title: language === 'ar' ? 'وصول سريع خلال ٦٠-٩٠ دقيقة' : 'Rapid Response in 60-90 Mins',
+      title: language === 'ar' ? 'وصول سريع خلال ١٫٥–٢ ساعة' : 'Rapid Response in 1.5–2 Hours',
       desc: language === 'ar' ? 'أسطول فنيين متنقل وموزع في جميع أحياء جدة ومكة المكرمة.' : 'Distributed technician fleet ready to reach your home across Jeddah & Makkah.',
     },
     {
@@ -272,30 +311,27 @@ export default function Home() {
           </div>
 
           <Link
-            href="/services"
-            className="inline-flex items-center py-2 text-sm font-semibold text-primary dark:text-blue-300 hover:text-primary-dark transition-colors self-start sm:self-auto"
+            href={pathForLang('/services', language)}
+            className="inline-flex min-h-11 items-center py-2 text-sm font-semibold text-primary dark:text-blue-300 hover:text-primary-dark transition-colors self-start sm:self-auto"
           >
             <span>{t.seeAll}</span>
           </Link>
         </div>
 
-        {/* Category Tabs */}
-        <div
-          className="mb-8 flex gap-2 overflow-x-auto pb-2 scrollbar-none no-scrollbar [&::-webkit-scrollbar]:hidden scroll-reveal delay-100"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
-          {[
-            { id: 'all', label: language === 'ar' ? 'جميع الخدمات' : 'All Services' },
-            { id: 'ac', label: language === 'ar' ? 'المكيفات' : 'Air Conditioning' },
-            { id: 'refrigerator', label: language === 'ar' ? 'الثلاجات والفريزر' : 'Refrigerators' },
-            { id: 'washing', label: language === 'ar' ? 'الغسالات' : 'Washing Machines' },
-            { id: 'stove', label: language === 'ar' ? 'الأفران والبوتاجاز' : 'Stoves & Ovens' },
-            { id: 'popular', label: language === 'ar' ? 'الأكثر طلباً' : 'Popular' },
-          ].map((tab) => (
+        {/* Category Tabs (scroll sideways on phones; the fade at the end shows there is more) */}
+        <div className="relative mb-8 scroll-reveal delay-100">
+          <div
+            ref={tabsRef}
+            onScroll={updateTabsFade}
+            className="flex gap-2 overflow-x-auto pb-2 scrollbar-none no-scrollbar [&::-webkit-scrollbar]:hidden"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+          {CATEGORY_TABS.map((c) => ({ id: c.id, label: language === 'ar' ? c.ar : c.en })).map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`shrink-0 rounded-2xl px-5 py-2.5 text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+              aria-pressed={activeTab === tab.id}
+              className={`shrink-0 rounded-2xl px-5 py-2.5 pointer-coarse:min-h-11 text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                 activeTab === tab.id
                   ? 'bg-primary text-white shadow-md shadow-primary/25'
                   : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:border-slate-800 dark:hover:bg-slate-800 dark:hover:text-white'
@@ -304,6 +340,13 @@ export default function Home() {
               {tab.label}
             </button>
           ))}
+          </div>
+          <div
+            aria-hidden="true"
+            className={`pointer-events-none absolute top-0 bottom-2 end-0 w-14 bg-gradient-to-l from-bg to-transparent transition-opacity duration-200 rtl:bg-gradient-to-r dark:from-slate-950 ${
+              tabsMoreEnd ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
         </div>
 
         {/* 3 CARDS PER ROW, MATCHING max-w-[1560px] */}
@@ -314,6 +357,7 @@ export default function Home() {
               service={svc}
               onBook={handleBook}
               index={idx}
+              showPopularBadge={popularBadgeIds.has(svc._id || svc.id || svc.name)}
             />
           ))}
         </div>
@@ -325,14 +369,14 @@ export default function Home() {
               <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
               <span>
                 {language === 'ar'
-                  ? `جميع الأسعار تشمل ضريبة القيمة المضافة 15% • تضاف رسوم زيارة ${formatPrice(VISIT_FEE)} • قطع الغيار غير مشمولة وتُحدد حسب الحاجة`
+                  ? `جميع الأسعار تشمل ضريبة القيمة المضافة ${num(0.15, { style: 'percent' })} • تضاف رسوم زيارة ${formatPrice(VISIT_FEE)} • قطع الغيار غير مشمولة وتُحدد حسب الحاجة`
                   : `All prices include 15% VAT • ${formatPrice(VISIT_FEE)} visit fee added • Spare parts are not included and quoted separately`}
               </span>
             </div>
             <p className="font-semibold text-primary dark:text-blue-400">
               {language === 'ar'
-                ? 'الأسعار تبدأ من وتختلف حسب المعاينة والفحص الميداني.'
-                : 'Prices start from and may vary after inspection.'}
+                ? 'الأسعار تبدأ من المبلغ المذكور وقد تختلف بعد المعاينة.'
+                : 'Prices start from the listed amount and may vary after inspection.'}
             </p>
           </div>
         </div>
@@ -340,7 +384,7 @@ export default function Home() {
         {/* Bottom Explorer CTA */}
         <div className="mt-8 text-center scroll-reveal delay-200">
           <Link
-            href="/services"
+            href={pathForLang('/services', language)}
             className="inline-flex items-center gap-2 rounded-2xl border-2 border-primary/30 bg-primary-light px-8 py-4 text-sm font-semibold text-primary hover:bg-primary hover:text-white transition-all shadow-sm"
           >
             <span>{language === 'ar' ? 'عرض جميع الخدمات وقائمة الأسعار' : 'Explore All Services & Price List'}</span>
@@ -404,12 +448,9 @@ export default function Home() {
                 i === 1 ? 'delay-100' : i === 2 ? 'delay-200' : i === 3 ? 'delay-300' : ''
               }`}
             >
-              <div className="flex items-center justify-between mb-4">
+              <div className="mb-4">
                 <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-base font-semibold text-white shadow-md shadow-primary/20">
-                  {item.step}
-                </span>
-                <span aria-hidden="true" className="text-3xl font-semibold text-slate-100 dark:text-slate-800">
-                  #{i + 1}
+                  {num(i + 1, { minimumIntegerDigits: 2 })}
                 </span>
               </div>
               <h3 className="text-base font-semibold text-slate-900 dark:text-white">
@@ -438,7 +479,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-6 lg:gap-8">
             {/* Package 1 */}
             <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex flex-col scroll-reveal-left delay-100">
               <span className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-400">{language === 'ar' ? 'كشف وزيارة فردية' : 'Single Issue Visit'}</span>
@@ -446,9 +487,12 @@ export default function Home() {
               <div className="mt-4 mb-6">
                 <span className="text-3xl font-semibold text-slate-900 dark:text-white">{formatPrice(150)}</span>
                 <span className="text-xs text-slate-500 dark:text-slate-400 ms-1">{language === 'ar' ? '/ زيارة' : '/ visit'}</span>
+                <span className="mt-1 block text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                  {language === 'ar' ? 'يشمل الزيارة والتشخيص، رسوم الزيارة مشمولة' : 'Visit + diagnosis, visit fee included'}
+                </span>
               </div>
               <ul className="space-y-3 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-8 flex-1">
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" /> {language === 'ar' ? 'فحص شامل للعطل بالمنزل' : 'Full on-site diagnostic'}</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" /> {language === 'ar' ? 'تقرير تشخيص كامل للعطل بالمنزل' : 'Full on-site diagnostic report'}</li>
                 <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" /> {language === 'ar' ? 'تسعير مسبق قبل البدء' : 'Upfront written quote'}</li>
                 <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" /> {language === 'ar' ? 'ضمان رسمي معتمد على العمل' : 'Official certified work warranty'}</li>
               </ul>
@@ -459,15 +503,18 @@ export default function Home() {
 
             {/* Package 2 - Featured */}
             <div className="relative rounded-3xl border-2 border-primary bg-white p-8 shadow-xl dark:bg-slate-900 flex flex-col scroll-reveal-scale delay-200">
-              <span className="absolute -top-3.5 start-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1 text-xs font-semibold text-white shadow-md">
+              <span className="absolute -top-3.5 inset-x-0 mx-auto w-fit max-w-[calc(100%-2rem)] whitespace-nowrap rounded-full bg-primary px-4 py-1 text-xs font-semibold text-white shadow-md">
                 <Star className="me-1 inline h-3 w-3 fill-current align-[-1px]" aria-hidden="true" />
                 {language === 'ar' ? 'الأكثر طلباً بالصيف' : 'Most Popular'}
               </span>
               <span className="text-xs font-semibold uppercase text-blue-700 dark:text-blue-300">{language === 'ar' ? 'باقة التبريد المثالي' : 'Summer AC Prep'}</span>
-              <h3 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">{language === 'ar' ? 'غسيل عميق + شحن فريون' : 'Deep Wash + Gas Topup'}</h3>
+              <h3 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">{language === 'ar' ? 'غسيل عميق + شحن فريون' : 'Deep Wash + Gas Top-up'}</h3>
               <div className="mt-4 mb-6">
-                <span className="text-3xl font-semibold text-primary">{formatPrice(280)}</span>
+                <span className="text-3xl font-semibold text-primary dark:text-blue-400">{formatPrice(280)}</span>
                 <span className="text-xs text-slate-500 dark:text-slate-400 ms-1">{language === 'ar' ? '/ مكيف' : '/ unit'}</span>
+                <span className="mt-1 block text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                  {language === 'ar' ? 'شامل رسوم الزيارة' : 'Visit fee included'}
+                </span>
               </div>
               <ul className="space-y-3 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-8 flex-1">
                 <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-primary shrink-0" /> {language === 'ar' ? 'غسيل ضغط عالي للمبخر والمروحة' : 'High pressure coil & blower wash'}</li>
@@ -481,15 +528,18 @@ export default function Home() {
             </div>
 
             {/* Package 3 */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex flex-col scroll-reveal-right delay-300">
+            <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex flex-col scroll-reveal-right delay-300 md:col-span-2 md:mx-auto md:w-full md:max-w-md lg:col-span-1 lg:max-w-none">
               <span className="text-xs font-semibold uppercase text-purple-700 dark:text-purple-300">{language === 'ar' ? 'رعاية سنوية للفلل' : 'Annual Villa Care'}</span>
               <h3 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">{language === 'ar' ? 'عقد صيانة منزلية كامل' : 'Full Home Maintenance'}</h3>
               <div className="mt-4 mb-6">
-                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase block mb-1">
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase block mb-1">
                   {language === 'ar' ? 'يبدأ من' : 'Starting from'}
                 </span>
                 <span className="text-3xl font-semibold text-slate-900 dark:text-white">{formatPrice(1200)}</span>
                 <span className="text-xs text-slate-500 dark:text-slate-400 ms-1">{language === 'ar' ? '/ سنة' : '/ year'}</span>
+                <span className="mt-1 block text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                  {language === 'ar' ? 'شامل رسوم الزيارة' : 'Visit fee included'}
+                </span>
               </div>
               <ul className="space-y-3 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-8 flex-1">
                 <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-purple-500 shrink-0" /> {language === 'ar' ? '٤ زيارات فحص دوري للمكيفات' : '4 seasonal AC maintenance visits'}</li>
@@ -520,13 +570,13 @@ export default function Home() {
           <div className="mt-8 rounded-2xl border border-slate-200 bg-white/80 p-4 text-xs font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300 text-center sm:text-start flex flex-col sm:flex-row items-center justify-between gap-3">
             <p>
               {language === 'ar'
-                ? 'الأسعار تشمل ضريبة القيمة المضافة 15% • قطع الغيار غير مشمولة وتُحدد بشكل منفصل عند الحاجة.'
-                : 'Prices include 15% VAT • Spare parts are not included and quoted separately if required.'}
+                ? `أسعار الباقات تشمل ضريبة القيمة المضافة ${num(0.15, { style: 'percent' })} ورسوم الزيارة • قطع الغيار غير مشمولة وتُحدد بشكل منفصل عند الحاجة.`
+                : 'Package prices include 15% VAT and the visit fee • Spare parts are not included and quoted separately if required.'}
             </p>
             <p className="font-semibold text-primary dark:text-blue-400 shrink-0">
               {language === 'ar'
-                ? 'الأسعار تبدأ من وتختلف حسب المعاينة والفحص الميداني.'
-                : 'Prices start from and may vary after inspection.'}
+                ? 'الأسعار تبدأ من المبلغ المذكور وقد تختلف بعد المعاينة.'
+                : 'Prices start from the listed amount and may vary after inspection.'}
             </p>
           </div>
         </div>
@@ -542,7 +592,7 @@ export default function Home() {
             </span>
           </div>
           <h2 className="text-2xl sm:text-4xl font-semibold text-slate-900 dark:text-white">
-            {language === 'ar' ? 'لماذا يعتمد علينا ٤٨٧ عميلاً في جدة ومكة؟' : 'Why 487 Saudi Households Trust Us'}
+            {language === 'ar' ? `لماذا يعتمد علينا ${num(487)} عميلاً في جدة ومكة؟` : `Why ${num(487)} Saudi Households Trust Us`}
           </h2>
         </div>
 
@@ -624,7 +674,7 @@ export default function Home() {
                   &ldquo;{r.text}&rdquo;
                 </p>
                 {r.verified && r.timeAgo && (
-                  <p className="mt-3 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                  <p className="mt-3 text-xs font-semibold text-slate-500 dark:text-slate-400">
                     {r.timeAgo}
                   </p>
                 )}
@@ -693,7 +743,7 @@ export default function Home() {
       {/* ═══ 10. FREQUENTLY ASKED QUESTIONS (FAQS - mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-8) ═══ */}
       <section className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-8 py-16 border-t border-slate-200/80 dark:border-slate-800">
         <div className="text-center mb-10 scroll-reveal">
-          <span className="text-xs font-semibold uppercase text-blue-700 dark:text-blue-300">FAQS</span>
+          <span className="text-xs font-semibold uppercase text-blue-700 dark:text-blue-300">{language === 'ar' ? 'الأسئلة الشائعة' : 'FAQs'}</span>
           <h2 className="mt-1 text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white">
             {language === 'ar' ? 'الأسئلة الأكثر تكراراً' : 'Frequently Asked Questions'}
           </h2>
@@ -729,7 +779,7 @@ export default function Home() {
       </section>
 
       {/* Trust Footer line */}
-      <div className="scroll-reveal-fade flex items-center justify-center gap-2 pb-10">
+      <div className="scroll-reveal-fade flex items-center justify-center gap-2 pb-24 sm:pb-10">
         <span className="h-2 w-2 rounded-full bg-emerald-500" />
         <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
           {t.trustedFooter}

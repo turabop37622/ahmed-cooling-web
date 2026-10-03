@@ -1,25 +1,54 @@
-import services from '../lib/services.json';
+import { absoluteUrl } from '../lib/lang';
+import { loadServices, PACKAGES } from '../lib/servicesData';
+import { buildSlugIndex } from '../lib/serviceSlugs';
 
-export default function sitemap() {
+// Fixed "last modified" for the static pages: bump it when their content changes.
+// (Using new Date() would tell crawlers every page changed on every request.)
+const SITE_UPDATED = new Date('2026-10-03T00:00:00Z');
+
+export const revalidate = 3600;
+
+// Every language URL is listed with its hreflang alternates (Arabic = default URL, English = /en/...).
+function localized(path, extra, lastModified = SITE_UPDATED) {
+  const languages = {
+    'ar-SA': absoluteUrl(path, 'ar'),
+    'en-SA': absoluteUrl(path, 'en'),
+    'x-default': absoluteUrl(path, 'ar'),
+  };
+  return ['ar', 'en'].map((lang) => ({
+    url: absoluteUrl(path, lang),
+    lastModified,
+    alternates: { languages },
+    ...extra,
+  }));
+}
+
+const dateOr = (value, fallback) => {
+  const d = value ? new Date(value) : null;
+  return d && !Number.isNaN(d.getTime()) ? d : fallback;
+};
+
+export default async function sitemap() {
   const base = 'https://www.ahmedcoolingworkshop.com';
 
-  // Every service in the shared catalogue, so new services are listed without editing this file
-  const serviceIds = services.map((svc) => svc._id);
-
-  const serviceUrls = serviceIds.map((id) => ({
-    url: `${base}/services/${id}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly',
-    priority: 0.85,
-  }));
+  // Every active database service (fallback: bundled copy) plus the package that has its own page.
+  // Canonical URLs use the descriptive slug (id URLs only redirect).
+  const { services } = await loadServices();
+  const pages = [...services, ...PACKAGES.filter((p) => p.slug)];
+  const { idToSlug } = buildSlugIndex(pages);
+  const serviceUrls = pages.flatMap((svc) => {
+    const slug = idToSlug.get(String(svc._id || svc.id));
+    if (!slug) return [];
+    return localized(`/services/${slug}`, { changeFrequency: 'weekly', priority: 0.85 }, dateOr(svc.updatedAt, SITE_UPDATED));
+  });
 
   return [
-    { url: base, lastModified: new Date(), changeFrequency: 'daily', priority: 1.0 },
-    { url: `${base}/services`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
+    ...localized('/', { changeFrequency: 'daily', priority: 1.0 }),
+    ...localized('/services', { changeFrequency: 'weekly', priority: 0.9 }),
     ...serviceUrls,
-    { url: `${base}/about`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${base}/contact`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${base}/rate`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${base}/privacy`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
+    ...localized('/about', { changeFrequency: 'monthly', priority: 0.8 }),
+    ...localized('/contact', { changeFrequency: 'monthly', priority: 0.8 }),
+    { url: `${base}/rate`, lastModified: SITE_UPDATED, changeFrequency: 'monthly', priority: 0.6 },
+    ...localized('/privacy', { changeFrequency: 'yearly', priority: 0.3 }),
   ];
 }

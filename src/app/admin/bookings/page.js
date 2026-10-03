@@ -1,1028 +1,637 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { adminApi } from '../adminApi';
+// Admin bookings list: server-side paging / search / filters (GET /admin/bookings), all state in the URL
+// (?status=&priority=&q=&date=&from=&to=&sort=&unassigned=1&overdue=1&page=&open=) so refresh and back keep it.
+// unassigned/overdue come from the dashboard tiles and use the same server-side definition as those tiles.
+// Table from 1280px up, cards below. Auto-refresh every 30s keeps filters, scroll and the open drawer.
+
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
+
+// Native history updates are picked up by useSearchParams without a server round trip (Next.js 14.1+).
+const replaceUrl = (url) => window.history.replaceState(null, '', url);
 import {
-  ClipboardList,
-  Search,
-  RefreshCw,
-  Phone,
-  Mail,
-  MapPin,
-  Calendar,
-  Clock,
-  CheckCircle2,
-  X,
-  MessageCircle,
-  ExternalLink,
-  ChevronRight,
-  Filter,
-  Check,
-  Ban,
-  User,
-  Wrench,
-  Snowflake,
-  Refrigerator,
-  WashingMachine,
-  Flame,
-  Sparkles,
-  Wind,
-  Zap,
-  ShieldCheck,
-  Trash2,
-  Crosshair,
-  Navigation,
+  Search, RefreshCw, MessageCircle, ChevronLeft, ChevronRight, ClipboardList, X, Calendar, Clock, MapPin, Loader2,
 } from 'lucide-react';
+import { useAdminLang } from '../AdminI18n';
+import { StatusBadge, PriorityBadge } from '../components/Badges';
+import { getBookings, getAdminServices } from '../adminApi';
+import BookingDrawer from './BookingDrawer';
+import {
+  TABS, normalizeStatus, serviceInfo, serviceName, customerNameOf, phoneOf, orderRef, whatsappLink, telLink,
+  bookingDate, bookingTime, fmtSlot, dateRange,
+} from './bookingUtils';
 
-function renderServiceOutlineIcon(service, serviceName, size = 'sm') {
-  const text = ((service?.name || '') + ' ' + (serviceName || '') + ' ' + (service?.category || '')).toLowerCase();
-  const iconSize = size === 'lg' ? 'w-6 h-6 stroke-[1.8]' : 'w-4 h-4 stroke-[1.8]';
-  const boxSize = size === 'lg' ? 'w-12 h-12 rounded-2xl' : 'w-8 h-8 rounded-xl';
+const PAGE_SIZE = 25;
+const REFRESH_MS = 30000;
+const TAB_KEYS = TABS.map((t) => t.key);
+const DATE_KEYS = ['today', 'tomorrow', 'week', 'overdue', 'custom'];
+const SORT_KEYS = ['schedule', '-schedule', '-created', 'created'];
+const isFlag = (v) => v === '1' || v === 'true';
 
-  if (text.includes('clean') || text.includes('jet') || text.includes('sanitiz') || text.includes('غسيل')) {
-    return (
-      <div className={`${boxSize} bg-cyan-50 dark:bg-cyan-500/10 border border-cyan-200/60 dark:border-cyan-500/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shrink-0`}>
-        <Sparkles className={iconSize} />
-      </div>
-    );
-  }
-  if (text.includes('wash') || text.includes('laundry') || text.includes('غسال')) {
-    return (
-      <div className={`${boxSize} bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200/60 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0`}>
-        <WashingMachine className={iconSize} />
-      </div>
-    );
-  }
-  if (text.includes('ref') || text.includes('fridge') || text.includes('freezer') || text.includes('ثلاج') || text.includes('ice')) {
-    return (
-      <div className={`${boxSize} bg-teal-50 dark:bg-teal-500/10 border border-teal-200/60 dark:border-teal-500/20 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0`}>
-        <Refrigerator className={iconSize} />
-      </div>
-    );
-  }
-  if (text.includes('gas') || text.includes('freon') || text.includes('فريون')) {
-    return (
-      <div className={`${boxSize} bg-sky-50 dark:bg-sky-500/10 border border-sky-200/60 dark:border-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0`}>
-        <Wind className={iconSize} />
-      </div>
-    );
-  }
-  if (text.includes('stove') || text.includes('oven') || text.includes('cook') || text.includes('فرن') || text.includes('بوتجاز')) {
-    return (
-      <div className={`${boxSize} bg-amber-50 dark:bg-amber-500/10 border border-amber-200/60 dark:border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0`}>
-        <Flame className={iconSize} />
-      </div>
-    );
-  }
-  if (text.includes('plan') || text.includes('annual') || text.includes('contract') || text.includes('عقد') || text.includes('صيانة سنوية')) {
-    return (
-      <div className={`${boxSize} bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200/60 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0`}>
-        <ShieldCheck className={iconSize} />
-      </div>
-    );
-  }
-  if (text.includes('emergency') || text.includes('24/7') || text.includes('urgent') || text.includes('طوارئ')) {
-    return (
-      <div className={`${boxSize} bg-rose-50 dark:bg-rose-500/10 border border-rose-200/60 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0`}>
-        <Zap className={iconSize} />
-      </div>
-    );
-  }
-  if (text.includes('ac') || text.includes('cool') || text.includes('air') || text.includes('تكييف') || text.includes('مكيف')) {
-    return (
-      <div className={`${boxSize} bg-blue-50 dark:bg-blue-500/10 border border-blue-200/60 dark:border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0`}>
-        <Snowflake className={iconSize} />
-      </div>
-    );
-  }
+const INPUT = 'min-h-11 rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:[color-scheme:dark]';
+
+export default function AdminBookingsPage() {
   return (
-    <div className={`${boxSize} bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-400 flex items-center justify-center shrink-0`}>
-      <Wrench className={iconSize} />
-    </div>
+    <Suspense fallback={<div className="py-20 text-center text-sm text-slate-600 dark:text-slate-300">…</div>}>
+      <BookingsPageInner />
+    </Suspense>
   );
 }
 
-const STATUS_TABS = [
-  { key: 'all', label: 'All Bookings' },
-  { key: 'pending', label: 'Pending' },
-  { key: 'confirmed', label: 'Confirmed' },
-  { key: 'in_progress', label: 'In Progress' },
-  { key: 'completed', label: 'Completed' },
-  { key: 'cancelled', label: 'Cancelled' },
-];
+function BookingsPageInner() {
+  const { L, isAr, fmtDate, fmtTime, fmtMoney, fmtNum } = useAdminLang();
+  const pathname = usePathname();
+  const sp = useSearchParams();
 
-const STATUS_CONFIG = {
-  pending: {
-    label: 'Pending',
-    bg: 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400 border-amber-200 dark:border-amber-500/30',
-    dot: 'bg-amber-500',
-  },
-  confirmed: {
-    label: 'Confirmed',
-    bg: 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400 border-blue-200 dark:border-blue-500/30',
-    dot: 'bg-blue-500',
-  },
-  assigned: {
-    label: 'Assigned',
-    bg: 'bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-400 border-violet-200 dark:border-violet-500/30',
-    dot: 'bg-violet-500',
-  },
-  in_progress: {
-    label: 'In Progress',
-    bg: 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-400 border-indigo-200 dark:border-indigo-500/30',
-    dot: 'bg-indigo-500',
-  },
-  completed: {
-    label: 'Completed',
-    bg: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/30',
-    dot: 'bg-emerald-500',
-  },
-  cancelled: {
-    label: 'Cancelled',
-    bg: 'bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-400 border-rose-200 dark:border-rose-500/30',
-    dot: 'bg-rose-500',
-  },
-};
+  // ---------------------------------------------------------------- URL state
+  const tab = TAB_KEYS.includes(sp.get('status')) ? sp.get('status') : 'all';
+  const priority = ['emergency', 'normal'].includes(sp.get('priority')) ? sp.get('priority') : '';
+  const q = (sp.get('q') || '').trim();
+  const dateKey = DATE_KEYS.includes(sp.get('date')) ? sp.get('date') : '';
+  const fromParam = sp.get('from') || '';
+  const toParam = sp.get('to') || '';
+  const sort = SORT_KEYS.includes(sp.get('sort')) ? sp.get('sort') : 'schedule';
+  const unassigned = isFlag(sp.get('unassigned'));
+  const overdue = isFlag(sp.get('overdue'));
+  const page = Math.max(1, parseInt(sp.get('page') || '1', 10) || 1);
+  const openId = sp.get('open') || null;
 
-const getBookingCurrency = (b) => {
-  if (b?.currency) return b.currency;
-  return 'SAR';
-};
+  const setParams = useCallback((patch, { resetPage = true } = {}) => {
+    const next = new URLSearchParams(sp.toString());
+    Object.entries(patch).forEach(([k, v]) => {
+      if (v === null || v === undefined || v === '') next.delete(k);
+      else next.set(k, String(v));
+    });
+    if (resetPage && !('page' in patch)) next.delete('page');
+    if (next.get('status') === 'all') next.delete('status');
+    if (next.get('sort') === 'schedule') next.delete('sort');
+    if (next.get('page') === '1') next.delete('page');
+    const qs = next.toString();
+    replaceUrl(qs ? `${pathname}?${qs}` : pathname);
+  }, [sp, pathname]);
 
-export default function AdminBookingsPage() {
-  const [bookings, setBookings] = useState([]);
-  const [loadError, setLoadError] = useState('');
+  // ---------------------------------------------------------------- search box (debounced)
+  const [searchText, setSearchText] = useState(q);
+  useEffect(() => {
+    // Back/forward or a link changed ?q= — reflect it in the box
+    setSearchText((cur) => (cur.trim() === q ? cur : q));
+  }, [q]);
+  useEffect(() => {
+    const trimmed = searchText.trim();
+    if (trimmed === q) return undefined;
+    const t = setTimeout(() => setParams({ q: trimmed }), 400);
+    return () => clearTimeout(t);
+  }, [searchText, q, setParams]);
+
+  // ---------------------------------------------------------------- data
+  const [list, setList] = useState({ bookings: [], total: 0, pages: 1, counts: null });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [currentTab, setCurrentTab] = useState('all');
-  const [countryFilter] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedBooking, setSelectedBooking] = useState(null);
-  const [updatingId, setUpdatingId] = useState(null);
-  const [actionModal, setActionModal] = useState(null); // { booking, newStatus, label }
+  const [error, setError] = useState('');
+  const [updatedAt, setUpdatedAt] = useState(null);
+  const [drawerRefreshKey, setDrawerRefreshKey] = useState(0);
+  const seq = useRef(0);
 
-  const fetchBookings = useCallback(async () => {
+  const apiParams = useMemo(() => {
+    const { from, to } = dateRange(dateKey, fromParam, toParam);
+    return {
+      page,
+      limit: PAGE_SIZE,
+      status: tab === 'emergency' ? 'all' : tab,
+      priority: tab === 'emergency' ? 'emergency' : priority || undefined,
+      q: q || undefined,
+      from,
+      to,
+      sort,
+      unassigned: unassigned ? '1' : undefined,
+      overdue: overdue ? '1' : undefined,
+    };
+  }, [page, tab, priority, q, dateKey, fromParam, toParam, sort, unassigned, overdue]);
+
+  const load = useCallback(async ({ silent = false } = {}) => {
+    const id = ++seq.current;
+    if (silent) setRefreshing(true);
+    else setLoading(true);
     try {
-      const res = await adminApi.getAllBookings('all', 1, 100);
-      const data = res.bookings || res.data || [];
-      setBookings(Array.isArray(data) ? data : []);
-      setLoadError('');
+      const res = await getBookings(apiParams);
+      if (id !== seq.current) return;
+      setList({
+        bookings: Array.isArray(res?.bookings) ? res.bookings : [],
+        total: Number(res?.total) || 0,
+        pages: Math.max(1, Number(res?.pages) || 1),
+        counts: res?.counts || null,
+      });
+      setError('');
+      setUpdatedAt(new Date());
     } catch (err) {
-      console.error('Error loading bookings:', err);
-      setLoadError(err.message || 'Could not load bookings');
+      if (id !== seq.current) return;
+      setError(err?.message || L('Could not load bookings.', 'تعذر تحميل الحجوزات.'));
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (id === seq.current) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
+  }, [apiParams, L]);
+
+  useEffect(() => { load(); }, [load]);
+
+  // A page past the end (e.g. the last booking on it was deleted) jumps back to the last page
+  useEffect(() => {
+    if (!loading && !error && list.bookings.length === 0 && list.total > 0 && page > list.pages) {
+      setParams({ page: list.pages }, { resetPage: false });
+    }
+  }, [loading, error, page, list.pages, list.total, list.bookings.length, setParams]);
+
+  // Auto-refresh: same filters/page, silent (no spinner, list stays in place), drawer re-fetches too
+  const loadRef = useRef(load);
+  useEffect(() => { loadRef.current = load; }, [load]);
+  useEffect(() => {
+    let last = Date.now();
+    const tick = (force) => {
+      if (document.visibilityState !== 'visible') return;
+      // Coming back to the tab refreshes at once, but at most every 15s (the API rate limit is shared)
+      if (!force && Date.now() - last < 15000) return;
+      last = Date.now();
+      loadRef.current({ silent: true });
+      setDrawerRefreshKey((k) => k + 1);
+    };
+    const timer = setInterval(() => tick(true), REFRESH_MS);
+    const onVisible = () => tick(false);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, []);
 
+  // Services list resolves legacy bookings that only store a bare service id
+  const [servicesById, setServicesById] = useState(null);
   useEffect(() => {
-    fetchBookings();
-  }, [fetchBookings]);
+    let alive = true;
+    getAdminServices()
+      .then((res) => {
+        const arr = Array.isArray(res) ? res : res?.services || res?.data || [];
+        const map = {};
+        arr.forEach((s) => { if (s?._id) map[String(s._id)] = s; if (s?.slug) map[s.slug] = s; });
+        if (alive) setServicesById(map);
+      })
+      .catch(() => { /* names fall back to what the booking stores */ });
+    return () => { alive = false; };
+  }, []);
 
-  // Pick up new bookings, cancellations and reschedules without a manual refresh
-  useEffect(() => {
-    const id = setInterval(() => {
-      if (document.visibilityState === 'visible') fetchBookings();
-    }, 30000);
-    return () => clearInterval(id);
-  }, [fetchBookings]);
+  const openBooking = (id) => setParams({ open: id }, { resetPage: false });
+  const closeBooking = () => setParams({ open: null }, { resetPage: false });
+  const onDrawerChanged = (_fresh, { removed } = {}) => {
+    if (removed) closeBooking();
+    load({ silent: true });
+  };
+  const initialForDrawer = openId ? list.bookings.find((b) => String(b._id) === openId) : null;
 
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchBookings();
+  const filtersActive = Boolean(q || dateKey || priority || unassigned || overdue || sort !== 'schedule' || tab !== 'all');
+  const flagChips = [
+    unassigned && { key: 'unassigned', label: L('Unassigned', 'غير معيّن') },
+    overdue && { key: 'overdue', label: L('Overdue', 'متأخر') },
+  ].filter(Boolean);
+  const clearFilters = () => {
+    setSearchText('');
+    const next = new URLSearchParams();
+    if (openId) next.set('open', openId);
+    replaceUrl(next.toString() ? `${pathname}?${next}` : pathname);
   };
 
-  const normalizeStatus = (st) => (st || 'pending').replace(/-/g, '_').toLowerCase();
+  const rangeStart = list.total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+  const rangeEnd = Math.min(page * PAGE_SIZE, list.total);
 
-  // Tab counts
-  const counts = useMemo(() => {
-    return bookings.reduce(
-      (acc, b) => {
-        acc.all = (acc.all || 0) + 1;
-        const s = normalizeStatus(b.status);
-        acc[s] = (acc[s] || 0) + 1;
-        return acc;
-      },
-      { all: 0, pending: 0, confirmed: 0, in_progress: 0, completed: 0, cancelled: 0 }
-    );
-  }, [bookings]);
-
-  // Country counts (Saudi Arabia only)
-  const countryCounts = useMemo(() => {
-    return { saudi: bookings.length };
-  }, [bookings]);
-
-  // Filtered list
-  const filteredBookings = useMemo(() => {
-    return bookings.filter((b) => {
-      const st = normalizeStatus(b.status);
-      if (currentTab !== 'all' && st !== currentTab) return false;
-
-      // No country filter needed (Saudi Arabia only)
-
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const name = (b.customerName || b.user?.name || b.user?.fullName || '').toLowerCase();
-        const phone = (b.phone || b.user?.phone || '').toLowerCase();
-        const srv = (b.service?.name || b.serviceDetails?.name || b.serviceName || '').toLowerCase();
-        const id = (b.orderNumber || b.bookingId || b._id || '').toLowerCase();
-        const addr = (b.address || '').toLowerCase();
-        const country = (b.country || '').toLowerCase();
-        const city = (b.city || '').toLowerCase();
-        return name.includes(q) || phone.includes(q) || srv.includes(q) || id.includes(q) || addr.includes(q) || country.includes(q) || city.includes(q);
-      }
-      return true;
-    });
-  }, [bookings, currentTab, countryFilter, searchQuery]);
-
-  const handleStatusChange = async (booking, newStatus, reason = '') => {
-    setUpdatingId(booking._id);
-    try {
-      await adminApi.updateBookingStatus(booking._id, newStatus, reason);
-      await fetchBookings();
-      if (selectedBooking?._id === booking._id) {
-        setSelectedBooking({ ...selectedBooking, status: newStatus });
-      }
-      setActionModal(null);
-    } catch (err) {
-      console.error('Error updating booking status:', err);
-      alert('Failed to update status. Please check backend connection.');
-    } finally {
-      setUpdatingId(null);
-    }
+  // ---------------------------------------------------------------- render helpers
+  const rowData = (b) => {
+    const info = serviceInfo(b, servicesById);
+    const date = bookingDate(b);
+    const time = bookingTime(b);
+    return {
+      info,
+      svc: serviceName(info, L),
+      name: customerNameOf(b),
+      phone: phoneOf(b),
+      dateText: date ? fmtDate(date) : L('No date', 'بدون تاريخ'),
+      timeText: time ? fmtSlot(time, isAr) : L('No time', 'بدون وقت'),
+      status: normalizeStatus(b.status),
+      wa: whatsappLink(phoneOf(b)),
+    };
   };
 
-  const handleDeleteBooking = async (booking, e) => {
-    if (e) e.stopPropagation();
-    const id = booking._id || booking.bookingId || booking.orderNumber;
-    const name = booking.customerName || booking.user?.fullName || booking.user?.name || 'this booking';
-    if (!window.confirm(`Are you sure you want to delete order for "${name}"?`)) {
-      return;
-    }
-    setUpdatingId(booking._id);
-    try {
-      await adminApi.deleteBooking(booking._id || id);
-      setBookings((prev) => prev.filter((b) => (b._id || b.bookingId || b.orderNumber) !== id));
-      if (selectedBooking?._id === booking._id || selectedBooking?.bookingId === id) {
-        setSelectedBooking(null);
-      }
-    } catch (err) {
-      console.error('Error deleting booking:', err);
-      alert('Failed to delete booking.');
-    } finally {
-      setUpdatingId(null);
-    }
-  };
-
-  const openWhatsApp = (phone, customerName, serviceName) => {
-    if (!phone) return;
-    const clean = phone.replace(/[^\d+]/g, '').replace('+', '');
-    const msg = `مرحباً ${customerName || 'عزيزي العميل'}، معك ورشة أحمد للتبريد بخصوص طلب خدمة (${serviceName || 'الصيانة'}). كيف يمكننا مساعدتك؟`;
-    window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, '_blank');
-  };
-
-  const getBookingCoordinates = (booking) => {
-    if (!booking) return null;
-    let lat = null;
-    let lng = null;
-    if (booking.coordinates) {
-      if (typeof booking.coordinates.latitude === 'number' && booking.coordinates.latitude !== 0) {
-        lat = booking.coordinates.latitude;
-        lng = booking.coordinates.longitude;
-      } else if (Array.isArray(booking.coordinates) && booking.coordinates.length >= 2) {
-        lng = booking.coordinates[0];
-        lat = booking.coordinates[1];
-      }
-    }
-    if (!lat && typeof booking.latitude === 'number' && booking.latitude !== 0) {
-      lat = booking.latitude;
-      lng = booking.longitude;
-    }
-    if (!lat && typeof booking.address === 'string') {
-      const match = booking.address.match(/(-?\d+\.\d{3,})\s*,\s*(-?\d+\.\d{3,})/);
-      if (match) {
-        lat = parseFloat(match[1]);
-        lng = parseFloat(match[2]);
-      }
-    }
-    if (lat != null && lng != null && (lat !== 0 || lng !== 0)) {
-      return { latitude: Number(lat), longitude: Number(lng) };
-    }
-    return null;
-  };
-
-  const getMapLink = (address, booking) => {
-    const coords = getBookingCoordinates(booking);
-    if (coords) {
-      return `https://www.google.com/maps?q=${coords.latitude},${coords.longitude}`;
-    }
-    if (address) {
-      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address + ' Saudi Arabia')}`;
-    }
-    return null;
-  };
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh]">
-        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-3" />
-        <p className="text-sm font-medium text-slate-500">Loading Bookings...</p>
-      </div>
-    );
-  }
+  const waButton = (b, d) => d.wa && (
+    <a
+      href={d.wa}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(e) => e.stopPropagation()}
+      aria-label={L(`WhatsApp ${d.name || ''}`, `واتساب ${d.name || ''}`)}
+      title="WhatsApp"
+      className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-green-300 bg-green-50 text-green-800 hover:bg-green-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-700 dark:border-green-500/40 dark:bg-green-500/10 dark:text-green-200"
+    >
+      <MessageCircle className="h-5 w-5" aria-hidden="true" />
+    </a>
+  );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white">
-            Bookings Management
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Review, dispatch, update and manage AC and home appliance repair appointments
+          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl dark:text-white">{L('Bookings', 'الحجوزات')}</h1>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+            {L('Confirm, dispatch and track service appointments', 'تأكيد وتوزيع ومتابعة مواعيد الخدمة')}
           </p>
         </div>
-
-        <button
-          onClick={handleRefresh}
-          disabled={refreshing}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 hover:text-blue-600 transition shadow-sm cursor-pointer disabled:opacity-50 self-start"
-        >
-          <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-          <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
-        </button>
+        <div className="flex items-center gap-3">
+          {updatedAt && (
+            <span className="text-xs text-slate-600 dark:text-slate-400" aria-live="polite">
+              {L('Updated', 'آخر تحديث')} {fmtTime(updatedAt)}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={() => { load({ silent: true }); if (openId) setDrawerRefreshKey((k) => k + 1); }}
+            disabled={refreshing}
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} aria-hidden="true" />
+            {L('Refresh', 'تحديث')}
+          </button>
+        </div>
       </div>
 
-      {loadError && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{loadError}</div>}
-
-      {/* Search & Tabs */}
-      <div className="space-y-4">
-        {/* Search Bar */}
-        <div className="relative">
-          <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by customer name, phone (+966), order ID (#AC-...), or address..."
-            className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-sm transition"
-          />
-        </div>
-
-        {/* Filter Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-          {STATUS_TABS.map((tab) => {
-            const count = counts[tab.key] || 0;
-            const active = currentTab === tab.key;
-            return (
+      {/* Filters */}
+      <div className="space-y-3">
+        <div className="flex flex-col gap-2 lg:flex-row lg:flex-wrap lg:items-center">
+          <div className="relative min-w-0 flex-1 lg:min-w-72">
+            <Search className="pointer-events-none absolute start-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500 dark:text-slate-400" aria-hidden="true" />
+            <input
+              type="search"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') setParams({ q: searchText.trim() }); }}
+              aria-label={L('Search bookings', 'البحث في الحجوزات')}
+              placeholder={L('Name, phone, ORD-… or BK…', 'الاسم، الجوال، ORD-… أو BK…')}
+              dir="auto"
+              className={`${INPUT} w-full ps-10 pe-10 placeholder:text-slate-500 dark:placeholder:text-slate-400`}
+            />
+            {searchText && (
               <button
-                key={tab.key}
-                onClick={() => setCurrentTab(tab.key)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
-                  active
-                    ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25'
-                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'
-                }`}
+                type="button"
+                onClick={() => { setSearchText(''); setParams({ q: null }); }}
+                aria-label={L('Clear search', 'مسح البحث')}
+                className="absolute end-0 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
               >
-                <span>{tab.label}</span>
-                <span
-                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
+                <X className="h-4 w-4" aria-hidden="true" />
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
+            <select
+              aria-label={L('Date', 'التاريخ')}
+              value={dateKey}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v === 'custom') {
+                  const today = dateRange('today').from;
+                  setParams({ date: 'custom', from: fromParam || today, to: toParam || today });
+                } else setParams({ date: v, from: null, to: null });
+              }}
+              className={INPUT}
+            >
+              <option value="">{L('Any date', 'أي تاريخ')}</option>
+              <option value="today">{L('Today', 'اليوم')}</option>
+              <option value="tomorrow">{L('Tomorrow', 'غداً')}</option>
+              <option value="week">{L('This week', 'هذا الأسبوع')}</option>
+              <option value="overdue">{L('Before today', 'قبل اليوم')}</option>
+              <option value="custom">{L('Custom range…', 'نطاق مخصص…')}</option>
+            </select>
+            <select
+              aria-label={L('Priority', 'الأولوية')}
+              value={tab === 'emergency' ? 'emergency' : priority}
+              disabled={tab === 'emergency'}
+              onChange={(e) => setParams({ priority: e.target.value })}
+              className={INPUT}
+            >
+              <option value="">{L('All priorities', 'كل الأولويات')}</option>
+              <option value="emergency">{L('Emergency only', 'الطارئة فقط')}</option>
+              <option value="normal">{L('Normal only', 'العادية فقط')}</option>
+            </select>
+            <select
+              aria-label={L('Sort', 'الترتيب')}
+              value={sort}
+              onChange={(e) => setParams({ sort: e.target.value })}
+              className={`${INPUT} col-span-2 sm:col-span-1`}
+            >
+              <option value="schedule">{L('Appointment: soonest first', 'الموعد: الأقرب أولاً')}</option>
+              <option value="-schedule">{L('Appointment: latest first', 'الموعد: الأبعد أولاً')}</option>
+              <option value="-created">{L('Newest bookings', 'الأحدث إنشاءً')}</option>
+              <option value="created">{L('Oldest bookings', 'الأقدم إنشاءً')}</option>
+            </select>
+            {filtersActive && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="col-span-2 inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl px-3 text-sm font-semibold text-blue-700 hover:bg-blue-50 sm:col-span-1 dark:text-blue-300 dark:hover:bg-blue-500/10"
+              >
+                <X className="h-4 w-4" aria-hidden="true" />{L('Clear filters', 'مسح الفلاتر')}
+              </button>
+            )}
+          </div>
+        </div>
+        {dateKey === 'custom' && (
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+              {L('From', 'من')}
+              <input type="date" value={fromParam} max={toParam || undefined} onChange={(e) => setParams({ from: e.target.value })} className={INPUT} />
+            </label>
+            <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+              {L('To', 'إلى')}
+              <input type="date" value={toParam} min={fromParam || undefined} onChange={(e) => setParams({ to: e.target.value })} className={INPUT} />
+            </label>
+          </div>
+        )}
+
+        {flagChips.length > 0 && (
+          <ul className="flex flex-wrap items-center gap-2" aria-label={L('Active filters', 'الفلاتر المفعّلة')}>
+            {flagChips.map((c) => (
+              <li key={c.key}>
+                <span className="inline-flex min-h-9 items-center gap-1 rounded-full border border-blue-300 bg-blue-50 ps-3 text-sm font-semibold text-blue-900 dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-blue-100">
+                  {c.label}
+                  <button
+                    type="button"
+                    onClick={() => setParams({ [c.key]: null })}
+                    aria-label={L(`Remove filter: ${c.label}`, `إزالة الفلتر: ${c.label}`)}
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-full text-blue-800 hover:bg-blue-100 focus-visible:outline-2 focus-visible:outline-blue-600 dark:text-blue-200 dark:hover:bg-blue-500/20"
+                  >
+                    <X className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {/* Status tabs (counts from the API) */}
+        <div className="-mx-1 overflow-x-auto px-1 pb-1" role="group" aria-label={L('Booking status', 'حالة الحجز')}>
+          <div className="flex w-max gap-2 xl:w-auto xl:flex-wrap">
+            {TABS.map((t) => {
+              const active = tab === t.key;
+              const count = list.counts?.[t.key];
+              return (
+                <button
+                  key={t.key}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setParams({ status: t.key, ...(t.key === 'emergency' ? { priority: null } : {}) })}
+                  className={`inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-full px-4 text-sm font-semibold transition ${
                     active
-                      ? 'bg-white/20 text-white'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                      ? t.key === 'emergency' ? 'bg-red-600 text-white' : 'bg-blue-600 text-white'
+                      : t.key === 'emergency'
+                        ? 'border border-red-300 bg-white text-red-700 hover:bg-red-50 dark:border-red-500/40 dark:bg-slate-900 dark:text-red-300 dark:hover:bg-red-500/10'
+                        : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800'
                   }`}
                 >
-                  {count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Country filter removed - Saudi Arabia only */}
-      </div>
-
-      {/* Bookings List / Table */}
-      {filteredBookings.length === 0 ? (
-        <div className="py-20 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-center p-8">
-          <ClipboardList className="w-12 h-12 mx-auto mb-3 text-slate-300 dark:text-slate-600" />
-          <h3 className="text-base font-semibold text-slate-900 dark:text-white">No Bookings Found</h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
-            {searchQuery ? 'Try adjusting your search terms.' : 'No customer bookings currently match this filter.'}
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {/* MOBILE CARD VIEW (Phones < 768px) */}
-          <div className="md:hidden space-y-3">
-            {filteredBookings.map((bkg) => {
-              const status = STATUS_CONFIG[normalizeStatus(bkg.status)] || STATUS_CONFIG.pending;
-              const customerName = bkg.customerName || bkg.user?.name || bkg.user?.fullName || 'Guest Customer';
-              const serviceName = bkg.service?.name || bkg.serviceDetails?.name || bkg.serviceName || 'Appliance Maintenance';
-
-              return (
-                <div
-                  key={bkg._id}
-                  onClick={() => setSelectedBooking(bkg)}
-                  className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm active:scale-[0.99] transition-all cursor-pointer space-y-3"
-                >
-                  {/* Top Header: Service & Status */}
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      {renderServiceOutlineIcon(bkg.service, serviceName, 'sm')}
-                      <div className="min-w-0">
-                        <h4 className="font-semibold text-slate-900 dark:text-white text-sm truncate">
-                          {serviceName}
-                        </h4>
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="text-[11px] font-mono text-slate-400">
-                            #{bkg.orderNumber || bkg.bookingId || bkg._id?.slice(-6).toUpperCase()}
-                          </span>
-                          <span className="text-[10px] px-1.5 py-0.2 rounded font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/50">
-                              KSA
-                            </span>
-                        </div>
-                      </div>
-                    </div>
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${status.bg} shrink-0`}>
-                      {status.label}
+                  {L(t.en, t.ar)}
+                  {count != null && (
+                    <span className={`rounded-full px-1.5 py-0.5 text-xs ${active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200'}`}>
+                      {fmtNum(count)}
                     </span>
-                  </div>
-
-                  {/* Customer & Location */}
-                  <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl">
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-slate-800 dark:text-slate-200 truncate">{customerName}</span>
-                      {bkg.phone && (
-                        <a
-                          href={`tel:${bkg.phone}`}
-                          onClick={(e) => e.stopPropagation()}
-                          className="text-primary dark:text-blue-400 font-mono font-semibold"
-                        >
-                          {bkg.phone}
-                        </a>
-                      )}
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex items-start gap-1.5 text-slate-600 dark:text-slate-300">
-                        <MapPin className="w-3.5 h-3.5 shrink-0 text-slate-400 mt-0.5" />
-                        <span className="truncate font-medium">{bkg.address || 'Address not provided'}</span>
-                      </div>
-                      {(() => {
-                        const coords = getBookingCoordinates(bkg);
-                        const mapUrl = getMapLink(bkg.address, bkg);
-                        return (
-                          <div className="flex items-center gap-2 pl-5 rtl:pr-5 rtl:pl-0">
-                            {coords ? (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded">
-                                <Crosshair className="w-2.5 h-2.5" />
-                                {coords.latitude.toFixed(4)}, {coords.longitude.toFixed(4)}
-                              </span>
-                            ) : null}
-                            {mapUrl && (
-                              <a
-                                href={mapUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={(e) => e.stopPropagation()}
-                                className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-primary dark:text-blue-400 hover:underline"
-                              >
-                                <span>Google Maps</span>
-                                <ExternalLink className="w-2.5 h-2.5" />
-                              </a>
-                            )}
-                          </div>
-                        );
-                      })()}
-                    </div>
-                    <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
-                      <Calendar className="w-3.5 h-3.5 shrink-0 text-slate-400" />
-                      <span>{bkg.date ? new Date(bkg.date).toLocaleDateString('en-GB') : 'Immediate'}</span>
-                      <span className="text-slate-300 dark:text-slate-600">•</span>
-                      <Clock className="w-3.5 h-3.5 shrink-0 text-slate-400" />
-                      <span>{bkg.time || 'Flexible'}</span>
-                      {bkg.rescheduledAt && (
-                        <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800 dark:bg-amber-500/15 dark:text-amber-300">Rescheduled</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Footer: Price & Quick Actions */}
-                  <div className="flex items-center justify-between pt-1" onClick={(e) => e.stopPropagation()}>
-                    <div>
-                      <span className="text-[10px] uppercase font-semibold text-slate-400 block">Total</span>
-                      <span className="font-mono font-semibold text-slate-900 dark:text-white text-sm">
-                        {bkg.totalAmount ?? 0} <span className="text-xs font-normal text-slate-500">{getBookingCurrency(bkg)}</span>
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      {bkg.phone && (
-                        <button
-                          onClick={() => openWhatsApp(bkg.phone, customerName, serviceName)}
-                          className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 transition cursor-pointer"
-                          title="Chat on WhatsApp"
-                        >
-                          <MessageCircle className="w-4 h-4" />
-                        </button>
-                      )}
-                      <button
-                        onClick={(e) => handleDeleteBooking(bkg, e)}
-                        className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 transition cursor-pointer"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => setSelectedBooking(bkg)}
-                        className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 font-semibold text-xs transition cursor-pointer"
-                      >
-                        Manage
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                  )}
+                </button>
               );
             })}
           </div>
+        </div>
+      </div>
 
-          {/* DESKTOP TABLE VIEW (Tablets & Desktops >= 768px) */}
-          <div className="hidden md:block bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden w-full">
-            <div className="w-full overflow-x-auto">
-              <table className="w-full min-w-[850px] table-fixed text-left border-collapse">
-                <colgroup>
-                  <col className="w-[26%]" />
-                  <col className="w-[17%]" />
-                  <col className="w-[15%]" />
-                  <col className="w-[18%]" />
-                  <col className="w-[11%]" />
-                  <col className="w-[7%]" />
-                  <col className="w-[6%]" />
-                </colgroup>
-                <thead>
-                  <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-[11px] font-semibold uppercase text-slate-400">
-                    <th className="py-3.5 px-3 lg:px-3.5">Order ID & Service</th>
-                    <th className="py-3.5 px-3 lg:px-3.5">Customer</th>
-                    <th className="py-3.5 px-3 lg:px-3.5">Date & Time</th>
-                    <th className="py-3.5 px-3 lg:px-3.5">Location</th>
-                    <th className="py-3.5 px-3 lg:px-3.5">Status</th>
-                    <th className="py-3.5 px-2 sm:px-3 text-right">Total</th>
-                    <th className="py-3.5 px-1 sm:px-2 text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 text-sm">
-                  {filteredBookings.map((bkg) => {
-                    const status = STATUS_CONFIG[normalizeStatus(bkg.status)] || STATUS_CONFIG.pending;
-                    const customerName = bkg.customerName || bkg.user?.name || bkg.user?.fullName || 'Guest Customer';
-                    const serviceName = bkg.service?.name || bkg.serviceDetails?.name || bkg.serviceName || 'Appliance Maintenance';
-
-                    return (
-                      <tr
-                        key={bkg._id}
-                        onClick={() => setSelectedBooking(bkg)}
-                        className="hover:bg-blue-50/40 dark:hover:bg-slate-800/40 transition cursor-pointer group"
-                      >
-                        {/* Order & Service */}
-                        <td className="py-3 px-3 lg:px-3.5 min-w-0">
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            {renderServiceOutlineIcon(bkg.service, serviceName, 'sm')}
-                            <div className="min-w-0 flex-1">
-                              <p className="font-semibold text-slate-900 dark:text-white truncate text-xs sm:text-sm">
-                                {serviceName}
-                              </p>
-                              <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className="text-[10px] sm:text-[11px] font-mono text-slate-400 truncate">
-                                  #{bkg.orderNumber || bkg.bookingId || bkg._id?.slice(-6).toUpperCase()}
-                                </span>
-                                <span className="text-[9px] px-1.5 py-0.2 rounded font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/50">
-                                    SA
-                                  </span>
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-
-                        {/* Customer */}
-                        <td className="py-3 px-3 lg:px-3.5 min-w-0">
-                          <p className="font-semibold text-slate-800 dark:text-slate-200 truncate text-xs sm:text-sm">
-                            {customerName}
-                          </p>
-                          <p className="text-[11px] text-slate-400 font-mono truncate">
-                            {bkg.phone || 'No phone'}
-                          </p>
-                        </td>
-
-                        {/* Date & Time */}
-                        <td className="py-3 px-3 lg:px-3.5 min-w-0">
-                          <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-medium text-xs">
-                            <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            <span className="truncate">{bkg.date ? new Date(bkg.date).toLocaleDateString('en-GB') : 'Immediate'}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mt-0.5">
-                            <Clock className="w-3 h-3 text-slate-400 shrink-0" />
-                            <span className="truncate">{bkg.time || 'Flexible'}</span>
-                            {bkg.rescheduledAt && (
-                              <span className="shrink-0 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800 dark:bg-amber-500/15 dark:text-amber-300">Rescheduled</span>
-                            )}
-                          </div>
-                        </td>
-
-                        {/* Address & GPS */}
-                        <td className="py-3 px-3 lg:px-3.5 min-w-0">
-                          <p className="text-xs font-medium text-slate-700 dark:text-slate-200 truncate block" title={bkg.address}>
-                            {bkg.address || 'Jeddah / Makkah, KSA'}
-                          </p>
-                          {(() => {
-                            const coords = getBookingCoordinates(bkg);
-                            const mapUrl = getMapLink(bkg.address, bkg);
-                            return (
-                              <div className="flex items-center gap-1.5 mt-0.5">
-                                {coords && (
-                                  <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-1.5 py-0.5 rounded">
-                                    <Crosshair className="w-2.5 h-2.5 shrink-0" />
-                                    {coords.latitude.toFixed(4)}, {coords.longitude.toFixed(4)}
-                                  </span>
-                                )}
-                                {mapUrl && (
-                                  <a
-                                    href={mapUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400"
-                                    title="View location in Google Maps"
-                                  >
-                                    <ExternalLink className="w-2.5 h-2.5" />
-                                    <span>Map</span>
-                                  </a>
-                                )}
-                              </div>
-                            );
-                          })()}
-                        </td>
-
-                        {/* Status */}
-                        <td className="py-3 px-3 lg:px-3.5">
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${status.bg} whitespace-nowrap`}
-                          >
-                            <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
-                            {status.label}
-                          </span>
-                        </td>
-
-                        {/* Total */}
-                        <td className="py-3 px-2 sm:px-3 text-right whitespace-nowrap">
-                          <span className="font-mono font-semibold text-slate-900 dark:text-white text-xs sm:text-sm">
-                            {bkg.totalAmount ?? 0}
-                          </span>{' '}
-                          <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                            {getBookingCurrency(bkg)}
-                          </span>
-                        </td>
-
-                        {/* Actions */}
-                        <td className="py-3 px-1 sm:px-2 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center justify-center gap-1.5">
-                            {bkg.phone && (
-                              <button
-                                onClick={() => openWhatsApp(bkg.phone, customerName, serviceName)}
-                                className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 transition cursor-pointer"
-                                title="Chat on WhatsApp"
-                              >
-                                <MessageCircle className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-                            <button
-                              onClick={() => setSelectedBooking(bkg)}
-                              className="p-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-blue-600 transition cursor-pointer"
-                              title="View Full Details"
-                            >
-                              <ChevronRight className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              onClick={(e) => handleDeleteBooking(bkg, e)}
-                              className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 transition cursor-pointer"
-                              title="Delete Booking"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
+      {error && (
+        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800 dark:border-red-500/40 dark:bg-red-950/40 dark:text-red-200">
+          <span>{error}</span>
+          <button type="button" onClick={() => load()} className="min-h-11 rounded-lg px-3 font-semibold underline">{L('Retry', 'إعادة المحاولة')}</button>
         </div>
       )}
 
-      {/* Slide-over Detailed Drawer */}
-      {selectedBooking && (
-        <div className="fixed inset-0 z-50 overflow-hidden">
-          <div
-            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
-            onClick={() => setSelectedBooking(null)}
-          />
-
-          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-md bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col">
-              {/* Drawer Header */}
-              <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                      #{selectedBooking.orderNumber || selectedBooking._id?.slice(-6).toUpperCase()}
-                    </span>
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
-                        STATUS_CONFIG[normalizeStatus(selectedBooking.status)]?.bg
-                      }`}
-                    >
-                      {STATUS_CONFIG[normalizeStatus(selectedBooking.status)]?.label}
-                    </span>
-                  </div>
-                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white mt-1">
-                    Booking Details
-                  </h2>
-                </div>
-                <button
-                  onClick={() => setSelectedBooking(null)}
-                  className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Drawer Content */}
-              <div className="flex-1 p-6 space-y-6 overflow-y-auto">
-                {/* Service Card */}
-                <div className="p-4 rounded-2xl bg-blue-50/60 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/40">
-                  <div className="flex items-center gap-3">
-                    {renderServiceOutlineIcon(selectedBooking.service, selectedBooking.service?.name || selectedBooking.serviceName, 'lg')}
-                    <div>
-                      <h3 className="font-semibold text-slate-900 dark:text-white">
-                        {selectedBooking.service?.name || selectedBooking.serviceName || 'Appliance Service'}
-                      </h3>
-                      <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-                        {selectedBooking.service?.category ? selectedBooking.service.category.toUpperCase() : 'AC & COOLING'}
+      {/* List */}
+      {loading && list.bookings.length === 0 ? (
+        <div className="flex items-center justify-center py-20 text-sm text-slate-600 dark:text-slate-300">
+          <Loader2 className="me-2 h-5 w-5 animate-spin" aria-hidden="true" />{L('Loading bookings…', 'جارٍ تحميل الحجوزات…')}
+        </div>
+      ) : list.bookings.length === 0 && !error ? (
+        <div className="rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center dark:border-slate-800 dark:bg-slate-900">
+          <ClipboardList className="mx-auto mb-3 h-10 w-10 text-slate-400 dark:text-slate-500" aria-hidden="true" />
+          <p className="font-semibold text-slate-900 dark:text-white">{L('No bookings found', 'لا توجد حجوزات')}</p>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+            {filtersActive ? L('Nothing matches these filters.', 'لا شيء يطابق هذه الفلاتر.') : L('New bookings will appear here.', 'ستظهر الحجوزات الجديدة هنا.')}
+          </p>
+          {filtersActive && (
+            <button type="button" onClick={clearFilters} className="mt-4 min-h-11 rounded-xl px-4 text-sm font-semibold text-blue-700 hover:bg-blue-50 dark:text-blue-300 dark:hover:bg-blue-500/10">
+              {L('Clear filters', 'مسح الفلاتر')}
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className={`transition-opacity ${loading ? 'opacity-60' : ''}`} aria-busy={loading || undefined}>
+          {/* Cards below 1280px */}
+          <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:hidden">
+            {list.bookings.map((b) => {
+              const d = rowData(b);
+              const emergency = b.priority === 'emergency';
+              return (
+                <li key={b._id} className="min-w-0">
+                  <div
+                    className={`flex h-full flex-col gap-3 rounded-2xl border bg-white p-4 shadow-sm dark:bg-slate-900 ${emergency ? 'border-red-300 dark:border-red-500/50' : 'border-slate-200 dark:border-slate-800'}`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <button type="button" onClick={() => openBooking(b._id)} className="min-w-0 text-start">
+                        <span className="block truncate font-semibold text-slate-900 hover:underline dark:text-white" dir="auto" title={d.svc}>{d.svc}</span>
+                        <span className="block font-mono text-xs text-slate-600 dark:text-slate-400">{orderRef(b)}</span>
+                      </button>
+                      <div className="flex shrink-0 flex-col items-end gap-1">
+                        <StatusBadge status={d.status} size="sm" />
+                        <PriorityBadge priority={b.priority} size="sm" />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5 text-sm">
+                      <p className="truncate font-semibold text-slate-800 dark:text-slate-100" dir="auto" title={d.name || ''}>{d.name || L('No name', 'بدون اسم')}</p>
+                      {d.phone && <a href={telLink(d.phone)} className="inline-block font-mono text-blue-700 hover:underline dark:text-blue-300" dir="ltr">{d.phone}</a>}
+                      <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-slate-700 dark:text-slate-300">
+                        <span className="inline-flex items-center gap-1"><Calendar className="h-4 w-4 text-slate-500" aria-hidden="true" />{d.dateText}</span>
+                        <span className="inline-flex items-center gap-1"><Clock className="h-4 w-4 text-slate-500" aria-hidden="true" />{d.timeText}</span>
+                        {b.rescheduledAt && <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs font-semibold text-amber-900 dark:bg-amber-500/15 dark:text-amber-200">{L('Rescheduled', 'أعيدت جدولته')}</span>}
                       </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Customer Information */}
-                <div className="space-y-3">
-                  <h4 className="text-xs font-semibold uppercase text-slate-400">
-                    Customer Details
-                  </h4>
-                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800 space-y-2.5">
-                    <div className="flex items-center gap-2.5 text-sm">
-                      <User className="w-4 h-4 text-slate-400 shrink-0" />
-                      <span className="font-semibold text-slate-900 dark:text-white">
-                        {selectedBooking.customerName || selectedBooking.user?.fullName || selectedBooking.user?.name || 'Customer'}
-                      </span>
-                    </div>
-
-                    {selectedBooking.phone && (
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2.5">
-                          <Phone className="w-4 h-4 text-slate-400 shrink-0" />
-                          <span className="font-mono text-slate-700 dark:text-slate-300">
-                            {selectedBooking.phone}
-                          </span>
-                        </div>
-                        <button
-                          onClick={() =>
-                            openWhatsApp(
-                              selectedBooking.phone,
-                              selectedBooking.customerName,
-                              selectedBooking.service?.name
-                            )
-                          }
-                          className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
-                        >
-                          <MessageCircle className="w-3.5 h-3.5" />
-                          <span>WhatsApp</span>
-                        </button>
-                      </div>
-                    )}
-
-                    {selectedBooking.email && (
-                      <div className="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-400">
-                        <Mail className="w-4 h-4 text-slate-400 shrink-0" />
-                        <span className="truncate">{selectedBooking.email}</span>
-                      </div>
-                    )}
-
-                    {/* Country & Branch Indicator */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/60 text-xs">
-                      <span className="text-slate-400 font-semibold">Country:</span>
-                        <span className="inline-flex items-center gap-1 font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200/60">
-                          Saudi Arabia (المملكة العربية السعودية) {selectedBooking.city ? `• ${selectedBooking.city}` : ''}
-                        </span>
-                    </div>
-
-                    {/* Location: Exact Address AND GPS */}
-                    <div className="pt-3 border-t border-slate-200/60 dark:border-slate-700/60 space-y-3">
-                      <div>
-                        <span className="text-[11px] font-semibold uppercase text-slate-400 block mb-1">
-                          Exact Address (العنوان المفصل)
-                        </span>
-                        <div className="flex items-start gap-2.5 text-xs text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
-                          <MapPin className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
-                          <p className="font-semibold leading-relaxed">
-                            {selectedBooking.address || 'Address not specified'}
-                          </p>
-                        </div>
-                      </div>
-
-                      {(() => {
-                        const coords = getBookingCoordinates(selectedBooking);
-                        const mapUrl = getMapLink(selectedBooking.address, selectedBooking);
-                        return (
-                          <div>
-                            <span className="text-[11px] font-semibold uppercase text-slate-400 block mb-1">
-                              GPS Coordinates & Navigation (إحداثيات الموقع)
-                            </span>
-                            <div className="p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200/60 dark:border-blue-900/40 flex flex-wrap items-center justify-between gap-2">
-                              <div className="flex items-center gap-2">
-                                <Crosshair className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
-                                {coords ? (
-                                  <div>
-                                    <p className="text-xs font-mono font-semibold text-slate-800 dark:text-slate-200">
-                                      {coords.latitude.toFixed(6)}, {coords.longitude.toFixed(6)}
-                                    </p>
-                                    <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                                      Lat: {coords.latitude.toFixed(4)} • Lng: {coords.longitude.toFixed(4)}
-                                    </p>
-                                  </div>
-                                ) : (
-                                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                                    Coordinates estimated from address
-                                  </span>
-                                )}
-                              </div>
-                              {mapUrl && (
-                                <a
-                                  href={mapUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition"
-                                >
-                                  <span>Open Google Maps</span>
-                                  <ExternalLink className="w-3 h-3" />
-                                </a>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Appointment Schedule */}
-                <div className="space-y-3">
-                  <h4 className="text-xs font-semibold uppercase text-slate-400">
-                    Schedule & Time
-                  </h4>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800">
-                      <span className="text-[11px] font-semibold text-slate-400 block">Date</span>
-                      <span className="text-sm font-semibold text-slate-900 dark:text-white mt-0.5 block">
-                        {selectedBooking.date ? new Date(selectedBooking.date).toLocaleDateString('en-GB') : 'Immediate'}
-                      </span>
-                    </div>
-                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800">
-                      <span className="text-[11px] font-semibold text-slate-400 block">Time Slot</span>
-                      <span className="text-sm font-semibold text-slate-900 dark:text-white mt-0.5 block">
-                        {selectedBooking.time || 'Flexible'}
-                      </span>
-                    </div>
-                  </div>
-                  {selectedBooking.rescheduledAt && (
-                    <div className="rounded-2xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-xs font-semibold text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-300">
-                      Rescheduled by customer on {new Date(selectedBooking.rescheduledAt).toLocaleString('en-GB')}
-                      {selectedBooking.previousSchedule?.date && (
-                        <span className="block font-medium opacity-80">
-                          Was: {selectedBooking.previousSchedule.date}
-                        </span>
+                      {b.address && (
+                        <p className="flex items-start gap-1 text-slate-700 dark:text-slate-300">
+                          <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" aria-hidden="true" />
+                          <span className="line-clamp-2 break-words" dir="auto" title={b.address}>{b.address}</span>
+                        </p>
                       )}
                     </div>
-                  )}
-                </div>
-
-                {/* Customer Notes */}
-                {(selectedBooking.notes || selectedBooking.comments || selectedBooking.problemDescription) && (
-                  <div className="space-y-2">
-                    <h4 className="text-xs font-semibold uppercase text-slate-400">
-                      Issue Description / Notes
-                    </h4>
-                    <div className="p-3.5 rounded-2xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 text-xs font-medium text-amber-900 dark:text-amber-200 leading-relaxed">
-                      {selectedBooking.notes || selectedBooking.comments || selectedBooking.problemDescription}
-                    </div>
-                  </div>
-                )}
-
-                {/* Financial Breakdown */}
-                <div className="space-y-3">
-                  <h4 className="text-xs font-semibold uppercase text-slate-400">
-                    Pricing Summary
-                  </h4>
-                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800 space-y-2 text-sm">
-                    <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                      <span>Service Diagnostic / Repair</span>
-                      <span>
-                        {selectedBooking.servicePrice ?? selectedBooking.serviceCharge ?? (selectedBooking.totalAmount ? selectedBooking.totalAmount - (selectedBooking.visitCharges ?? selectedBooking.visitFee ?? 30) : 150)} {getBookingCurrency(selectedBooking)}
-                      </span>
-                    </div>
-                    {((selectedBooking.visitCharges !== undefined && selectedBooking.visitCharges > 0) || (selectedBooking.visitFee !== undefined && selectedBooking.visitFee > 0)) && (
-                      <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                        <span>Technician Visit Fee</span>
-                        <span>{selectedBooking.visitCharges ?? selectedBooking.visitFee ?? 30} {getBookingCurrency(selectedBooking)}</span>
+                    <div className="mt-auto flex items-center justify-between gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
+                      <div>
+                        <span className="block font-semibold text-slate-900 dark:text-white">{fmtMoney(b.totalAmount)}</span>
+                        {b.paymentStatus === 'paid' && <span className="text-xs font-semibold text-green-700 dark:text-green-300">{L('Paid', 'مدفوع')}</span>}
                       </div>
-                    )}
-                    <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex justify-between font-semibold text-slate-900 dark:text-white text-base">
-                      <span>Total Amount</span>
-                      <span className="text-blue-600 dark:text-blue-400 font-semibold">
-                        {selectedBooking.totalAmount ?? 200} {getBookingCurrency(selectedBooking)}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        {waButton(b, d)}
+                        <button
+                          type="button"
+                          onClick={() => openBooking(b._id)}
+                          className="inline-flex min-h-11 items-center rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700"
+                        >
+                          {L('Manage', 'إدارة')}
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
+                </li>
+              );
+            })}
+          </ul>
 
-              {/* Status Action Buttons Footer */}
-              <div className="p-6 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                <h4 className="text-xs font-semibold uppercase text-slate-400 mb-2">
-                  Update Booking Status
-                </h4>
-
-                <div className="grid grid-cols-2 gap-2">
-                  {selectedBooking.status !== 'confirmed' && selectedBooking.status !== 'completed' && (
-                    <button
-                      onClick={() => handleStatusChange(selectedBooking, 'confirmed')}
-                      disabled={updatingId === selectedBooking._id}
-                      className="py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+          {/* Table from 1280px: fixed columns, no horizontal scroll, sticky header */}
+          <div className="hidden rounded-2xl border border-slate-200 bg-white shadow-sm xl:block dark:border-slate-800 dark:bg-slate-900">
+            <table className="w-full table-fixed border-separate border-spacing-0 text-start text-sm">
+              <colgroup>
+                <col className="w-[24%]" />
+                <col className="w-[17%]" />
+                <col className="w-[13%]" />
+                <col className="w-[18%]" />
+                <col className="w-[15%]" />
+                <col className="w-[13%]" />
+                <col className="w-16" />
+              </colgroup>
+              <thead>
+                <tr className="text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">
+                  {[
+                    L('Service / order', 'الخدمة / الطلب'),
+                    L('Customer', 'العميل'),
+                    L('Appointment', 'الموعد'),
+                    L('Address', 'العنوان'),
+                    L('Status', 'الحالة'),
+                    L('Total', 'الإجمالي'),
+                  ].map((h, i) => (
+                    <th
+                      key={h}
+                      scope="col"
+                      className={`sticky top-16 z-10 border-b border-slate-200 bg-slate-50 px-3 py-3 text-start dark:border-slate-800 dark:bg-slate-800 ${i === 0 ? 'rounded-ss-2xl' : ''}`}
                     >
-                      <Check className="w-4 h-4" />
-                      <span>Confirm</span>
-                    </button>
-                  )}
-
-                  {selectedBooking.status !== 'in_progress' && selectedBooking.status !== 'completed' && (
-                    <button
-                      onClick={() => handleStatusChange(selectedBooking, 'in_progress')}
-                      disabled={updatingId === selectedBooking._id}
-                      className="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      {h}
+                    </th>
+                  ))}
+                  <th scope="col" className="sticky top-16 z-10 rounded-se-2xl border-b border-slate-200 bg-slate-50 px-2 py-3 dark:border-slate-800 dark:bg-slate-800">
+                    <span className="sr-only">{L('Actions', 'الإجراءات')}</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {list.bookings.map((b) => {
+                  const d = rowData(b);
+                  const selected = openId === String(b._id);
+                  return (
+                    <tr
+                      key={b._id}
+                      onClick={() => openBooking(b._id)}
+                      className={`cursor-pointer align-top hover:bg-blue-50/60 dark:hover:bg-slate-800/60 ${selected ? 'bg-blue-50 dark:bg-slate-800' : ''}`}
                     >
-                      <Wrench className="w-4 h-4" />
-                      <span>In Progress</span>
-                    </button>
-                  )}
-
-                  {selectedBooking.status !== 'completed' && (
-                    <button
-                      onClick={() => handleStatusChange(selectedBooking, 'completed')}
-                      disabled={updatingId === selectedBooking._id}
-                      className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
-                    >
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>Mark Complete</span>
-                    </button>
-                  )}
-
-                  {selectedBooking.status !== 'cancelled' && (
-                    <button
-                      onClick={() => handleStatusChange(selectedBooking, 'cancelled', 'Cancelled by Admin')}
-                      disabled={updatingId === selectedBooking._id}
-                      className="py-2.5 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-semibold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
-                    >
-                      <Ban className="w-4 h-4" />
-                      <span>Cancel</span>
-                    </button>
-                  )}
-                </div>
-
-                <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-                  <button
-                    onClick={() => handleDeleteBooking(selectedBooking)}
-                    disabled={updatingId === selectedBooking._id}
-                    className="w-full py-2.5 px-3 rounded-xl border border-rose-200 dark:border-rose-900/40 bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-semibold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    <span>Delete Booking Record</span>
-                  </button>
-                </div>
-              </div>
-            </div>
+                      <td className="border-b border-slate-100 px-3 py-3 dark:border-slate-800">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); openBooking(b._id); }}
+                          className="block w-full truncate text-start font-semibold text-slate-900 hover:underline focus-visible:outline-2 focus-visible:outline-blue-600 dark:text-white"
+                          dir="auto"
+                          title={d.svc}
+                        >
+                          {d.svc}
+                        </button>
+                        <span className="block truncate font-mono text-xs text-slate-600 dark:text-slate-400" title={orderRef(b)}>{orderRef(b)}</span>
+                      </td>
+                      <td className="border-b border-slate-100 px-3 py-3 dark:border-slate-800">
+                        <span className="block truncate font-medium text-slate-900 dark:text-slate-100" dir="auto" title={d.name || ''}>{d.name || L('No name', 'بدون اسم')}</span>
+                        {d.phone && (
+                          <a href={telLink(d.phone)} onClick={(e) => e.stopPropagation()} className="block truncate font-mono text-xs text-blue-700 hover:underline dark:text-blue-300" dir="ltr">
+                            {d.phone}
+                          </a>
+                        )}
+                      </td>
+                      <td className="border-b border-slate-100 px-3 py-3 dark:border-slate-800">
+                        <span className="block whitespace-nowrap font-medium text-slate-900 dark:text-slate-100">{d.dateText}</span>
+                        <span className="block whitespace-nowrap text-xs text-slate-700 dark:text-slate-300">{d.timeText}</span>
+                        {b.rescheduledAt && (
+                          <span className="mt-1 inline-block rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-semibold text-amber-900 dark:bg-amber-500/15 dark:text-amber-200">{L('Rescheduled', 'أعيدت جدولته')}</span>
+                        )}
+                      </td>
+                      <td className="border-b border-slate-100 px-3 py-3 dark:border-slate-800">
+                        <span className="block truncate text-slate-800 dark:text-slate-200" dir="auto" title={b.address || ''}>{b.address || '—'}</span>
+                        {b.city && <span className="block truncate text-xs text-slate-600 dark:text-slate-400" dir="auto">{b.city}</span>}
+                      </td>
+                      <td className="border-b border-slate-100 px-3 py-3 dark:border-slate-800">
+                        <div className="flex flex-col items-start gap-1">
+                          <StatusBadge status={d.status} size="sm" />
+                          <PriorityBadge priority={b.priority} size="sm" />
+                        </div>
+                      </td>
+                      <td className="border-b border-slate-100 px-3 py-3 dark:border-slate-800">
+                        <span className="block whitespace-nowrap font-semibold text-slate-900 dark:text-white">{fmtMoney(b.totalAmount)}</span>
+                        {b.paymentStatus === 'paid' && <span className="text-xs font-semibold text-green-700 dark:text-green-300">{L('Paid', 'مدفوع')}</span>}
+                      </td>
+                      <td className="border-b border-slate-100 px-2 py-2 dark:border-slate-800" onClick={(e) => e.stopPropagation()}>
+                        {waButton(b, d)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
+
+          {/* Pager */}
+          <nav className="mt-4 flex flex-wrap items-center justify-between gap-3" aria-label={L('Pages', 'الصفحات')}>
+            <p className="text-sm text-slate-700 dark:text-slate-300">
+              {L(
+                `Showing ${fmtNum(rangeStart)}–${fmtNum(rangeEnd)} of ${fmtNum(list.total)}`,
+                `عرض ${fmtNum(rangeStart)}–${fmtNum(rangeEnd)} من ${fmtNum(list.total)}`,
+              )}
+            </p>
+            {list.pages > 1 && (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={page <= 1 || loading}
+                  onClick={() => setParams({ page: page - 1 }, { resetPage: false })}
+                  className="inline-flex min-h-11 items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+                >
+                  <ChevronLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />{L('Previous', 'السابق')}
+                </button>
+                <span className="text-sm text-slate-700 dark:text-slate-300">
+                  {L(`Page ${fmtNum(page)} of ${fmtNum(list.pages)}`, `صفحة ${fmtNum(page)} من ${fmtNum(list.pages)}`)}
+                </span>
+                <button
+                  type="button"
+                  disabled={page >= list.pages || loading}
+                  onClick={() => setParams({ page: page + 1 }, { resetPage: false })}
+                  className="inline-flex min-h-11 items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+                >
+                  {L('Next', 'التالي')}<ChevronRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
+                </button>
+              </div>
+            )}
+          </nav>
         </div>
+      )}
+
+      {openId && (
+        <BookingDrawer
+          bookingId={openId}
+          initial={initialForDrawer}
+          servicesById={servicesById}
+          refreshKey={drawerRefreshKey}
+          onClose={closeBooking}
+          onChanged={onDrawerChanged}
+        />
       )}
     </div>
   );

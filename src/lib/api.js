@@ -8,6 +8,25 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+// Render free instances sleep when idle. Any request wakes them, so a page that has not talked to the API yet
+// sends one tiny fire-and-forget ping a moment after load, and the backend is warm by the time the visitor acts.
+let backendTouched = false;
+const BACKEND_ORIGIN = API_URL.replace(/\/api\/?$/, '');
+
+export function warmBackend() {
+  if (typeof window === 'undefined' || backendTouched) return;
+  try {
+    if (sessionStorage.getItem('backend-warm')) return;
+    sessionStorage.setItem('backend-warm', '1');
+  } catch {}
+  backendTouched = true;
+  fetch(`${BACKEND_ORIGIN}/ping`, { mode: 'no-cors', cache: 'no-store', keepalive: true }).catch(() => {});
+}
+
+if (typeof window !== 'undefined') {
+  window.setTimeout(warmBackend, 1500);
+}
+
 // An expired or revoked token must not leave the UI "logged in": clear it and tell the app
 api.interceptors.response.use(
   (res) => res,
@@ -22,6 +41,7 @@ api.interceptors.response.use(
 );
 
 api.interceptors.request.use((config) => {
+  backendTouched = true;
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('token');
     if (token) config.headers.Authorization = `Bearer ${token}`;
@@ -81,23 +101,45 @@ export const resetPassword = async (token, password, email) => {
 };
 
 // Services
-export const getServices = async () => {
-  const res = await api.get('/services');
-  return res.data;
+// The home, services, detail and booking pages all need the list, and several components can ask at once.
+// Share one in-flight request and reuse its result for a short time; a failure is never cached.
+const SERVICES_TTL_MS = 30000;
+let servicesCache = null; // { promise, at }
+
+export const getServices = () => {
+  if (servicesCache && Date.now() - servicesCache.at < SERVICES_TTL_MS) return servicesCache.promise;
+  const promise = api.get('/services').then((res) => res.data);
+  const entry = { promise, at: Date.now() };
+  servicesCache = entry;
+  promise.catch(() => {
+    if (servicesCache === entry) servicesCache = null;
+  });
+  return promise;
 };
 
+// Only real database ids (24 hex characters) are asked for individually; anything else (old numeric ids, package ids)
+// would just 404, so it is looked up in the shared list instead.
 export const getServiceById = async (id) => {
-  try {
-    const res = await api.get(`/services/${id}`);
-    return res.data;
-  } catch (error) {
-    // Fallback: search within getServices
+  const key = String(id ?? '');
+  const fromList = async () => {
     const listRes = await getServices();
     const list = listRes?.services ?? listRes?.data ?? listRes;
-    if (Array.isArray(list)) {
-      const found = list.find((s) => (s._id || s.id) === id);
-      if (found) return { success: true, service: found };
-    }
+    const found = Array.isArray(list) ? list.find((s) => String(s._id || s.id) === key) : null;
+    return found ? { success: true, service: found } : null;
+  };
+  if (!/^[a-f0-9]{24}$/i.test(key)) {
+    const found = await fromList();
+    if (found) return found;
+    const err = new Error('Service not found');
+    err.response = { status: 404 };
+    throw err;
+  }
+  try {
+    const res = await api.get(`/services/${key}`);
+    return res.data;
+  } catch (error) {
+    const found = await fromList().catch(() => null);
+    if (found) return found;
     throw error;
   }
 };
