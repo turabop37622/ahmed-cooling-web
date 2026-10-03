@@ -225,3 +225,23 @@ html.js-reveal[dir="rtl"] .scroll-reveal-right.revealed {
   outline-offset: 2px;
   box-shadow: 0 0 0 4px #1d4ed8;
 }
+
+/* Browser autofill must not tint inputs grey/blue: the colour change is delayed "forever",
+   so every field keeps its own background (light or dark); only the text colour is pinned. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: #0f172a;
+  caret-color: #0f172a;
+  transition: background-color 600000s ease-out 0s, color 600000s ease-out 0s;
+}
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark textarea:-webkit-autofill,
+.dark select:-webkit-autofill {
+  -webkit-text-fill-color: #f1f5f9;
+  caret-color: #f1f5f9;
+}

@@ -6,6 +6,7 @@ import { useAdminAuth, safeAdminPath } from '../AdminAuthContext';
 import { useAdminLang } from '../AdminI18n';
 import { login as loginRequest } from '../adminApi';
 import LangToggle from '../components/LangToggle';
+import { useNoAutofill } from '../../../lib/useNoAutofill';
 import { Mail, Lock, Loader2, ShieldCheck, Eye, EyeOff, AlertCircle } from 'lucide-react';
 
 // `next` is read from the URL at the moment it's needed (no useSearchParams → no Suspense boundary needed)
@@ -39,6 +40,7 @@ export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const noAutofill = useNoAutofill();
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const inFlight = useRef(false);
@@ -121,7 +123,7 @@ export default function AdminLoginPage() {
                   id="admin-email"
                   type="email"
                   name="email"
-                  autoComplete="username"
+                  {...noAutofill('email')}
                   inputMode="email"
                   dir="ltr"
                   required
@@ -144,7 +146,7 @@ export default function AdminLoginPage() {
                   id="admin-password"
                   type={showPassword ? 'text' : 'password'}
                   name="password"
-                  autoComplete="current-password"
+                  {...noAutofill('password')}
                   dir="ltr"
                   required
                   disabled={submitting}

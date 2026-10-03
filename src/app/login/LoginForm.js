@@ -8,6 +8,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from '../../contexts/TranslationContext';
 import { loginEmail } from '../../lib/api';
 import { safeRedirect } from '../../lib/safeRedirect';
+import { useNoAutofill } from '../../lib/useNoAutofill';
 import { authErrorMessage } from './authMessages';
 import GoogleSignInButton from './GoogleSignInButton';
 
@@ -29,6 +30,7 @@ export default function LoginForm({ redirect: redirectParam, verified, reason })
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const noAutofill = useNoAutofill();
   const [error, setError] = useState('');
   const [invalid, setInvalid] = useState({}); // { email?: true, password?: true }
   const [loading, setLoading] = useState(false);
@@ -163,7 +165,7 @@ export default function LoginForm({ redirect: redirectParam, verified, reason })
                   <Mail className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" aria-hidden="true" />
                   <input
                     ref={emailRef}
-                    id="login-email" name="email" autoComplete="email" inputMode="email" autoCapitalize="none" spellCheck={false}
+                    id="login-email" name="email" {...noAutofill('email')} inputMode="email" autoCapitalize="none" spellCheck={false}
                     type="email"
                     value={email}
                     onChange={(e) => { setEmail(e.target.value); if (invalid.email) setInvalid((v) => ({ ...v, email: false })); }}
@@ -181,7 +183,7 @@ export default function LoginForm({ redirect: redirectParam, verified, reason })
                   <Lock className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" aria-hidden="true" />
                   <input
                     ref={passwordRef}
-                    id="login-password" name="password" autoComplete="current-password"
+                    id="login-password" name="password" {...noAutofill('password')}
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => { setPassword(e.target.value); if (invalid.password) setInvalid((v) => ({ ...v, password: false })); }}
