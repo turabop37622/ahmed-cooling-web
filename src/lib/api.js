@@ -27,10 +27,27 @@ if (typeof window !== 'undefined') {
   window.setTimeout(warmBackend, 1500);
 }
 
+// A dropped connection (no response at all, not a timeout) is retried a couple of times when that is safe:
+// reads, requests carrying an Idempotency-Key (a booking cannot be created twice) and logins.
+const NETWORK_RETRIES = 2;
+const isRetryable = (config) => {
+  const method = String(config?.method || 'get').toLowerCase();
+  const headers = config?.headers || {};
+  const hasKey = Boolean(typeof headers.get === 'function' ? headers.get('Idempotency-Key') : headers['Idempotency-Key']);
+  return method === 'get' || method === 'head' || hasKey || config?.retryOnNetworkError === true;
+};
+
 // An expired or revoked token must not leave the UI "logged in": clear it and tell the app
 api.interceptors.response.use(
   (res) => res,
-  (error) => {
+  async (error) => {
+    const config = error?.config;
+    const dropped = !error?.response && error?.code !== 'ECONNABORTED' && error?.code !== 'ERR_CANCELED';
+    if (config && dropped && isRetryable(config) && (config.__networkRetry || 0) < NETWORK_RETRIES) {
+      config.__networkRetry = (config.__networkRetry || 0) + 1;
+      await new Promise((resolve) => setTimeout(resolve, 700 * config.__networkRetry));
+      return api(config);
+    }
     if (typeof window !== 'undefined' && error?.response?.status === 401 && localStorage.getItem('token')) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
@@ -51,7 +68,7 @@ api.interceptors.request.use((config) => {
 
 // Auth
 export const loginEmail = async (email, password) => {
-  const res = await api.post('/auth/login', { email, password });
+  const res = await api.post('/auth/login', { email, password }, { retryOnNetworkError: true });
   return res.data;
 };
 
@@ -61,7 +78,7 @@ export const signupEmail = async (data) => {
 };
 
 export const loginPhone = async (phone, password) => {
-  const res = await api.post('/auth/phone/login', { phone, password });
+  const res = await api.post('/auth/phone/login', { phone, password }, { retryOnNetworkError: true });
   return res.data;
 };
 
@@ -71,7 +88,7 @@ export const signupPhone = async (data) => {
 };
 
 export const socialAuth = async (data) => {
-  const res = await api.post('/auth/social', data);
+  const res = await api.post('/auth/social', data, { retryOnNetworkError: true });
   return res.data;
 };
 

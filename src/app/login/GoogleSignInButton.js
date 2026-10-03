@@ -100,6 +100,9 @@ export default function GoogleSignInButton({ language = 'ar', onSuccess, onError
       <div
         ref={boxRef}
         data-testid="google-signin"
+        // Google's button is an iframe. When the page uses a dark color-scheme the browser paints the iframe's
+        // background white (a white box around the pill); a light scheme on the wrapper keeps it transparent.
+        style={{ colorScheme: 'light' }}
         className={`flex min-h-[44px] w-full justify-center ${state === 'busy' ? 'pointer-events-none opacity-60' : ''}`}
         aria-busy={state === 'loading' || state === 'busy'}
       />

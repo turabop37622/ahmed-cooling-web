@@ -169,7 +169,17 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    // A dropped connection (no response, not a timeout) on a read or the login is retried twice before failing
+    const config = error?.config;
+    const method = String(config?.method || 'get').toLowerCase();
+    const dropped = !error?.response && error?.code !== 'ECONNABORTED' && error?.code !== 'ERR_CANCELED';
+    const safe = method === 'get' || method === 'head' || /\/admin\/login$/.test(config?.url || '');
+    if (config && dropped && safe && (config.__networkRetry || 0) < 2) {
+      config.__networkRetry = (config.__networkRetry || 0) + 1;
+      await new Promise((resolve) => setTimeout(resolve, 700 * config.__networkRetry));
+      return api(config);
+    }
     const status = error?.response?.status;
     if (status === 401 && !error?.config?.skipLogoutOn401 && hasWindow()) {
       clearStoredSession();
