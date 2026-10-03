@@ -44,8 +44,9 @@ export const TranslationProvider = ({ children, initialLang = 'ar' }) => {
         lang = saved;
         if (lang !== language) setLang(lang);
       }
-      // Only the language toggle changes a saved preference; a first visit seeds it from the page language
-      const pref = saved === 'en' || saved === 'ar' ? saved : cookie || lang;
+      // The language the visitor is reading is the one they want: a public page's language becomes the saved
+      // preference, so the app pages it links to (booking, login ...) open in that same language.
+      const pref = onLangPath ? lang : saved === 'en' || saved === 'ar' ? saved : cookie || lang;
       localStorage.setItem('language', pref);
       if (cookie !== pref) writeCookie(pref);
       applyDocument(lang);
@@ -53,14 +54,17 @@ export const TranslationProvider = ({ children, initialLang = 'ar' }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Back/forward or a link between /x and /en/x: keep the language in step with the URL of public pages.
-  // Moving on to an app page (login ...) uses the saved preference, like the server does.
+  // Back/forward or a link between /x and /en/x: keep the language (and the saved preference) in step with the URL
+  // of public pages. Moving on to an app page (login, booking ...) uses that saved preference, like the server does.
   useEffect(() => {
     try {
       const path = window.location.pathname;
       let next;
       if (isLangPath(path) || hasEnPrefix(path)) {
         next = hasEnPrefix(path) ? 'en' : 'ar';
+        // Remember it for the app pages this page links to (see the first effect)
+        if (localStorage.getItem('language') !== next) localStorage.setItem('language', next);
+        if (readCookie() !== next) writeCookie(next);
       } else {
         const saved = localStorage.getItem('language');
         next = saved === 'en' || saved === 'ar' ? saved : readCookie() || language;
