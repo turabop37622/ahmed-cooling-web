@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock, Eye, EyeOff, User, Phone, AlertCircle, Loader2, ChevronDown, CheckCircle2, RefreshCw } from 'lucide-react';
+import { normalizeSaudiMobile, isValidSaudiMobile } from '../../lib/saudiPhone';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from '../../contexts/TranslationContext';
 import { signupEmail, verifyOTP, resendOTP } from '../../lib/api';
@@ -31,6 +32,9 @@ export default function SignupForm({ redirect: redirectParam }) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const phoneOk = isValidSaudiMobile(phoneNumber);
+  // Only flag it once the first digit is wrong; an incomplete number just shows the counter
+  const phoneProblem = phoneNumber.length > 0 && !phoneNumber.startsWith('5');
   const [countryIdx, setCountryIdx] = useState(0);
   const [ccOpen, setCcOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -324,15 +328,22 @@ export default function SignupForm({ redirect: redirectParam }) {
                     <div className="relative flex-1">
                       <Phone className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                       <input
-                  id="signup-phone" aria-invalid={invalidField === 'phone' ? 'true' : undefined} aria-describedby={invalidField === 'phone' ? 'signup-error' : undefined} name="phone" autoComplete="tel-national" inputMode="numeric"
+                  id="signup-phone" aria-invalid={invalidField === 'phone' || phoneProblem ? 'true' : undefined} aria-describedby={invalidField === 'phone' ? 'signup-error signup-phone-hint' : 'signup-phone-hint'} name="phone" autoComplete="tel-national" inputMode="numeric"
                         type="tel"
                         value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
+                        onChange={(e) => setPhoneNumber(normalizeSaudiMobile(e.target.value))}
                         placeholder={country.phonePlaceholder}
                         className="w-full ps-10 pe-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                       />
                     </div>
                   </div>
+                  <p id="signup-phone-hint" aria-live="polite" className={`text-xs mt-1 ${phoneProblem ? 'text-red-600 dark:text-red-400' : phoneOk ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                    {phoneOk
+                      ? (ar ? '✓ رقم الجوال صحيح' : '✓ Mobile number looks good')
+                      : phoneProblem
+                        ? (ar ? 'رقم الجوال يجب أن يبدأ بـ ٥' : 'The mobile number must start with 5')
+                        : (ar ? `أدخل ٩ أرقام تبدأ بـ ٥ (${toAr(phoneNumber.length)}/${toAr(9)})` : `Enter 9 digits starting with 5 (${phoneNumber.length}/9)`)}
+                  </p>
                 </div>
 
                 {/* Submit */}
