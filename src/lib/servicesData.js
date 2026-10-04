@@ -61,7 +61,9 @@ export async function loadServices() {
   try {
     const res = await fetch(`${API_URL}/services`, {
       next: { revalidate: SERVICES_REVALIDATE_SECONDS, tags: ['services'] },
-      signal: AbortSignal.timeout(8000),
+      // A sleeping Render instance can take 30s+ to wake: do not hold the page for it, the bundled copy has the
+      // same catalogue and the cached list is used again as soon as the API answers
+      signal: AbortSignal.timeout(2500),
     });
     if (res.ok) {
       const data = await res.json();
