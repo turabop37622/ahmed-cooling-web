@@ -7,9 +7,9 @@ import { VISIT_FEE, isPackage } from './servicesData';
 import { buildSlugIndex } from './serviceSlugs';
 import { nearbyDistricts } from './areas';
 
-export const PHONE = '+966590192146';
-export const PHONE_DISPLAY = { ar: '٠٥٩٠١٩٢١٤٦', en: '+966 59 019 2146' };
-export const WHATSAPP_URL = 'https://wa.me/966590192146';
+export const PHONE = '+966544483745';
+export const PHONE_DISPLAY = { ar: '٠٥٤٤٤٨٣٧٤٥', en: '+966 54 448 3745' };
+export const WHATSAPP_URL = 'https://wa.me/966544483745';
 
 const AR_DIGITS = '٠١٢٣٤٥٦٧٨٩';
 // Latin digits -> Arabic-Indic in Arabic (decimal point -> ٫, thousands comma -> ٬), like the rest of the site

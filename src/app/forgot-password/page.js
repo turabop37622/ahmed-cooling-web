@@ -10,7 +10,7 @@ import { authErrorMessage } from '../login/authMessages';
 
 // The backend resets passwords by email code only (routes/auth.js: /forgot-password, /verify-reset-otp, /reset-password).
 // Accounts registered with a phone number are helped over WhatsApp instead.
-const WHATSAPP_RESET_URL = 'https://wa.me/966590192146?text=' + encodeURIComponent('Hello, I registered with my phone number and need help resetting my password. / مرحباً، سجلت برقم جوالي وأحتاج مساعدة في إعادة تعيين كلمة المرور.');
+const WHATSAPP_RESET_URL = 'https://wa.me/966544483745?text=' + encodeURIComponent('Hello, I registered with my phone number and need help resetting my password. / مرحباً، سجلت برقم جوالي وأحتاج مساعدة في إعادة تعيين كلمة المرور.');
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -177,7 +177,7 @@ export default function ForgotPasswordPage() {
               >
                 <MessageCircle className="h-4 w-4" aria-hidden="true" />
                 {ar ? 'تواصل معنا عبر واتساب' : 'Contact us on WhatsApp'}
-                <span dir="ltr" className="font-normal opacity-90">{ar ? '+٩٦٦ ٥٩ ٠١٩ ٢١٤٦' : '+966 59 019 2146'}</span>
+                <span dir="ltr" className="font-normal opacity-90">{ar ? '+٩٦٦ ٥٤ ٤٤٨ ٣٧٤٥' : '+966 54 448 3745'}</span>
               </a>
             </div>
           )}

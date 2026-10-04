@@ -9,7 +9,7 @@ import { pathForLang } from '../lib/lang';
 // Hero banners (from the project's assets folder, optimised to WebP in public/hero-banners).
 // Each banner has an Arabic and an English version with its own headline and button baked in,
 // so the whole banner links to where its button points.
-const PHONE_HREF = 'tel:+966590192146';
+const PHONE_HREF = 'tel:+966544483745';
 const SLIDES = [
   {
     key: 'ac',

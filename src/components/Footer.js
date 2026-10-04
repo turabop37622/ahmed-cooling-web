@@ -50,7 +50,7 @@ export default function Footer() {
             </p>
             <div className="flex items-center gap-3 pt-1">
               <a
-                href="https://wa.me/966590192146"
+                href="https://wa.me/966544483745"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-11 h-11 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-emerald-400 hover:border-emerald-500/40 transition"
@@ -162,9 +162,9 @@ export default function Footer() {
             </h4>
             <ul className="space-y-3 text-sm">
               <li>
-                <a href="tel:+966590192146" className="flex items-center gap-2.5 py-2 pointer-coarse:min-h-11 hover:text-white transition-colors rtl:justify-end" dir="ltr">
+                <a href="tel:+966544483745" className="flex items-center gap-2.5 py-2 pointer-coarse:min-h-11 hover:text-white transition-colors rtl:justify-end" dir="ltr">
                   <Phone className="w-4 h-4 text-blue-500 shrink-0" />
-                  <span>+966 59 019 2146</span>
+                  <span>+966 54 448 3745</span>
                 </a>
               </li>
               <li>

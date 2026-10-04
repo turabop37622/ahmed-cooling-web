@@ -47,7 +47,7 @@ export default function WhatsAppButton() {
   const FORM_PAGES = ['/book', '/login', '/signup', '/forgot-password'];
   if (FORM_PAGES.some((p) => pathname === p || pathname?.startsWith(`${p}/`))) return null;
 
-  const phone = '966590192146';
+  const phone = '966544483745';
   const message = language === 'ar'
     ? 'مرحباً ورشة أحمد للتبريد! أود الاستفسار عن خدمات الصيانة وحجز موعد في جدة / مكة.'
     : 'Hello Ahmed Cooling Workshop! I would like to inquire about repair services and book a visit in Jeddah / Makkah.';
@@ -76,7 +76,7 @@ export default function WhatsAppButton() {
 
         {/* Hover Tooltip */}
         <span className={`pointer-events-none absolute bottom-16 ${isRTL ? 'left-0' : 'right-0'} hidden whitespace-nowrap rounded-xl bg-slate-900/95 px-3 py-1.5 text-xs font-semibold text-white shadow-lg backdrop-blur-sm group-hover:block transition-all`}>
-          {language === 'ar' ? 'تواصل معنا واتساب (+966 59 019 2146)' : 'WhatsApp Chat (+966 59 019 2146)'}
+          {language === 'ar' ? 'تواصل معنا واتساب (+966 54 448 3745)' : 'WhatsApp Chat (+966 54 448 3745)'}
         </span>
       </a>
     </div>

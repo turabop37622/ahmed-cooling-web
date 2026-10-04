@@ -4,11 +4,11 @@ import { langAlternates, absoluteUrl } from '../../lib/lang';
 const META = {
   ar: {
     title: 'اتصل بنا في جدة ومكة | ورشة أحمد للتبريد',
-    description: 'تواصل مع ورشة أحمد للتبريد لطوارئ المكيفات وصيانة الأجهزة المنزلية في جدة ومكة. اتصال أو واتساب على ‎+966 59 019 2146.',
+    description: 'تواصل مع ورشة أحمد للتبريد لطوارئ المكيفات وصيانة الأجهزة المنزلية في جدة ومكة. اتصال أو واتساب على ‎+966 54 448 3745.',
   },
   en: {
     title: 'Contact Us Jeddah & Makkah | Ahmed Cooling Workshop',
-    description: '24/7 emergency AC repair and home appliance service in Jeddah & Makkah. Call or WhatsApp +966 59 019 2146.',
+    description: '24/7 emergency AC repair and home appliance service in Jeddah & Makkah. Call or WhatsApp +966 54 448 3745.',
   },
 };
 

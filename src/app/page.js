@@ -161,7 +161,7 @@ export default function Home() {
     return () => window.removeEventListener('resize', updateTabsFade);
   }, [updateTabsFade, language]);
 
-  const PHONE = '+966590192146';
+  const PHONE = '+966544483745';
 
   // Load once. The language only changes which built-in reviews are shown, so it must not trigger new requests.
   useEffect(() => {
@@ -561,7 +561,7 @@ export default function Home() {
                   {language === 'ar' ? 'حجز عقد صيانة الفلل' : 'Book Villa Care Plan'}
                 </Link>
                 <a
-                  href={`https://wa.me/966590192146?text=${encodeURIComponent(
+                  href={`https://wa.me/966544483745?text=${encodeURIComponent(
                     language === 'ar'
                       ? 'مرحباً ورشة أحمد للتبريد، أود الاستفسار عن باقة الرعاية السنوية للفلل (Annual Villa Care Plan)'
                       : 'Hello Ahmed Cooling, I would like to inquire about the Annual Villa Care Plan'

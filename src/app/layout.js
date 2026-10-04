@@ -43,7 +43,7 @@ const SITE = 'https://www.ahmedcoolingworkshop.com';
 // Square brand logo (320x320, the English logo on white) for Google's logo / knowledge panel (min. 112x112)
 const LOGO_URL = `${SITE}/logo-square.png`;
 const SAME_AS = [
-  'https://wa.me/966590192146',
+  'https://wa.me/966544483745',
   'https://www.instagram.com/ahmedcoolingworkshop/',
   'https://www.facebook.com/profile.php?id=61589456784736',
 ];
@@ -70,7 +70,7 @@ const ORGANIZATION_JSON_LD = {
   email: 'ahmedcoolingworkshop@gmail.com',
   contactPoint: {
     '@type': 'ContactPoint',
-    telephone: '+966590192146',
+    telephone: '+966544483745',
     contactType: 'customer service',
     areaServed: 'SA',
     availableLanguage: ['ar', 'en'],
@@ -203,7 +203,7 @@ export default async function RootLayout({ children }) {
               description: 'ورشة أحمد للتبريد - صيانة وإصلاح المكيفات (سبليت وشباك ومركزي)، الثلاجات والغسالات في جدة ومكة المكرمة. خدمة طوارئ 24/7 مع ضمان رسمي معتمد وقطع غيار أصلية.',
               disambiguatingDescription: 'Professional air conditioning and home appliance repair workshop in Saudi Arabia serving customers across Jeddah and Makkah.',
               url: 'https://www.ahmedcoolingworkshop.com',
-              telephone: '+966590192146',
+              telephone: '+966544483745',
               email: 'ahmedcoolingworkshop@gmail.com',
               knowsLanguage: ['ar', 'en'],
               address: {
@@ -250,7 +250,7 @@ export default async function RootLayout({ children }) {
                 '@type': 'LocalBusiness',
                 '@id': `${SITE}/#localbusiness`,
                 name: 'Ahmed Cooling Workshop - ورشة أحمد للتبريد',
-                telephone: '+966590192146',
+                telephone: '+966544483745',
               },
               areaServed: [
                 { '@type': 'City', name: 'Jeddah' },

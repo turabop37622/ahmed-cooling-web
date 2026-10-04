@@ -123,7 +123,7 @@ export default function ContactPage() {
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <a
-              href="tel:+966590192146"
+              href="tel:+966544483745"
               className="scroll-reveal delay-100 flex gap-3 sm:gap-4 rounded-2xl border border-border bg-white p-4 sm:p-5 transition-colors hover:border-primary/40 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-500/50"
             >
               <Phone className="h-5 w-5 sm:h-6 sm:w-6 shrink-0 text-primary dark:text-blue-400" aria-hidden />
@@ -131,7 +131,7 @@ export default function ContactPage() {
                 <p className="text-xs sm:text-sm font-semibold uppercase text-sub dark:text-slate-500">
                   {t.phone}
                 </p>
-                <p dir="ltr" className="mt-1 text-sm sm:text-lg font-semibold text-text dark:text-white rtl:text-right">{toAr('+966 59 019 2146')}</p>
+                <p dir="ltr" className="mt-1 text-sm sm:text-lg font-semibold text-text dark:text-white rtl:text-right">{toAr('+966 54 448 3745')}</p>
               </div>
             </a>
             <a
@@ -264,7 +264,7 @@ export default function ContactPage() {
               </button>
 
               <a
-                href="https://wa.me/966590192146"
+                href="https://wa.me/966544483745"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-emerald-500/40 bg-emerald-50/50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/40 font-semibold transition flex items-center justify-center gap-2"
