@@ -30,7 +30,7 @@ export default function Footer() {
   return (
     <footer className="bg-[#0A0E17] text-slate-400 border-t border-slate-800/80">
       <div className="mx-auto max-w-[1560px] px-6 sm:px-8 lg:px-12 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1fr_1.6fr] gap-12 lg:gap-8">
 
           {/* 1. Brand */}
           <div className="space-y-4 scroll-reveal">
@@ -170,7 +170,7 @@ export default function Footer() {
               <li>
                 <a href="mailto:ahmedcoolingworkshop@gmail.com" className="flex items-center gap-2.5 py-2 pointer-coarse:min-h-11 hover:text-white transition-colors">
                   <Mail className="w-4 h-4 text-blue-500 shrink-0" />
-                  <span className="min-w-0 break-all">ahmedcoolingworkshop@gmail.com</span>
+                  <span className="whitespace-nowrap">ahmedcoolingworkshop@gmail.com</span>
                 </a>
               </li>
               <li className="flex items-start gap-2.5">
