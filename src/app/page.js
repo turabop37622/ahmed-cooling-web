@@ -16,6 +16,7 @@ import {
   Check,
   ChevronDown,
   MapPin,
+  ArrowRight,
 } from 'lucide-react';
 import { useTranslation } from '../contexts/TranslationContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -24,6 +25,7 @@ import { FALLBACK_SERVICES, VISIT_FEE } from '../lib/servicesData';
 import HeroCarousel from '../components/HeroCarousel';
 import ServiceCard from '../components/ServiceCard';
 import { pathForLang } from '../lib/lang';
+import { areaSlug } from '../lib/areas';
 
 // Same catalogue as the services and detail pages, so names and prices always match
 const SERVICES_FALLBACK = FALLBACK_SERVICES;
@@ -116,6 +118,14 @@ const CATEGORY_TABS = [
 
 // Only the first few popular services get the "Popular" badge, so it still means something
 const MAX_POPULAR_BADGES = 3;
+
+// District landing page of a home-page area chip ("الصفا (Al Safa)" -> /areas/jeddah/al-safa)
+const areaHref = (city, area, lang) => {
+  const m = String(area).match(/\((.*)\)$/);
+  return pathForLang(m ? `/areas/${city}/${areaSlug(m[1])}` : `/areas/${city}`, lang);
+};
+const AREA_CHIP_CLASS =
+  'inline-flex items-center rounded-xl border border-slate-100 bg-slate-50 px-3 py-1.5 pointer-coarse:min-h-11 text-xs font-semibold text-slate-700 transition-colors hover:border-primary/40 hover:text-primary dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300 dark:hover:text-blue-400';
 
 // Area names are stored as "Arabic (English)"; show only the one for the current language
 const areaLabel = (area, lang) => {
@@ -705,16 +715,16 @@ export default function Home() {
             <div className="flex items-center gap-3 mb-5">
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{t.cityJeddah}</h3>
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white"><Link href={pathForLang('/areas/jeddah', language)} className="hover:text-primary transition-colors">{t.cityJeddah}</Link></h3>
                 </div>
                 <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">{language === 'ar' ? 'تغطية شاملة لكافة الأحياء' : 'Full city coverage'}</span>
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
               {JEDDAH_AREAS.map((area, idx) => (
-                <span key={idx} className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300">
+                <Link key={idx} href={areaHref('jeddah', area, language)} className={AREA_CHIP_CLASS}>
                   {areaLabel(area, language)}
-                </span>
+                </Link>
               ))}
             </div>
           </div>
@@ -724,19 +734,28 @@ export default function Home() {
             <div className="flex items-center gap-3 mb-5">
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{t.cityMakkah}</h3>
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white"><Link href={pathForLang('/areas/makkah', language)} className="hover:text-primary transition-colors">{t.cityMakkah}</Link></h3>
                 </div>
                 <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">{language === 'ar' ? 'خدمة سريعة في كافة المناطق' : 'Rapid dispatch across all zones'}</span>
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
               {MAKKAH_AREAS.map((area, idx) => (
-                <span key={idx} className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300">
+                <Link key={idx} href={areaHref('makkah', area, language)} className={AREA_CHIP_CLASS}>
                   {areaLabel(area, language)}
-                </span>
+                </Link>
               ))}
             </div>
           </div>
+        </div>
+        <div className="mt-6 text-center">
+          <Link
+            href={pathForLang('/areas', language)}
+            className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-primary hover:underline dark:text-blue-400"
+          >
+            {language === 'ar' ? 'جميع المناطق والأحياء التي نخدمها' : 'All areas and districts we serve'}
+            <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
+          </Link>
         </div>
       </section>
 

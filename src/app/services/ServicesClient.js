@@ -2,12 +2,14 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Inbox, RefreshCw } from 'lucide-react';
+import Link from 'next/link';
+import { Inbox, RefreshCw, MapPin } from 'lucide-react';
 import { useTranslation } from '@/contexts/TranslationContext';
 import { getServices } from '@/lib/api';
 import { VISIT_FEE } from '@/lib/servicesData';
 import ServiceCard from '@/components/ServiceCard';
 import { FILTER_IDS, normalizeFilter } from './filters';
+import { pathForLang } from '@/lib/lang';
 
 const FILTERS = [
   { id: 'all', labelKey: 'catAll' },
@@ -220,6 +222,26 @@ export default function ServicesClient({ initialServices, live, initialFilter = 
           </div>
         )}
       </div>
+
+      {/* Areas we serve: links to the city landing pages */}
+      <nav
+        aria-label={language === 'ar' ? 'المناطق التي نخدمها' : 'Areas we serve'}
+        className="mx-auto mb-4 flex max-w-[1560px] flex-wrap items-center justify-center gap-x-4 gap-y-1 px-4 text-sm font-semibold text-sub dark:text-slate-400 scroll-reveal-fade"
+      >
+        <span className="inline-flex items-center gap-1.5">
+          <MapPin className="h-4 w-4 text-primary dark:text-blue-400" aria-hidden />
+          {language === 'ar' ? 'المناطق التي نخدمها:' : 'Areas we serve:'}
+        </span>
+        <Link href={pathForLang('/areas/jeddah', language)} className="inline-flex min-h-11 items-center text-primary hover:underline dark:text-blue-400">
+          {language === 'ar' ? 'جدة' : 'Jeddah'}
+        </Link>
+        <Link href={pathForLang('/areas/makkah', language)} className="inline-flex min-h-11 items-center text-primary hover:underline dark:text-blue-400">
+          {language === 'ar' ? 'مكة المكرمة' : 'Makkah'}
+        </Link>
+        <Link href={pathForLang('/areas', language)} className="inline-flex min-h-11 items-center text-primary hover:underline dark:text-blue-400">
+          {language === 'ar' ? 'جميع الأحياء' : 'All districts'}
+        </Link>
+      </nav>
 
       {/* Footer info */}
       <div className="flex items-center justify-center gap-2 pt-2 scroll-reveal-fade">

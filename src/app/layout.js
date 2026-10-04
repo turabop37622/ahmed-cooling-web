@@ -39,6 +39,45 @@ export const viewport = {
   colorScheme: "light dark",
 };
 
+const SITE = 'https://www.ahmedcoolingworkshop.com';
+// Square brand logo (320x320, the English logo on white) for Google's logo / knowledge panel (min. 112x112)
+const LOGO_URL = `${SITE}/logo-square.png`;
+const SAME_AS = [
+  'https://wa.me/966590192146',
+  'https://www.instagram.com/ahmedcoolingworkshop/',
+  'https://www.facebook.com/profile.php?id=61589456784736',
+];
+
+const WEBSITE_JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  '@id': `${SITE}/#website`,
+  name: 'Ahmed Cooling Workshop',
+  alternateName: ['ورشة أحمد للتبريد', 'Ahmed Cooling'],
+  url: SITE,
+  inLanguage: ['ar-SA', 'en-SA'],
+  publisher: { '@id': `${SITE}/#organization` },
+};
+
+const ORGANIZATION_JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  '@id': `${SITE}/#organization`,
+  name: 'Ahmed Cooling Workshop',
+  alternateName: ['ورشة أحمد للتبريد', 'Ahmed Cooling'],
+  url: SITE,
+  logo: { '@type': 'ImageObject', url: LOGO_URL, width: 320, height: 320 },
+  email: 'ahmedcoolingworkshop@gmail.com',
+  contactPoint: {
+    '@type': 'ContactPoint',
+    telephone: '+966590192146',
+    contactType: 'customer service',
+    areaServed: 'SA',
+    availableLanguage: ['ar', 'en'],
+  },
+  sameAs: SAME_AS,
+};
+
 const HOME = {
   ar: {
     title: 'ورشة أحمد للتبريد | صيانة مكيفات جدة ومكة',
@@ -144,13 +183,22 @@ export default async function RootLayout({ children }) {
           }}
         />
         <meta name="google" content="notranslate" />
+        {/* Brand entities: the website and the organization behind it (linked to the LocalBusiness below by @id) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify([WEBSITE_JSON_LD, ORGANIZATION_JSON_LD]) }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': ['LocalBusiness', 'HVACBusiness'],
+              '@id': `${SITE}/#localbusiness`,
               name: 'Ahmed Cooling Workshop - ورشة أحمد للتبريد',
+              logo: LOGO_URL,
+              image: [LOGO_URL, `${SITE}${OG_IMAGE.ar.url}`, `${SITE}${OG_IMAGE.en.url}`],
+              parentOrganization: { '@id': `${SITE}/#organization` },
               alternateName: 'Ahmed Cooling Workshop KSA',
               description: 'ورشة أحمد للتبريد - صيانة وإصلاح المكيفات (سبليت وشباك ومركزي)، الثلاجات والغسالات في جدة ومكة المكرمة. خدمة طوارئ 24/7 مع ضمان رسمي معتمد وقطع غيار أصلية.',
               disambiguatingDescription: 'Professional air conditioning and home appliance repair workshop in Saudi Arabia serving customers across Jeddah and Makkah.',
@@ -170,7 +218,7 @@ export default async function RootLayout({ children }) {
                 longitude: 39.1925,
               },
               areaServed: [
-                { '@type': 'City', name: 'Jeddah', '@id': 'https://www.wikidata.org/wiki/Q5880' },
+                { '@type': 'City', name: 'Jeddah', sameAs: 'https://en.wikipedia.org/wiki/Jeddah' },
                 { '@type': 'City', name: 'Makkah', '@id': 'https://www.wikidata.org/wiki/Q5806' },
                 { '@type': 'Country', name: 'Saudi Arabia' },
               ],
@@ -187,11 +235,7 @@ export default async function RootLayout({ children }) {
                 closes: '23:59',
               },
               priceRange: 'SAR 100 - SAR 2000',
-              sameAs: [
-                'https://wa.me/966590192146',
-                'https://www.instagram.com/ahmedcoolingworkshop/',
-                'https://www.facebook.com/profile.php?id=61589456784736',
-              ],
+              sameAs: SAME_AS,
             }),
           }}
         />
@@ -204,6 +248,7 @@ export default async function RootLayout({ children }) {
               serviceType: 'HVAC and Home Appliance Repair Services in Saudi Arabia',
               provider: {
                 '@type': 'LocalBusiness',
+                '@id': `${SITE}/#localbusiness`,
                 name: 'Ahmed Cooling Workshop - ورشة أحمد للتبريد',
                 telephone: '+966590192146',
               },

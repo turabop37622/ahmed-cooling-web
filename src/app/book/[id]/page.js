@@ -27,6 +27,7 @@ import { useTranslation } from '@/contexts/TranslationContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { getServices, createBooking, updateProfile } from '@/lib/api';
 import { FALLBACK_SERVICES as SHARED_SERVICES, PACKAGES, VISIT_FEE } from '@/lib/servicesData';
+import { LOCATION_DATA } from '@/lib/areas';
 
 const COUNTRY_CODES = [
   { code: '+966', label: 'SA +966', country: 'SA' },
@@ -37,71 +38,7 @@ const DAY_NAMES_AR = ['أحد', 'إثنين', 'ثلاثاء', 'أربعاء', '�
 const MONTH_NAMES_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const MONTH_NAMES_AR = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 
-const LOCATION_DATA = {
-  jeddah: {
-    country: 'SA',
-    en: 'Jeddah', ar: 'جدة',
-    areas: [
-      { en: 'Abhur', ar: 'أبحر' },
-      { en: 'Al Ajwad', ar: 'الأجواد' },
-      { en: 'Al Andalus', ar: 'الأندلس' },
-      { en: 'Al Aziziyah', ar: 'العزيزية' },
-      { en: 'Al Balad', ar: 'البلد' },
-      { en: 'Al Basateen', ar: 'البساتين' },
-      { en: 'Al Bawadi', ar: 'البوادي' },
-      { en: 'Al Faisaliyyah', ar: 'الفيصلية' },
-      { en: 'Al Hamra', ar: 'الحمراء' },
-      { en: 'Al Hamdaniyah', ar: 'الحمدانية' },
-      { en: 'Al Khalidiyyah', ar: 'الخالدية' },
-      { en: 'Al Manar', ar: 'المنار' },
-      { en: 'Al Marwah', ar: 'المروة' },
-      { en: 'Al Muhammadiyah', ar: 'المحمدية' },
-      { en: 'Al Nahdah', ar: 'النهضة' },
-      { en: 'Al Naim', ar: 'النعيم' },
-      { en: 'Al Naseem', ar: 'النسيم' },
-      { en: 'Al Rabwah', ar: 'الربوة' },
-      { en: 'Al Rawdah', ar: 'الروضة' },
-      { en: 'Al Rehab', ar: 'الرحاب' },
-      { en: 'Al Safa', ar: 'الصفا' },
-      { en: 'Al Salamah', ar: 'السلامة' },
-      { en: 'Al Samer', ar: 'السامر' },
-      { en: 'Al Sharafiyah', ar: 'الشرفية' },
-      { en: 'Al Shati', ar: 'الشاطئ' },
-      { en: 'Al Thaghr', ar: 'الثغر' },
-      { en: 'Al Wurud', ar: 'الورود' },
-      { en: 'Al Zahra', ar: 'الزهراء' },
-      { en: 'Bryman', ar: 'بريمان' },
-    ],
-  },
-  makkah: {
-    country: 'SA',
-    en: 'Makkah', ar: 'مكة المكرمة',
-    areas: [
-      { en: 'Al Adl', ar: 'العدل' },
-      { en: 'Al Awali', ar: 'العوالي' },
-      { en: 'Al Aziziyah', ar: 'العزيزية' },
-      { en: 'Al Buhayrat', ar: 'البحيرات' },
-      { en: 'Al Hajlah', ar: 'الحجلة' },
-      { en: 'Al Hindawiyyah', ar: 'الهنداوية' },
-      { en: 'Al Jamiah', ar: 'الجامعة' },
-      { en: 'Al Kakiyyah', ar: 'الكعكية' },
-      { en: 'Al Khalidiyyah', ar: 'الخالدية' },
-      { en: 'Al Maabdah', ar: 'المعابدة' },
-      { en: 'Al Misfalah', ar: 'المسفلة' },
-      { en: 'Al Naseem', ar: 'النسيم' },
-      { en: 'Al Nuzha', ar: 'النزهة' },
-      { en: 'Al Rusayfah', ar: 'الرصيفة' },
-      { en: 'Al Shisha', ar: 'الشيشة' },
-      { en: 'Al Shoqiyah', ar: 'الشوقية' },
-      { en: 'Al Taneem', ar: 'التنعيم' },
-      { en: 'Al Utaibiyyah', ar: 'العتيبية' },
-      { en: 'Al Zaidi', ar: 'الزايدي' },
-      { en: 'Jarwal', ar: 'جرول' },
-      { en: 'Kudai', ar: 'كدي' },
-    ],
-  },
-};
-
+// Cities and districts (shared with the /areas landing pages)
 
 function getMonthGrid(year, month) {
   const firstDay = new Date(year, month, 1).getDay();

@@ -30,7 +30,7 @@ export default function Footer() {
   return (
     <footer className="bg-[#0A0E17] text-slate-400 border-t border-slate-800/80">
       <div className="mx-auto max-w-[1560px] px-6 sm:px-8 lg:px-12 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-10">
 
           {/* 1. Brand */}
           <div className="space-y-4 scroll-reveal">
@@ -97,7 +97,31 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* 3. Company */}
+          {/* 3. Areas we serve (local landing pages) */}
+          <div className="scroll-reveal delay-100">
+            <h4 className="text-xs font-semibold uppercase text-white mb-4">
+              {isAr ? 'المناطق التي نخدمها' : 'Areas we serve'}
+            </h4>
+            <ul className="space-y-0.5 text-sm">
+              <li>
+                <Link href={pathForLang('/areas/jeddah', language)} className={LINK_CLASS}>
+                  {isAr ? 'صيانة مكيفات جدة' : 'AC repair Jeddah'}
+                </Link>
+              </li>
+              <li>
+                <Link href={pathForLang('/areas/makkah', language)} className={LINK_CLASS}>
+                  {isAr ? 'صيانة مكيفات مكة' : 'AC repair Makkah'}
+                </Link>
+              </li>
+              <li>
+                <Link href={pathForLang('/areas', language)} className={LINK_CLASS}>
+                  {isAr ? 'جميع المناطق والأحياء' : 'All areas & districts'}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* 4. Company */}
           <div className="scroll-reveal delay-200">
             <h4 className="text-xs font-semibold uppercase text-white mb-4">
               {isAr ? 'روابط سريعة' : 'Company'}
@@ -131,7 +155,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* 4. Contact Info */}
+          {/* 5. Contact Info */}
           <div className="scroll-reveal delay-300">
             <h4 className="text-xs font-semibold uppercase text-white mb-4">
               {isAr ? 'معلومات الاتصال' : 'Contact'}

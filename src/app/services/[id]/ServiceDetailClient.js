@@ -735,6 +735,22 @@ export default function ServiceDetailClient({ service, related = [] }) {
                   {language === 'ar' ? 'اتصل الآن: ٠٥٩٠١٩٢١٤٦' : 'Call: +966 59 019 2146'}
                 </a>
               </div>
+
+              {/* Service areas: links to the city landing pages */}
+              <div className="rounded-3xl border border-slate-200/80 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <p className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
+                  <MapPin className="h-4 w-4 text-primary dark:text-blue-400" aria-hidden />
+                  {language === 'ar' ? 'متوفرة في جدة ومكة المكرمة' : 'Available in Jeddah & Makkah'}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-x-4 text-sm font-semibold">
+                  <Link href={pathForLang('/areas/jeddah', language)} className="inline-flex min-h-11 items-center text-primary hover:underline dark:text-blue-400">
+                    {language === 'ar' ? 'صيانة مكيفات جدة' : 'AC repair in Jeddah'}
+                  </Link>
+                  <Link href={pathForLang('/areas/makkah', language)} className="inline-flex min-h-11 items-center text-primary hover:underline dark:text-blue-400">
+                    {language === 'ar' ? 'صيانة مكيفات مكة' : 'AC repair in Makkah'}
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
         </div>

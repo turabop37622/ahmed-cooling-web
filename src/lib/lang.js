@@ -4,7 +4,9 @@
 export const SITE_URL = 'https://www.ahmedcoolingworkshop.com';
 export const LANG_COOKIE = 'lang';
 
-const PUBLIC_EXACT = ['/', '/about', '/contact', '/privacy', '/services'];
+const PUBLIC_EXACT = ['/', '/about', '/contact', '/privacy', '/services', '/areas'];
+// Public sections whose sub-pages also have an English URL (/services/<slug>, /areas/<city>/<district>)
+const PUBLIC_PREFIXES = ['/services/', '/areas/'];
 
 // Path without any language prefix, e.g. /en/services -> /services, /en -> /
 export function stripLang(pathname = '/') {
@@ -17,7 +19,7 @@ export const hasEnPrefix = (pathname = '') => pathname === '/en' || pathname.sta
 
 export function isLangPath(path) {
   const p = stripLang(path);
-  return PUBLIC_EXACT.includes(p) || p.startsWith('/services/');
+  return PUBLIC_EXACT.includes(p) || PUBLIC_PREFIXES.some((prefix) => p.startsWith(prefix));
 }
 
 // Same page in the other language. Non-public paths are returned unchanged.
