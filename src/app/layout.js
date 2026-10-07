@@ -114,13 +114,17 @@ export async function generateMetadata() {
     'emergency AC repair Jeddah', 'appliance repair Jeddah', 'HVAC technician Jeddah',
     'home appliance maintenance Saudi Arabia', 'central AC maintenance Makkah', 'freon leak fix Jeddah',
   ],
+  // Google Search shows the site icon only from square files sized in multiples of 48px
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: '16x16 32x32 48x48 64x64' },
-      { url: '/logo-icon.png', type: 'image/png', sizes: '98x98' },
+      { url: '/icon-48.png', type: 'image/png', sizes: '48x48' },
+      { url: '/icon-96.png', type: 'image/png', sizes: '96x96' },
+      { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
+      { url: '/icon-512.png', type: 'image/png', sizes: '512x512' },
     ],
     shortcut: '/favicon.ico',
-    apple: '/logo-icon.png',
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
   },
   openGraph: {
     type: 'website',
