@@ -117,13 +117,13 @@ export async function generateMetadata() {
   // Google Search shows the site icon only from square files sized in multiples of 48px
   icons: {
     icon: [
-      { url: '/favicon.ico', sizes: '16x16 32x32 48x48 64x64' },
-      { url: '/icon-48.png', type: 'image/png', sizes: '48x48' },
-      { url: '/icon-96.png', type: 'image/png', sizes: '96x96' },
-      { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
-      { url: '/icon-512.png', type: 'image/png', sizes: '512x512' },
+      { url: '/favicon.ico?v=2', sizes: '16x16 32x32 48x48 64x64' },
+      { url: '/icon-48.png?v=2', type: 'image/png', sizes: '48x48' },
+      { url: '/icon-96.png?v=2', type: 'image/png', sizes: '96x96' },
+      { url: '/icon-192.png?v=2', type: 'image/png', sizes: '192x192' },
+      { url: '/icon-512.png?v=2', type: 'image/png', sizes: '512x512' },
     ],
-    shortcut: '/favicon.ico',
+    shortcut: '/favicon.ico?v=2',
     apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
   },
   openGraph: {
