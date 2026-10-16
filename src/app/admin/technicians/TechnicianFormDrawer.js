@@ -12,6 +12,7 @@ import Drawer from '../components/Drawer';
 import Switch from '../components/Switch';
 import { createTechnician, updateTechnician } from '../adminApi';
 import { CITIES, SPECIALTIES, PASSWORD_MIN, PASSWORD_MAX, normalizeSaudiPhone } from './techUtils';
+import { useNoAutofill } from '../../../lib/useNoAutofill';
 
 const INPUT = (invalid) =>
   `w-full min-h-11 rounded-xl border bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 disabled:opacity-60 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400 ${
@@ -120,6 +121,8 @@ export default function TechnicianFormDrawer({ open, technician, onClose, onSave
   const [serverErrors, setServerErrors] = useState({});
   const [formError, setFormError] = useState('');
   const [showPw, setShowPw] = useState(false);
+  // The browser must not drop the admin's own saved email/password into a new technician's login
+  const noAutofill = useNoAutofill();
   const [saving, setSaving] = useState(false);
   const lock = useRef(false);
   const formRef = useRef(null);
@@ -277,6 +280,7 @@ export default function TechnicianFormDrawer({ open, technician, onClose, onSave
             inputMode="tel"
             dir="ltr"
             autoComplete="off"
+            {...noAutofill('phone')}
             maxLength={20}
             placeholder="05XXXXXXXX"
             value={values.phone}
@@ -295,6 +299,7 @@ export default function TechnicianFormDrawer({ open, technician, onClose, onSave
             type="email"
             dir="ltr"
             autoComplete="off"
+            {...noAutofill('email')}
             maxLength={254}
             value={values.email}
             disabled={saving}
@@ -322,6 +327,7 @@ export default function TechnicianFormDrawer({ open, technician, onClose, onSave
                 type={showPw ? 'text' : 'password'}
                 dir="ltr"
                 autoComplete="new-password"
+            {...noAutofill('password')}
                 maxLength={PASSWORD_MAX}
                 value={values.password}
                 disabled={saving}
