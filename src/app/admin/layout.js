@@ -23,6 +23,7 @@ import {
   ExternalLink,
   ChevronLeft,
   ShieldCheck,
+  HardHat,
   Sun,
   Moon,
 } from 'lucide-react';
@@ -31,11 +32,12 @@ import { useTheme } from '../../contexts/ThemeContext';
 const NAV_ITEMS = [
   { href: '/admin/dashboard', en: 'Dashboard', ar: 'لوحة المعلومات', icon: LayoutDashboard },
   { href: '/admin/bookings', en: 'Bookings', ar: 'الحجوزات', icon: ClipboardList },
+  { href: '/admin/technicians', en: 'Technicians', ar: 'الفنيون', icon: HardHat },
   { href: '/admin/services', en: 'Services', ar: 'الخدمات', icon: Wrench },
   { href: '/admin/users', en: 'Users', ar: 'المستخدمون', icon: Users },
   { href: '/admin/reviews', en: 'Reviews', ar: 'التقييمات', icon: Star },
   { href: '/admin/feedback', en: 'Messages & Ratings', ar: 'الرسائل والتقييمات', icon: MessageSquare },
-  { href: '/admin/settings', en: 'Security', ar: 'الأمان', icon: Settings },
+  { href: '/admin/settings', en: 'Settings', ar: 'الإعدادات', icon: Settings },
 ];
 
 const LOGIN_TITLE = { en: 'Sign in', ar: 'تسجيل الدخول' };

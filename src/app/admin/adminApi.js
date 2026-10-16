@@ -236,6 +236,36 @@ export const deleteBooking = (id) => data(api.delete(`/admin/bookings/${id_(id)}
 export const getTechnicians = () => data(api.get('/admin/technicians'));
 
 // ─────────────────────────────────────────
+// Technicians — ids are the technician's User id
+// ─────────────────────────────────────────
+
+// Same endpoint as getTechnicians: each technician carries cities, specialties, autoAssign and stats
+export const getTechniciansFull = () => data(api.get('/admin/technicians'));
+
+// → technician + stats + jobs (recent 50) + settlements
+export const getTechnician = (id) => data(api.get(`/admin/technicians/${id_(id)}`));
+
+// { fullName, phone, email?, password, cities[], specialties[], autoAssign, active }
+export const createTechnician = (payload) => data(api.post('/admin/technicians', payload));
+
+// Any subset of the create fields + availability; `password` resets it
+export const updateTechnician = (id, patch) => data(api.patch(`/admin/technicians/${id_(id)}`, patch));
+
+export const getSettlements = (id) => data(api.get(`/admin/technicians/${id_(id)}/settlements`));
+
+// { amount, method: 'cash'|'bank_transfer'|'other', note }
+export const addSettlement = (id, payload) => data(api.post(`/admin/technicians/${id_(id)}/settlements`, payload));
+
+// ─────────────────────────────────────────
+// App settings
+// ─────────────────────────────────────────
+
+// → { commissionRate } as a fraction (0.07 = 7%)
+export const getSettings = () => data(api.get('/admin/settings'));
+
+export const updateSettings = (patch) => data(api.put('/admin/settings', patch));
+
+// ─────────────────────────────────────────
 // Users
 // ─────────────────────────────────────────
 
@@ -289,6 +319,14 @@ export const adminApi = {
   updatePayment,
   deleteBooking,
   getTechnicians,
+  getTechniciansFull,
+  getTechnician,
+  createTechnician,
+  updateTechnician,
+  getSettlements,
+  addSettlement,
+  getSettings,
+  updateSettings,
   getUsers,
   getUserBookings,
   getAdminServices,

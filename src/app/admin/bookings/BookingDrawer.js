@@ -7,7 +7,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Phone, Mail, MapPin, ExternalLink, MessageCircle, User, Wrench, Calendar, AlertTriangle,
-  CreditCard, History, ChevronDown, Trash2, Loader2, Ban, Check, RefreshCw, FileText, StickyNote,
+  CreditCard, History, ChevronDown, Trash2, Loader2, Ban, Check, RefreshCw, FileText, StickyNote, Zap, Send, Banknote,
 } from 'lucide-react';
 import { useAdminLang } from '../AdminI18n';
 import { useAdminToast } from '../components/AdminToast';
@@ -22,6 +22,9 @@ import {
   categoryLabel, customerNameOf, phoneOf, orderRef, coordsOf, mapLink, whatsappLink, telLink,
   bookingDate, bookingTime, fmtSlot, unwrapBooking,
 } from './bookingUtils';
+import {
+  cityKeyOf, cityLabel, specialtyLabel, fitFor, isAssignable, sortForBooking, activeJobsOf, pendingJobsOf, technicianJobText,
+} from '../technicians/techUtils';
 
 const PAYMENT_LABELS = {
   pending: { en: 'Not paid', ar: 'غير مدفوع' },
@@ -209,6 +212,14 @@ export default function BookingDrawer({ bookingId, initial, servicesById, refres
   const date = bookingDate(booking);
   const time = bookingTime(booking);
   const tech = booking?.technician && typeof booking.technician === 'object' ? booking.technician : null;
+  const fitCtx = { cityKey: cityKeyOf(booking?.city), category: info.category };
+  const techName = tech ? tech.fullName || tech.name || null : null;
+  const techJobLink = tech?.phone && booking
+    ? whatsappLink(tech.phone, technicianJobText(booking, { serviceEn: info.nameEn, serviceAr: info.nameAr }))
+    : null;
+  const completion = booking?.completion && typeof booking.completion === 'object' ? booking.completion : null;
+  const commission = booking?.commission && typeof booking.commission === 'object' ? booking.commission : null;
+  const ratePct = commission?.rate != null && Number.isFinite(Number(commission.rate)) ? Math.round(Number(commission.rate) * 1000) / 10 : null;
   const visitIncluded = info.isPackage || booking?.visitCharges === 0;
   const history = Array.isArray(booking?.statusHistory)
     ? [...booking.statusHistory].sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0))
@@ -422,9 +433,35 @@ export default function BookingDrawer({ bookingId, initial, servicesById, refres
               ) : null}
             >
               {tech ? (
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-semibold text-slate-900 dark:text-white" dir="auto">{tech.fullName || tech.name || '—'}</span>
-                  {tech.phone && <a href={telLink(tech.phone)} className="font-mono text-blue-700 hover:underline dark:text-blue-300" dir="ltr">{tech.phone}</a>}
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span className="font-semibold text-slate-900 dark:text-white" dir="auto">{techName || '—'}</span>
+                      {booking.assignedBy === 'auto' && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2 py-0.5 text-xs font-semibold text-violet-800 dark:bg-violet-500/15 dark:text-violet-200">
+                          <Zap className="h-3 w-3" aria-hidden="true" />{L('Auto-assigned', 'تعيين تلقائي')}
+                        </span>
+                      )}
+                    </span>
+                    {tech.phone && <a href={telLink(tech.phone)} className="inline-flex min-h-11 items-center font-mono text-blue-700 hover:underline dark:text-blue-300" dir="ltr">{tech.phone}</a>}
+                  </div>
+                  {booking.assignedAt && (
+                    <p className="text-xs text-slate-600 dark:text-slate-400">
+                      {booking.assignedBy === 'auto' ? L('Assigned automatically on', 'عُيّن تلقائياً في') : L('Assigned on', 'عُيّن في')} {fmtDateTime(booking.assignedAt)}
+                    </p>
+                  )}
+                  {techJobLink && status !== 'cancelled' && (
+                    <a
+                      href={techJobLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`${BTN} border border-green-300 bg-green-50 text-green-800 hover:bg-green-100 dark:border-green-500/40 dark:bg-green-500/10 dark:text-green-200`}
+                    >
+                      <Send className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
+                      {L('Send to technician on WhatsApp', 'إرسال للفني عبر واتساب')}
+                      <span className="sr-only"> ({L('opens in a new tab', 'يفتح في تبويب جديد')})</span>
+                    </a>
+                  )}
                 </div>
               ) : (
                 <p className="text-slate-600 dark:text-slate-400">{L('No technician assigned', 'لم يتم تعيين فني')}</p>
@@ -442,10 +479,24 @@ export default function BookingDrawer({ bookingId, initial, servicesById, refres
                   )}
                   {!techs && !techError && <p className="text-slate-600 dark:text-slate-400">{L('Loading technicians…', 'جارٍ تحميل الفنيين…')}</p>}
                   {techs && techs.length === 0 && <p className="text-slate-600 dark:text-slate-400">{L('No technicians yet.', 'لا يوجد فنيون بعد.')}</p>}
-                  {techs && techs.map((t) => {
-                    const available = t.availability !== false && t.active !== false;
+                  {status === 'pending' && techs && techs.length > 0 && (
+                    <p className="text-xs text-slate-600 dark:text-slate-400">{L('Assigning also confirms this booking.', 'التعيين يؤكد هذا الحجز أيضاً.')}</p>
+                  )}
+                  {techs && sortForBooking(techs, fitCtx).map((t) => {
+                    const available = isAssignable(t);
                     const current = tech && String(tech._id) === String(t._id);
                     const key = `assign:${t._id}`;
+                    const fit = fitFor(t, fitCtx);
+                    const activeN = activeJobsOf(t);
+                    const pendingN = pendingJobsOf(t);
+                    const chip = (ok, okText, badText) => (
+                      <span className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-semibold ${ok ? 'bg-green-100 text-green-800 dark:bg-green-500/15 dark:text-green-200' : 'bg-amber-100 text-amber-900 dark:bg-amber-500/15 dark:text-amber-200'}`}>
+                        {ok ? <Check className="h-3 w-3" aria-hidden="true" /> : <AlertTriangle className="h-3 w-3" aria-hidden="true" />}
+                        {ok ? okText : badText}
+                      </span>
+                    );
+                    const cityName = fitCtx.cityKey ? cityLabel(fitCtx.cityKey, L) : null;
+                    const specName = info.category ? (categoryLabel(info.category, L) || specialtyLabel(info.category, L)) : null;
                     return (
                       <button
                         key={t._id}
@@ -454,18 +505,32 @@ export default function BookingDrawer({ bookingId, initial, servicesById, refres
                         onClick={() => doAssign(t)}
                         className="flex min-h-11 w-full items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-start hover:border-blue-400 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-slate-200 disabled:hover:bg-white dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800 dark:disabled:hover:bg-slate-900"
                       >
-                        <span className="min-w-0">
-                          <span className="block truncate font-semibold text-slate-900 dark:text-white" dir="auto">{t.name || '—'}</span>
-                          <span className="block text-xs text-slate-600 dark:text-slate-400">
-                            {t.phone && <span dir="ltr" className="font-mono">{t.phone} · </span>}
-                            {L(`${t.activeJobs ?? 0} active jobs`, `${t.activeJobs ?? 0} مهام نشطة`)}
+                        <span className="min-w-0 space-y-1">
+                          <span className="flex flex-wrap items-center gap-1.5">
+                            <span className="truncate font-semibold text-slate-900 dark:text-white" dir="auto">{t.name || '—'}</span>
+                            {t.autoAssign && <span className="rounded-md bg-violet-100 px-1.5 py-0.5 text-[11px] font-semibold text-violet-800 dark:bg-violet-500/15 dark:text-violet-200">{L('Auto', 'تلقائي')}</span>}
                           </span>
+                          <span className="block text-xs text-slate-600 dark:text-slate-400">
+                            {L(`${activeN ?? '—'} working`, `${activeN ?? '—'} قيد العمل`)}
+                            {' · '}
+                            {L(`${pendingN ?? '—'} waiting`, `${pendingN ?? '—'} بانتظار البدء`)}
+                          </span>
+                          {(cityName || fit.specialtyMatch !== null) && (
+                            <span className="flex flex-wrap gap-1">
+                              {fit.cityMatch !== null && cityName && chip(fit.cityMatch, cityName, L(`Not in ${cityName}`, `ليس في ${cityName}`))}
+                              {fit.cityMatch === null && cityName && (
+                                <span className="inline-flex items-center rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300">{L('No city set', 'بدون مدينة')}</span>
+                              )}
+                              {fit.specialtyMatch !== null && specName && chip(fit.specialtyMatch, fit.allServices ? L('All services', 'جميع الخدمات') : specName, L(`No ${specName}`, `لا يعمل في ${specName}`))}
+                            </span>
+                          )}
                         </span>
                         <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${current ? 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-200' : available ? 'bg-green-100 text-green-800 dark:bg-green-500/15 dark:text-green-200' : 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200'}`}>
                           {busy === key ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
                             : current ? L('Current', 'الحالي')
                               : available ? L('Available', 'متاح')
-                                : t.active === false ? L('Inactive', 'غير نشط') : L('Unavailable', 'غير متاح')}
+                                : t.active === false ? L('Inactive', 'غير نشط')
+                                  : t.hasProfile === false ? L('No profile', 'بدون ملف') : L('Unavailable', 'غير متاح')}
                         </span>
                       </button>
                     );
@@ -516,6 +581,40 @@ export default function BookingDrawer({ bookingId, initial, servicesById, refres
                 )}
               </div>
             </Section>
+
+            {/* Completion + commission (filled by the server when a booking with a technician is completed) */}
+            {(status === 'completed' || completion || commission) && (
+              <Section icon={Banknote} title={L('Completion & commission', 'الإنجاز والعمولة')}>
+                <Row label={L('Amount collected', 'المبلغ المحصّل')}>{fmtMoney(completion?.amountCollected ?? commission?.base)}</Row>
+                <Row label={ratePct != null ? L(`Company commission (${ratePct}%)`, `عمولة الشركة (${ratePct}٪)`) : L('Company commission', 'عمولة الشركة')}>
+                  {fmtMoney(commission?.amount)}
+                </Row>
+                <Row label={L('Technician share', 'حصة الفني')}>{fmtMoney(commission?.technicianShare)}</Row>
+                {completion?.completedAt && (
+                  <Row label={L('Completed on', 'تاريخ الإنجاز')}>
+                    {fmtDateTime(completion.completedAt)}
+                    {completion.completedByRole && (
+                      <span className="block text-xs font-normal text-slate-600 dark:text-slate-400">
+                        {completion.completedByRole === 'technician' ? L('by the technician', 'بواسطة الفني')
+                          : completion.completedByRole === 'admin' ? L('by admin', 'بواسطة الإدارة')
+                            : completion.completedByRole}
+                      </span>
+                    )}
+                  </Row>
+                )}
+                {completion?.note && (
+                  <div className="mt-2 border-t border-slate-200 pt-2 dark:border-slate-700">
+                    <span className="block text-xs font-semibold text-slate-600 dark:text-slate-400">{L('Technician note', 'ملاحظة الفني')}</span>
+                    <p className="whitespace-pre-line break-words text-slate-900 dark:text-slate-100" dir="auto">{completion.note}</p>
+                  </div>
+                )}
+                {!commission && (
+                  <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
+                    {tech ? L('No commission recorded for this booking.', 'لم تُسجّل عمولة لهذا الحجز.') : L('No technician was assigned, so there is no commission.', 'لم يُعيّن فني، لذا لا توجد عمولة.')}
+                  </p>
+                )}
+              </Section>
+            )}
 
             {/* Status history */}
             <Section icon={History} title={L('Status history', 'سجل الحالات')}>
@@ -580,7 +679,9 @@ export default function BookingDrawer({ bookingId, initial, servicesById, refres
         open={dialog === 'complete'}
         tone="primary"
         title={L('Mark this job as completed?', 'تأكيد إنجاز هذه المهمة؟')}
-        message={L('Completed bookings cannot change status again.', 'لا يمكن تغيير حالة الحجز المكتمل لاحقاً.')}
+        message={tech
+          ? L(`Completed bookings cannot change status again. The technician’s commission is calculated on the booking total (${fmtMoney(booking?.totalAmount)}).`, `لا يمكن تغيير حالة الحجز المكتمل لاحقاً. تُحسب عمولة الفني على إجمالي الحجز (${fmtMoney(booking?.totalAmount)}).`)
+          : L('Completed bookings cannot change status again.', 'لا يمكن تغيير حالة الحجز المكتمل لاحقاً.')}
         confirmLabel={L('Mark completed', 'تم الإنجاز')}
         onConfirm={() => changeStatus('completed')}
         onClose={() => setDialog(null)}

@@ -8,12 +8,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   CalendarClock, AlertTriangle, Siren, UserX, MessageSquare, Star, RefreshCw, Loader2, Check, ChevronRight,
-  ChevronLeft, Banknote, Users, Wrench, ClipboardList,
+  ChevronLeft, Banknote, Users, Wrench, ClipboardList, Wallet,
 } from 'lucide-react';
 import { useAdminLang } from '../AdminI18n';
 import { useAdminToast } from '../components/AdminToast';
 import { StatusBadge, PriorityBadge, STATUS_META } from '../components/Badges';
-import { getStats, getBookings, getAdminServices, updateBookingStatus } from '../adminApi';
+import { getStats, getBookings, getAdminServices, updateBookingStatus, getTechniciansFull } from '../adminApi';
 import {
   STATUSES, normalizeStatus, serviceInfo, serviceName, customerNameOf, phoneOf, orderRef, telLink,
   bookingTime, fmtSlot, timeToMinutes, riyadhYmd,
@@ -42,6 +42,7 @@ export default function AdminDashboardPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [servicesById, setServicesById] = useState(null);
   const [confirming, setConfirming] = useState(null);
+  const [commissionDue, setCommissionDue] = useState(undefined); // undefined = loading, null = unavailable
   const lock = useRef(new Set());
 
   const loadStats = useCallback(async () => {
@@ -73,11 +74,24 @@ export default function AdminDashboardPage() {
     }
   }, [L]);
 
+  // Sum of every technician's commission balance (GET /admin/technicians stats)
+  const loadCommission = useCallback(async () => {
+    try {
+      const res = await getTechniciansFull();
+      const list = Array.isArray(res?.technicians) ? res.technicians : [];
+      if (!list.some((t) => t?.stats && t.stats.commissionDue != null)) { setCommissionDue(list.length ? null : 0); return; }
+      const sum = list.reduce((a, t) => a + (Number(t?.stats?.commissionDue) || 0), 0);
+      setCommissionDue(Math.round(sum * 100) / 100);
+    } catch {
+      setCommissionDue(null);
+    }
+  }, []);
+
   const loadAll = useCallback(async () => {
-    await Promise.all([loadStats(), loadToday()]);
+    await Promise.all([loadStats(), loadToday(), loadCommission()]);
     setLoading(false);
     setRefreshing(false);
-  }, [loadStats, loadToday]);
+  }, [loadStats, loadToday, loadCommission]);
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
@@ -140,6 +154,7 @@ export default function AdminDashboardPage() {
     { key: 'unassigned', icon: UserX, en: 'Unassigned confirmed', ar: 'مؤكدة بدون فني', value: s.today?.unassigned, href: '/admin/bookings?status=confirmed&unassigned=1', tone: 'indigo' },
     { key: 'msgs', icon: MessageSquare, en: 'New messages', ar: 'رسائل جديدة', value: s.inquiries?.new, href: '/admin/feedback', tone: 'cyan' },
     { key: 'reviews', icon: Star, en: 'Pending reviews', ar: 'تقييمات بانتظار الموافقة', value: s.reviews?.pending, href: '/admin/reviews?status=pending', tone: 'violet' },
+    { key: 'commission', icon: Wallet, en: 'Commission due (all technicians)', ar: 'العمولة المستحقة (كل الفنيين)', value: commissionDue, money: true, href: '/admin/technicians', tone: 'amber' },
   ];
   const TONE = {
     blue: 'text-blue-700 bg-blue-50 dark:text-blue-300 dark:bg-blue-500/15',
@@ -249,7 +264,7 @@ export default function AdminDashboardPage() {
           {statsError ? (
             <ErrorBanner message={statsError} onRetry={loadStats} L={L} />
           ) : (
-            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-7">
               {tiles.map((t) => {
                 const Icon = t.icon;
                 const highlight = (t.key === 'overdue' || t.key === 'emerg') && Number(t.value) > 0;
@@ -263,7 +278,7 @@ export default function AdminDashboardPage() {
                         <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{L(t.en, t.ar)}</span>
                         <span className={`rounded-lg p-1.5 ${TONE[t.tone]}`}><Icon className="h-4 w-4" aria-hidden="true" /></span>
                       </span>
-                      <span className="text-2xl font-bold text-slate-900 dark:text-white">{fmtNum(t.value)}</span>
+                      <span className="text-2xl font-bold text-slate-900 dark:text-white">{t.money ? fmtMoney(t.value) : fmtNum(t.value)}</span>
                     </Link>
                   </li>
                 );

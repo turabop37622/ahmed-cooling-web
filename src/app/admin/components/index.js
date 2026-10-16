@@ -7,3 +7,4 @@ export { StatusBadge, PriorityBadge, statusLabel, STATUS_META, BOOKING_STATUSES 
 export { useAdminTitle } from './useAdminTitle';
 export { useDialogA11y } from './useDialogA11y';
 export { default as LangToggle } from './LangToggle';
+export { default as Switch } from './Switch';

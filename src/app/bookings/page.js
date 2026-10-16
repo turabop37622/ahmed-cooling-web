@@ -35,7 +35,9 @@ const STATUS_CONFIG = {
   cancelled:   { color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', dot: 'bg-red-500' },
 };
 
-const FILTERS = ['all', 'pending', 'confirmed', 'completed'];
+const FILTERS = ['all', 'pending', 'confirmed', 'assigned', 'completed'];
+// The customer can cancel or reschedule until the technician is on the way
+const CHANGEABLE = ['pending', 'confirmed', 'assigned'];
 
 function statusLabel(status, t) {
   const key = `status${status?.charAt(0).toUpperCase()}${status?.slice(1).replace(/[_-]([a-z])/g, (_, c) => c.toUpperCase())}`;
@@ -175,6 +177,7 @@ export default function BookingsPage() {
     all: t.filterAll || 'All',
     pending: t.filterPending || 'Pending',
     confirmed: t.filterConfirmed || 'Confirmed',
+    assigned: t.statusAssigned || 'Assigned',
     completed: t.filterCompleted || 'Completed',
   };
 
@@ -393,7 +396,7 @@ export default function BookingsPage() {
                   </div>
 
                   {/* Reschedule inline */}
-                  {showReschedule && (status === 'confirmed' || status === 'pending') && (
+                  {showReschedule && CHANGEABLE.includes(status) && (
                     <div className="mb-5 rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900/50 dark:bg-blue-950/20">
                       <p className="mb-3 text-sm font-semibold text-text dark:text-white">{t.rescheduleTitle || 'Reschedule Booking'}</p>
                       <div className="mb-3">
@@ -414,7 +417,7 @@ export default function BookingsPage() {
 
                   {/* Action Buttons */}
                   <div className="flex gap-2">
-                    {(status === 'pending' || status === 'confirmed') && (
+                    {CHANGEABLE.includes(status) && (
                       <button onClick={() => handleCancel(b)} disabled={cancelling}
                         className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border-2 border-red-200 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-60 dark:border-red-900/50 dark:text-red-400"
                       >
@@ -422,7 +425,7 @@ export default function BookingsPage() {
                         {t.cancelBooking || 'Cancel'}
                       </button>
                     )}
-                    {(status === 'confirmed' || status === 'pending') && !showReschedule && (
+                    {CHANGEABLE.includes(status) && !showReschedule && (
                       <button onClick={() => { setShowReschedule(true); setRescheduleDate(''); }}
                         className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-sm font-semibold text-white transition hover:bg-primary-dark dark:bg-blue-600"
                       >

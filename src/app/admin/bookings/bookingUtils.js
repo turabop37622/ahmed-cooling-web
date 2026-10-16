@@ -29,7 +29,10 @@ export const TABS = [
 export function nextActions(status) {
   switch (normalizeStatus(status)) {
     case 'pending':
-      return [{ to: 'confirmed', en: 'Confirm', ar: 'تأكيد', tone: 'primary' }];
+      return [
+        { to: 'confirmed', en: 'Confirm', ar: 'تأكيد', tone: 'primary' },
+        { kind: 'assign', en: 'Assign technician', ar: 'تعيين فني', tone: 'secondary' },
+      ];
     case 'confirmed':
       return [
         { kind: 'assign', en: 'Assign technician', ar: 'تعيين فني', tone: 'primary' },
@@ -51,7 +54,8 @@ export function nextActions(status) {
 
 export const canCancel = (status) => ACTIVE_STATUSES.includes(normalizeStatus(status));
 export const canDelete = (status) => ['pending', 'cancelled'].includes(normalizeStatus(status));
-export const canAssign = (status) => ['confirmed', 'assigned'].includes(normalizeStatus(status));
+// Assigning a pending booking also confirms it (server records both history entries)
+export const canAssign = (status) => ['pending', 'confirmed', 'assigned'].includes(normalizeStatus(status));
 
 export const CATEGORY_LABELS = {
   ac: { en: 'Air conditioning', ar: 'تكييف' },
@@ -138,7 +142,7 @@ export function coordsOf(b) {
 
 export function mapLink(b) {
   const c = coordsOf(b);
-  if (c) return `https://www.google.com/maps?q=${c.latitude},${c.longitude}`;
+  if (c) return `https://www.google.com/maps?q=${+c.latitude.toFixed(6)},${+c.longitude.toFixed(6)}`;
   if (b?.address) return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(b.address)}`;
   return null;
 }
