@@ -11,7 +11,7 @@ import { useAdminToast } from '../components/AdminToast';
 import Drawer from '../components/Drawer';
 import Switch from '../components/Switch';
 import { createTechnician, updateTechnician } from '../adminApi';
-import { CITIES, SPECIALTIES, PASSWORD_MIN, PASSWORD_MAX, normalizeSaudiPhone } from './techUtils';
+import { CITIES, SPECIALTIES, PASSWORD_MIN, PASSWORD_MAX, normalizeAnyPhone } from './techUtils';
 import { useNoAutofill } from '../../../lib/useNoAutofill';
 
 const INPUT = (invalid) =>
@@ -44,7 +44,7 @@ function validate(v, isEdit) {
   if (name.length < 2) e.fullName = ['Enter the technician’s full name.', 'أدخل اسم الفني الكامل.'];
   else if (name.length > 100) e.fullName = ['Name is too long (max 100 characters).', 'الاسم طويل جداً (100 حرف كحد أقصى).'];
   if (!v.phone.trim()) e.phone = ['Enter a mobile number.', 'أدخل رقم الجوال.'];
-  else if (!normalizeSaudiPhone(v.phone)) e.phone = ['Enter a Saudi mobile number, e.g. 05XXXXXXXX.', 'أدخل رقم جوال سعودي، مثل 05XXXXXXXX.'];
+  else if (!normalizeAnyPhone(v.phone)) e.phone = ['Enter a valid mobile number (7 to 15 digits).', 'أدخل رقم جوال صحيحاً (من ٧ إلى ١٥ رقماً).'];
   if (v.email.trim() && !EMAIL_RE.test(v.email.trim())) e.email = ['Enter a valid email or leave it empty.', 'أدخل بريداً صحيحاً أو اتركه فارغاً.'];
   const len = v.password.length;
   if (!isEdit && len === 0) e.password = ['Set a password for the technician’s app login.', 'عيّن كلمة مرور لدخول الفني إلى التطبيق.'];
@@ -145,7 +145,7 @@ export default function TechnicianFormDrawer({ open, technician, onClose, onSave
   const errorFor = (f) => (errors[f] ? L(errors[f][0], errors[f][1]) : serverErrors[f] || '');
   const describe = (f, hasHint) => (errorFor(f) ? `${uid}-${f}-error` : hasHint ? `${uid}-${f}-hint` : undefined);
 
-  const normalizedPhone = normalizeSaudiPhone(values.phone);
+  const normalizedPhone = normalizeAnyPhone(values.phone);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -201,7 +201,7 @@ export default function TechnicianFormDrawer({ open, technician, onClose, onSave
       }
       if (err?.status === 409) {
         if (/email/i.test(err.message || '')) fieldErrs.email = L('This email is already used by another account.', 'هذا البريد مستخدم في حساب آخر.');
-        else fieldErrs.phone = L('This phone number is already used by another account.', 'رقم الجوال مستخدم في حساب آخر.');
+        else fieldErrs.phone = L('Another technician already uses this phone number.', 'رقم الجوال مستخدم لفني آخر.');
       }
       setServerErrors(fieldErrs);
       if (!Object.keys(fieldErrs).length) setFormError(err?.message || L('Could not save the technician.', 'تعذر حفظ الفني.'));
@@ -272,7 +272,7 @@ export default function TechnicianFormDrawer({ open, technician, onClose, onSave
           label={L('Mobile number (app login)', 'رقم الجوال (دخول التطبيق)')}
           required
           error={errorFor('phone')}
-          hint={normalizedPhone ? L(`Saved as ${normalizedPhone}`, `سيُحفظ كـ ${normalizedPhone}`) : L('Saudi mobile, e.g. 05XXXXXXXX or +9665XXXXXXXX', 'جوال سعودي، مثل 05XXXXXXXX أو ‎+9665XXXXXXXX')}
+          hint={normalizedPhone ? L(`Saved as ${normalizedPhone}`, `سيُحفظ كـ ${normalizedPhone}`) : L('Any mobile number, e.g. 05XXXXXXXX or +92 3XX XXXXXXX', 'أي رقم جوال، مثل 05XXXXXXXX أو ‎+92 3XX XXXXXXX')}
         >
           <input
             id={`${uid}-phone`}

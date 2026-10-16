@@ -54,6 +54,19 @@ export function normalizeSaudiPhone(input) {
   return /^5\d{8}$/.test(d) ? `+966${d}` : null;
 }
 
+// Any mobile number a technician may use: Saudi numbers become +9665XXXXXXXX, numbers with a country code (+ or 00)
+// become +<digits>, anything else keeps its digits. null when it is not 7-15 digits long.
+export function normalizeAnyPhone(input) {
+  const saudi = normalizeSaudiPhone(input);
+  if (saudi) return saudi;
+  const ascii = toAsciiDigits(input).trim();
+  const digits = ascii.replace(/[^\d]/g, '');
+  let out = digits;
+  if (ascii.startsWith('+')) out = `+${digits}`;
+  else if (digits.startsWith('00')) out = `+${digits.slice(2)}`;
+  return /^\d{7,15}$/.test(out.replace('+', '')) ? out : null;
+}
+
 // Decimal money input with Arabic digits / Arabic decimal separator → Number, or NaN
 export function parseAmount(input) {
   const s = toAsciiDigits(input).replace(/[\u066B,]/g, '.').replace(/[\s\u066C]/g, '').trim();
