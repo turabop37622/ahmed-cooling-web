@@ -307,6 +307,20 @@ export const setInquiryStatus = (id, status) => data(api.patch(`/admin/inquiries
 // params: { page, limit }
 export const getRatings = (params) => data(api.get('/admin/ratings', { params: clean(params) }));
 
+// ─────────────────────────────────────────
+// WhatsApp inbox
+// ─────────────────────────────────────────
+// params: { status: 'bot'|'needs_human'|'human' } — omit for every conversation
+export const getWhatsAppConversations = (params) => data(api.get('/admin/whatsapp/conversations', { params: clean(params) }));
+
+export const getWhatsAppMessages = (phone) => data(api.get(`/admin/whatsapp/conversations/${id_(phone)}/messages`));
+
+export const sendWhatsAppReply = (phone, message) =>
+  data(api.post(`/admin/whatsapp/conversations/${id_(phone)}/reply`, { message }));
+
+export const releaseWhatsAppConversation = (phone) =>
+  data(api.post(`/admin/whatsapp/conversations/${id_(phone)}/release`));
+
 // Object form for `import { adminApi } from '../adminApi'` / `import adminApi from '../adminApi'`
 export const adminApi = {
   login,
@@ -339,6 +353,10 @@ export const adminApi = {
   getInquiries,
   setInquiryStatus,
   getRatings,
+  getWhatsAppConversations,
+  getWhatsAppMessages,
+  sendWhatsAppReply,
+  releaseWhatsAppConversation,
 };
 
 export default adminApi;

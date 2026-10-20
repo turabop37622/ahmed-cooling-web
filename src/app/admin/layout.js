@@ -16,6 +16,7 @@ import {
   Users,
   Star,
   MessageSquare,
+  MessageCircle,
   Settings,
   LogOut,
   Menu,
@@ -37,6 +38,7 @@ const NAV_ITEMS = [
   { href: '/admin/users', en: 'Users', ar: 'المستخدمون', icon: Users },
   { href: '/admin/reviews', en: 'Reviews', ar: 'التقييمات', icon: Star },
   { href: '/admin/feedback', en: 'Messages & Ratings', ar: 'الرسائل والتقييمات', icon: MessageSquare },
+  { href: '/admin/whatsapp', en: 'WhatsApp Inbox', ar: 'صندوق واتساب', icon: MessageCircle },
   { href: '/admin/settings', en: 'Settings', ar: 'الإعدادات', icon: Settings },
 ];
 
