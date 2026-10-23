@@ -325,6 +325,34 @@ export const sendWhatsAppReply = (phone, message) =>
 export const releaseWhatsAppConversation = (phone) =>
   data(api.post(`/admin/whatsapp/conversations/${id_(phone)}/release`));
 
+// ─────────────────────────────────────────
+// Technician wallets, cancellations, dispatch settings
+// ─────────────────────────────────────────
+export const getWallets = () => data(api.get('/admin/wallets'));
+
+export const getWallet = (technicianId) => data(api.get(`/admin/wallets/${id_(technicianId)}`));
+
+// body: { amount, method: 'cash'|'bank_transfer'|'other', note }
+export const topUpWallet = (technicianId, body) => data(api.post(`/admin/wallets/${id_(technicianId)}/topup`, body));
+
+// body: { amount (+/-), note }
+export const adjustWallet = (technicianId, body) => data(api.post(`/admin/wallets/${id_(technicianId)}/adjust`, body));
+
+export const freezeTechnician = (technicianId, body) => data(api.post(`/admin/technicians/${id_(technicianId)}/freeze`, body));
+
+export const unfreezeTechnician = (technicianId) => data(api.post(`/admin/technicians/${id_(technicianId)}/unfreeze`));
+
+// params: { status: 'pending'|'deferred'|'refunded'|'forfeited' } — omit for all
+export const getTechnicianCancellations = (params) => data(api.get('/admin/technician-cancellations', { params: clean(params) }));
+
+// decision: 'refund' | 'defer' | 'forfeit'
+export const reviewTechnicianCancellation = (id, decision, note) =>
+  data(api.post(`/admin/technician-cancellations/${id_(id)}/review`, { decision, note }));
+
+export const getDispatchSettings = () => data(api.get('/admin/dispatch-settings'));
+
+export const updateDispatchSettings = (body) => data(api.put('/admin/dispatch-settings', body));
+
 // Object form for `import { adminApi } from '../adminApi'` / `import adminApi from '../adminApi'`
 export const adminApi = {
   login,
@@ -363,6 +391,16 @@ export const adminApi = {
   getWhatsAppCustomer,
   sendWhatsAppReply,
   releaseWhatsAppConversation,
+  getWallets,
+  getWallet,
+  topUpWallet,
+  adjustWallet,
+  freezeTechnician,
+  unfreezeTechnician,
+  getTechnicianCancellations,
+  reviewTechnicianCancellation,
+  getDispatchSettings,
+  updateDispatchSettings,
 };
 
 export default adminApi;
