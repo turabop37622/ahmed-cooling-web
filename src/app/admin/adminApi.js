@@ -343,6 +343,15 @@ export const freezeTechnician = (technicianId, body) => data(api.post(`/admin/te
 export const unfreezeTechnician = (technicianId) => data(api.post(`/admin/technicians/${id_(technicianId)}/unfreeze`));
 
 // params: { status: 'pending'|'deferred'|'refunded'|'forfeited' } — omit for all
+// file: a File from <input type="file"> (JPG/PNG/WebP, up to 5 MB). Returns { photo } (the public URL).
+export const uploadTechnicianPhoto = (technicianId, file) => {
+  const form = new FormData();
+  form.append('image', file);
+  return data(api.post(`/admin/technicians/${id_(technicianId)}/photo`, form));
+};
+
+export const removeTechnicianPhoto = (technicianId) => data(api.delete(`/admin/technicians/${id_(technicianId)}/photo`));
+
 export const getTechnicianCancellations = (params) => data(api.get('/admin/technician-cancellations', { params: clean(params) }));
 
 // decision: 'refund' | 'defer' | 'forfeit'
@@ -397,6 +406,8 @@ export const adminApi = {
   adjustWallet,
   freezeTechnician,
   unfreezeTechnician,
+  uploadTechnicianPhoto,
+  removeTechnicianPhoto,
   getTechnicianCancellations,
   reviewTechnicianCancellation,
   getDispatchSettings,

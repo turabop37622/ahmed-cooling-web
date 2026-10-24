@@ -105,6 +105,54 @@ function FreezeControls({ technician, onDone }) {
   );
 }
 
+// The photo customers see in the "technician assigned" WhatsApp message.
+function PhotoControls({ technician, onDone }) {
+  const { L } = useAdminLang();
+  const toast = useAdminToast();
+  const [busy, setBusy] = useState(false);
+  const [photo, setPhoto] = useState(technician.photo || '');
+  const pick = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    setBusy(true);
+    try {
+      const r = await adminApi.uploadTechnicianPhoto(technician.technicianId, file);
+      setPhoto(r.photo);
+      toast.success(L('Photo saved', 'تم حفظ الصورة'));
+      onDone();
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const remove = async () => {
+    setBusy(true);
+    try { await adminApi.removeTechnicianPhoto(technician.technicianId); setPhoto(''); onDone(); } catch (err) { toast.error(err.message); } finally { setBusy(false); }
+  };
+  return (
+    <div className={`${card} p-4 flex items-center gap-4`}>
+      {photo
+        // eslint-disable-next-line @next/next/no-img-element
+        ? <img src={photo} alt="" className="h-16 w-16 rounded-full object-cover" />
+        : <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-xl font-bold text-slate-500 dark:bg-slate-800">{(technician.name || '?').slice(0, 1)}</div>}
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-bold text-slate-900 dark:text-white">{L('Photo', 'الصورة')}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">{L('Customers see it when this technician takes their booking.', 'يراها العميل عندما يقبل هذا الفني حجزه.')}</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <label className={`${btnGhost} cursor-pointer`}>
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <PlusCircle className="h-4 w-4" aria-hidden="true" />}
+            {photo ? L('Change photo', 'تغيير الصورة') : L('Upload photo', 'رفع صورة')}
+            <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={busy} onChange={pick} />
+          </label>
+          {photo ? <button type="button" disabled={busy} className={btnGhost} onClick={remove}>{L('Remove', 'إزالة')}</button> : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function WalletDrawer({ technician, onClose, onChanged }) {
   const { L, fmtDateTime } = useAdminLang();
   const toast = useAdminToast();
@@ -121,6 +169,7 @@ function WalletDrawer({ technician, onClose, onChanged }) {
           <p className="text-xs text-slate-500 dark:text-slate-400">{L('Wallet balance', 'رصيد المحفظة')}</p>
           <p className="text-2xl font-extrabold text-slate-900 dark:text-white"><Money value={data ? data.balance : technician.balance} /></p>
         </div>
+        <PhotoControls technician={technician} onDone={onChanged} />
         <TopUpForm technician={technician} onDone={changed} />
         <FreezeControls technician={technician} onDone={changed} />
         <div className={`${card} overflow-hidden`}>
