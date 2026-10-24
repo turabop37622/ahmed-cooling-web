@@ -7,7 +7,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { Search, UserPlus, RefreshCw, HardHat, Wallet, Zap, Activity, Loader2, AlertTriangle, ChevronRight, ChevronLeft, X } from 'lucide-react';
+import { Search, Plus, UserPlus, RefreshCw, HardHat, Wallet, Zap, Activity, Loader2, AlertTriangle, ChevronRight, ChevronLeft, X } from 'lucide-react';
 import { useAdminLang } from '../AdminI18n';
 import { useAdminToast } from '../components/AdminToast';
 import Switch from '../components/Switch';
@@ -162,8 +162,6 @@ function TechniciansInner() {
           <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl dark:text-white">{L('Technicians', 'الفنيون')}</h1>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
             {L('Accounts, auto-assign and commission owed by each technician', 'الحسابات والتعيين التلقائي والعمولة المستحقة على كل فني')}
-            {' '}
-            {L('New technicians sign up in the app; approve them under Technician applications.', 'يسجّل الفنيون الجدد من التطبيق؛ وافق عليهم من صفحة طلبات الفنيين.')}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -177,10 +175,17 @@ function TechniciansInner() {
           </button>
           <Link
             href="/admin/applications"
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+          >
+            <UserPlus className="h-4 w-4" aria-hidden="true" />{L('Applications from the app', 'طلبات التطبيق')}
+          </Link>
+          <button
+            type="button"
+            onClick={() => setFormFor('new')}
             className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
           >
-            <UserPlus className="h-4 w-4" aria-hidden="true" />{L('Technician applications', 'طلبات الفنيين')}
-          </Link>
+            <Plus className="h-4 w-4" aria-hidden="true" />{L('Add technician', 'إضافة فني')}
+          </button>
         </div>
       </div>
 
@@ -249,9 +254,9 @@ function TechniciansInner() {
             {list.length === 0 ? L('No technicians yet', 'لا يوجد فنيون بعد') : L('No technicians match these filters', 'لا يوجد فنيون مطابقون')}
           </p>
           {list.length === 0 ? (
-            <Link href="/admin/applications" className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700">
-              <UserPlus className="h-4 w-4" aria-hidden="true" />{L('Review technician applications', 'مراجعة طلبات الفنيين')}
-            </Link>
+            <button type="button" onClick={() => setFormFor('new')} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700">
+              <Plus className="h-4 w-4" aria-hidden="true" />{L('Add the first technician', 'أضف أول فني')}
+            </button>
           ) : (
             <button type="button" onClick={() => { setQInput(''); setParams({ q: '', city: '' }); }} className="mt-4 min-h-11 rounded-xl px-3 text-sm font-semibold text-blue-700 underline dark:text-blue-300">
               {L('Clear filters', 'مسح الفلاتر')}

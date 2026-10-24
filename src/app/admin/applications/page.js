@@ -3,7 +3,7 @@
 // Technician applications from the app: check the details and the ID photo, then approve (creates the account) or reject.
 // Backend: routes/adminApplications.js.
 import { useCallback, useEffect, useState } from 'react';
-import { UserPlus, Check, X, Loader2, RefreshCw, Phone, MessageCircle, IdCard } from 'lucide-react';
+import { UserPlus, Check, X, Loader2, RefreshCw, Phone, MessageCircle, IdCard, Undo2 } from 'lucide-react';
 import { adminApi } from '../adminApi';
 import { useAdminLang } from '../AdminI18n';
 import { useAdminToast, Drawer, ConfirmDialog } from '../components';
@@ -18,11 +18,13 @@ const SKILL = {
 };
 const TABS = [
   { key: 'pending', en: 'Waiting', ar: 'بانتظار المراجعة' },
+  { key: 'changes_requested', en: 'Sent back', ar: 'أُعيدت للتعديل' },
   { key: 'approved', en: 'Approved', ar: 'تمت الموافقة' },
   { key: 'rejected', en: 'Rejected', ar: 'مرفوضة' },
 ];
 const BADGE = {
   pending: 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300',
+  changes_requested: 'bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-300',
   approved: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300',
   rejected: 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300',
 };
@@ -98,13 +100,21 @@ function ApplicationDrawer({ id, onClose, onChanged }) {
             ) : <p className="text-sm text-slate-500">{L('The documents were deleted.', 'تم حذف المستندات.')}</p>}
           </div>
 
+          {app.adminMessage && app.status !== 'rejected' && app.status !== 'approved' ? (
+            <div className={`${card} p-4`}>
+              <Field label={L('What you asked them to fix', 'ما طلبته منه تعديله')}>{app.adminMessage}</Field>
+              {app.resubmittedAt ? <p className="mt-2 text-xs text-emerald-700 dark:text-emerald-300">{L('The applicant sent the changes on', 'أرسل المتقدم التعديلات في')} {fmtDateTime(app.resubmittedAt)}</p> : null}
+            </div>
+          ) : null}
+
           {app.status === 'rejected' ? (
             <div className={`${card} p-4`}><Field label={L('Reason given', 'سبب الرفض')}>{app.rejectionReason}</Field></div>
           ) : null}
 
-          {app.status === 'pending' ? (
-            <div className="flex gap-2">
-              <button type="button" className={`${btn} flex-1 bg-emerald-600 text-white hover:bg-emerald-700`} onClick={() => setConfirm('approve')}><Check className="h-4 w-4" aria-hidden="true" />{L('Approve & create account', 'موافقة وإنشاء الحساب')}</button>
+          {app.status === 'pending' || app.status === 'changes_requested' ? (
+            <div className="flex flex-wrap gap-2">
+              {app.status === 'pending' ? <button type="button" className={`${btn} flex-1 bg-emerald-600 text-white hover:bg-emerald-700`} onClick={() => setConfirm('approve')}><Check className="h-4 w-4" aria-hidden="true" />{L('Approve & create account', 'موافقة وإنشاء الحساب')}</button> : null}
+              {app.status === 'pending' ? <button type="button" className={`${btn} flex-1 ${btnGhost.replace(btn, '')}`} onClick={() => setConfirm('changes')}><Undo2 className="h-4 w-4" aria-hidden="true" />{L('Ask for changes', 'طلب تعديل')}</button> : null}
               <button type="button" className={`${btn} flex-1 border border-red-300 text-red-700 hover:bg-red-50 dark:border-red-500/40 dark:text-red-300`} onClick={() => setConfirm('reject')}><X className="h-4 w-4" aria-hidden="true" />{L('Reject', 'رفض')}</button>
             </div>
           ) : null}
@@ -121,6 +131,27 @@ function ApplicationDrawer({ id, onClose, onChanged }) {
           try {
             await adminApi.approveTechnicianApplication(id);
             toast.success(L('Technician account created', 'تم إنشاء حساب الفني'));
+            onChanged();
+            onClose();
+          } catch (err) {
+            toast.error(err.message);
+            return false;
+          }
+        }}
+        onClose={() => setConfirm(null)}
+      />
+      <ConfirmDialog
+        open={confirm === 'changes'}
+        title={L('Ask the applicant to fix something?', 'طلب تعديل من المتقدم؟')}
+        message={L('They get your message in the app and on WhatsApp, and can fix and resend the application from the login screen.', 'ستصله رسالتك في التطبيق وعلى واتساب، ويمكنه تعديل الطلب وإعادة إرساله من شاشة تسجيل الدخول.')}
+        confirmLabel={L('Send back', 'إعادة للتعديل')}
+        tone="primary"
+        requireReason
+        reasonLabel={L('What should they fix? (e.g. the passport photo is blurry)', 'ما الذي يجب تعديله؟ (مثال: صورة الجواز غير واضحة)')}
+        onConfirm={async (message) => {
+          try {
+            await adminApi.requestTechnicianApplicationChanges(id, message);
+            toast.success(L('Sent back to the applicant', 'تمت إعادة الطلب للمتقدم'));
             onChanged();
             onClose();
           } catch (err) {

@@ -367,6 +367,10 @@ export const getTechnicianApplication = (id) => data(api.get(`/admin/technician-
 // body (optional): { cities, specialties, autoAssign } — corrections before the account is created
 export const approveTechnicianApplication = (id, body) => data(api.post(`/admin/technician-applications/${id_(id)}/approve`, body || {}));
 
+// The documents / details are not right: send it back with a message (the applicant is told in the app and on WhatsApp).
+export const requestTechnicianApplicationChanges = (id, message) =>
+  data(api.post(`/admin/technician-applications/${id_(id)}/request-changes`, { message }));
+
 export const rejectTechnicianApplication = (id, reason) => data(api.post(`/admin/technician-applications/${id_(id)}/reject`, { reason }));
 
 export const getDispatchSettings = () => data(api.get('/admin/dispatch-settings'));
@@ -424,6 +428,7 @@ export const adminApi = {
   getTechnicianApplications,
   getTechnicianApplication,
   approveTechnicianApplication,
+  requestTechnicianApplicationChanges,
   rejectTechnicianApplication,
   getDispatchSettings,
   updateDispatchSettings,
