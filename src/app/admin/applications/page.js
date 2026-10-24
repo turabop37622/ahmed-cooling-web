@@ -82,10 +82,15 @@ function ApplicationDrawer({ id, onClose, onChanged }) {
           <div className={`${card} p-4`}>
             <p className="mb-2 flex items-center gap-1.5 text-sm font-bold text-slate-900 dark:text-white"><IdCard className="h-4 w-4" aria-hidden="true" />{L('ID photo', 'صورة الهوية')}</p>
             {app.idPhotoUrl ? (
-              <a href={app.idPhotoUrl} target="_blank" rel="noreferrer">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={app.idPhotoUrl} alt={L('ID photo', 'صورة الهوية')} className="max-h-72 w-full rounded-xl object-contain bg-slate-50 dark:bg-slate-800" />
-              </a>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {[[app.idPhotoUrl, L('Front', 'الوجه الأمامي')], [app.idPhotoBackUrl, L('Back', 'الوجه الخلفي')]].filter(([url]) => url).map(([url, label]) => (
+                  <a key={label} href={url} target="_blank" rel="noreferrer" className="block">
+                    <p className="mb-1 text-xs text-slate-500 dark:text-slate-400">{label}</p>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={url} alt={`${L('ID photo', 'صورة الهوية')} - ${label}`} className="max-h-64 w-full rounded-xl object-contain bg-slate-50 dark:bg-slate-800" />
+                  </a>
+                ))}
+              </div>
             ) : <p className="text-sm text-slate-500">{L('The ID photo was deleted.', 'تم حذف صورة الهوية.')}</p>}
           </div>
 
