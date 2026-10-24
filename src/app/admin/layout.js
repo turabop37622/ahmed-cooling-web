@@ -26,6 +26,7 @@ import {
   ShieldCheck,
   HardHat,
   Wallet,
+  UserPlus,
   Sun,
   Moon,
 } from 'lucide-react';
@@ -35,6 +36,7 @@ const NAV_ITEMS = [
   { href: '/admin/dashboard', en: 'Dashboard', ar: 'لوحة المعلومات', icon: LayoutDashboard },
   { href: '/admin/bookings', en: 'Bookings', ar: 'الحجوزات', icon: ClipboardList },
   { href: '/admin/technicians', en: 'Technicians', ar: 'الفنيون', icon: HardHat },
+  { href: '/admin/applications', en: 'Technician applications', ar: 'طلبات الفنيين', icon: UserPlus },
   { href: '/admin/wallets', en: 'Wallets & Jobs', ar: 'المحافظ والمهام', icon: Wallet },
   { href: '/admin/services', en: 'Services', ar: 'الخدمات', icon: Wrench },
   { href: '/admin/users', en: 'Users', ar: 'المستخدمون', icon: Users },

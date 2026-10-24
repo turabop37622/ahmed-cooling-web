@@ -358,6 +358,17 @@ export const getTechnicianCancellations = (params) => data(api.get('/admin/techn
 export const reviewTechnicianCancellation = (id, decision, note) =>
   data(api.post(`/admin/technician-cancellations/${id_(id)}/review`, { decision, note }));
 
+// status: 'pending'|'approved'|'rejected' (omit for all). Returns { pending, applications }.
+export const getTechnicianApplications = (params) => data(api.get('/admin/technician-applications', { params: clean(params) }));
+
+// Includes idPhotoUrl, a signed link to the private ID photo.
+export const getTechnicianApplication = (id) => data(api.get(`/admin/technician-applications/${id_(id)}`));
+
+// body (optional): { cities, specialties, autoAssign } — corrections before the account is created
+export const approveTechnicianApplication = (id, body) => data(api.post(`/admin/technician-applications/${id_(id)}/approve`, body || {}));
+
+export const rejectTechnicianApplication = (id, reason) => data(api.post(`/admin/technician-applications/${id_(id)}/reject`, { reason }));
+
 export const getDispatchSettings = () => data(api.get('/admin/dispatch-settings'));
 
 export const updateDispatchSettings = (body) => data(api.put('/admin/dispatch-settings', body));
@@ -410,6 +421,10 @@ export const adminApi = {
   removeTechnicianPhoto,
   getTechnicianCancellations,
   reviewTechnicianCancellation,
+  getTechnicianApplications,
+  getTechnicianApplication,
+  approveTechnicianApplication,
+  rejectTechnicianApplication,
   getDispatchSettings,
   updateDispatchSettings,
 };
