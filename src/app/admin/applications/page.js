@@ -72,6 +72,7 @@ function ApplicationDrawer({ id, onClose, onChanged }) {
 
           <div className={`${card} grid grid-cols-2 gap-4 p-4`}>
             <Field label={L('Iqama / ID number', 'رقم الإقامة / الهوية')}><span dir="ltr">{app.nationalId}</span></Field>
+            <Field label={L('Date of birth', 'تاريخ الميلاد')}>{app.dateOfBirth ? <span dir="ltr">{String(app.dateOfBirth).slice(0, 10).split('-').reverse().join('/')}</span> : null}</Field>
             <Field label={L('Experience', 'الخبرة')}>{L(`${app.experienceYears} years`, `${app.experienceYears} سنوات`)}</Field>
             <Field label={L('City', 'المدينة')}>{names(app.cities, CITY)}</Field>
             <Field label={L('Specialties', 'التخصصات')}>{names(app.skills, SKILL)}</Field>
@@ -80,18 +81,21 @@ function ApplicationDrawer({ id, onClose, onChanged }) {
           </div>
 
           <div className={`${card} p-4`}>
-            <p className="mb-2 flex items-center gap-1.5 text-sm font-bold text-slate-900 dark:text-white"><IdCard className="h-4 w-4" aria-hidden="true" />{L('ID photo', 'صورة الهوية')}</p>
+            <p className="mb-2 flex items-center gap-1.5 text-sm font-bold text-slate-900 dark:text-white"><IdCard className="h-4 w-4" aria-hidden="true" />{L('Documents', 'المستندات')}</p>
             {app.idPhotoUrl ? (
               <div className="grid gap-3 sm:grid-cols-2">
-                {[[app.idPhotoUrl, L('Front', 'الوجه الأمامي')], [app.idPhotoBackUrl, L('Back', 'الوجه الخلفي')]].filter(([url]) => url).map(([url, label]) => (
+                {[
+                  [app.idPhotoUrl, L('Iqama / ID (front)', 'الإقامة / الهوية (أمام)')], [app.idPhotoBackUrl, L('Iqama / ID (back)', 'الإقامة / الهوية (خلف)')],
+                  [app.passportUrl, L('Passport', 'جواز السفر')], [app.certificateUrl, L('Certificate', 'الشهادة')],
+                ].filter(([url]) => url).map(([url, label]) => (
                   <a key={label} href={url} target="_blank" rel="noreferrer" className="block">
                     <p className="mb-1 text-xs text-slate-500 dark:text-slate-400">{label}</p>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={url} alt={`${L('ID photo', 'صورة الهوية')} - ${label}`} className="max-h-64 w-full rounded-xl object-contain bg-slate-50 dark:bg-slate-800" />
+                    <img src={url} alt={label} className="max-h-64 w-full rounded-xl object-contain bg-slate-50 dark:bg-slate-800" />
                   </a>
                 ))}
               </div>
-            ) : <p className="text-sm text-slate-500">{L('The ID photo was deleted.', 'تم حذف صورة الهوية.')}</p>}
+            ) : <p className="text-sm text-slate-500">{L('The documents were deleted.', 'تم حذف المستندات.')}</p>}
           </div>
 
           {app.status === 'rejected' ? (
@@ -129,7 +133,7 @@ function ApplicationDrawer({ id, onClose, onChanged }) {
       <ConfirmDialog
         open={confirm === 'reject'}
         title={L('Reject this application?', 'رفض هذا الطلب؟')}
-        message={L('The applicant sees this reason when they try to log in, and the ID photo is deleted.', 'سيرى المتقدم هذا السبب عند محاولة الدخول وسيتم حذف صورة الهوية.')}
+        message={L('The applicant sees this reason when they try to log in, and the documents are deleted.', 'سيرى المتقدم هذا السبب عند محاولة الدخول وسيتم حذف المستندات.')}
         confirmLabel={L('Reject', 'رفض')}
         tone="danger"
         requireReason
