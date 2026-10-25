@@ -176,6 +176,8 @@ export default function AdminWhatsAppPage() {
   const [selectedPhone, setSelectedPhone] = useState(null);
   const [messages, setMessages] = useState([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
+  // Meta allows free text only within 24h of the customer's last message; the server tells us whether that is still true.
+  const [windowOpen, setWindowOpen] = useState(true);
   const [health, setHealth] = useState(null);
   const [customer, setCustomer] = useState(null);
   const [customerLoading, setCustomerLoading] = useState(false);
@@ -224,6 +226,7 @@ export default function AdminWhatsAppPage() {
     try {
       const res = await adminApi.getWhatsAppMessages(phone);
       setMessages(Array.isArray(res?.messages) ? res.messages : []);
+      setWindowOpen(res?.windowOpen !== false);
     } catch (err) {
       if (!silent) toast?.error(err?.message || 'Could not load messages');
     } finally {
@@ -265,6 +268,7 @@ export default function AdminWhatsAppPage() {
       await fetchMessages(selectedPhone, { silent: true });
       await fetchConversations(tab);
     } catch (err) {
+      if (err?.windowOpen === false || /24-hour reply window/i.test(err?.message || '')) setWindowOpen(false);
       toast?.error(err?.message || L('Failed to send message', 'فشل إرسال الرسالة'));
     } finally {
       setSending(false);
@@ -419,12 +423,21 @@ export default function AdminWhatsAppPage() {
                   <div ref={threadEndRef} />
                 </div>
 
+                {!windowOpen && (
+                  <p className="mx-3 mb-0 mt-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200 px-3 py-2 text-xs">
+                    {L(
+                      'The 24-hour reply window has closed — this customer has not written in the last 24 hours, so WhatsApp blocks free-form replies. Wait for them to message again, or call them.',
+                      'انتهت مهلة الرد (24 ساعة) — لم يراسلنا هذا العميل خلال آخر 24 ساعة، لذا يمنع واتساب الردود الحرة. انتظر رسالته التالية أو اتصل به.'
+                    )}
+                  </p>
+                )}
                 <div className="p-3 border-t border-slate-100 dark:border-slate-800 flex items-end gap-2">
                   <textarea
                     value={reply}
                     onChange={(e) => setReply(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                     rows={1}
+                    disabled={!windowOpen}
                     placeholder={L('Type a reply…', 'اكتب رداً…')}
                     dir="auto"
                     className="flex-1 resize-none rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 max-h-32"
@@ -432,7 +445,7 @@ export default function AdminWhatsAppPage() {
                   <button
                     type="button"
                     onClick={handleSend}
-                    disabled={!reply.trim() || sending}
+                    disabled={!reply.trim() || sending || !windowOpen}
                     className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white disabled:opacity-50 hover:bg-blue-700"
                     aria-label={L('Send', 'إرسال')}
                   >
