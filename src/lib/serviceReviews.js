@@ -237,8 +237,8 @@ export const REVIEW_POOL = [
     "rating": 5,
     "date": "منذ أسبوع",
     "dateEn": "1 week ago",
-    "comment": "خدمة سريعة وممتازة وسعرهم واضح من البداية بدون أي رسوم خفية. وتم تسليمي سند ضمان رسمي معتمد على الصيانة.",
-    "commentEn": "Fast and reliable service with clear upfront pricing. They provided an official certified warranty receipt for the service.",
+    "comment": "خدمة سريعة وممتازة وسعرهم واضح من البداية بدون أي رسوم خفية. والفني جرّب المكيف أمامي قبل ما يمشي.",
+    "commentEn": "Fast and reliable service with clear upfront pricing. The technician tested the AC in front of me before leaving.",
     "likes": 8
   },
   {

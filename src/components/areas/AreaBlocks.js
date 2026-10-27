@@ -180,10 +180,10 @@ export function PromiseCards({ lang, place }) {
     },
     {
       Icon: Shield,
-      title: ar ? `خبرة +${num(10, 'ar')} سنوات وضمان` : '10+ years and a warranty',
+      title: ar ? `خبرة +${num(10, 'ar')} سنوات` : '10+ years of experience',
       text: ar
-        ? 'فنيون مؤهلون وقطع غيار أصلية وضمان على أعمال الصيانة حسب نوع الخدمة.'
-        : 'Qualified technicians, genuine spare parts and a warranty on our work depending on the service.',
+        ? 'فنيون مؤهلون وقطع غيار أصلية وفحص الجهاز بعد الإصلاح.'
+        : 'Qualified technicians, genuine spare parts and post-repair testing.',
     },
   ];
   return (

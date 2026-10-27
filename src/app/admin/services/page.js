@@ -214,7 +214,7 @@ export default function AdminServicesPage() {
         <div className="min-w-0">
           <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white">{L('Services', 'الخدمات')}</h1>
           <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
-            {L('Prices, durations and warranties shown on the website. Inactive services are hidden from customers.', 'الأسعار والمدد والضمان المعروضة في الموقع. الخدمات غير النشطة لا تظهر للعملاء.')}
+            {L('Prices shown on the website and app. Duration and warranty are for internal use only and are never shown to customers. Inactive services are hidden from customers.', 'الأسعار المعروضة في الموقع والتطبيق. المدة والضمان للاستخدام الداخلي فقط ولا تظهر للعملاء. الخدمات غير النشطة لا تظهر للعملاء.')}
           </p>
         </div>
         <div className="flex items-center gap-2">

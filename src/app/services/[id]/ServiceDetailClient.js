@@ -467,10 +467,10 @@ export default function ServiceDetailClient({ service, related = [] }) {
                   </div>
                   <div>
                     <h4 className="text-sm font-semibold text-slate-900 dark:text-white">
-                      {language === 'ar' ? 'ضمان صيانة رسمي ومعتمد' : 'Official Certified Warranty'}
+                      {language === 'ar' ? 'فحص بعد الإصلاح' : 'Post-Repair Testing'}
                     </h4>
                     <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 leading-normal font-medium">
-                      {language === 'ar' ? 'ضمان شامل ومكتوب على جودة العمل وقطع الغيار.' : 'Complete peace of mind covering parts and labor.'}
+                      {language === 'ar' ? 'نختبر الجهاز بعد الصيانة للتأكد من عمله بشكل سليم.' : 'We test the appliance after the repair to confirm it works properly.'}
                     </p>
                   </div>
                 </div>

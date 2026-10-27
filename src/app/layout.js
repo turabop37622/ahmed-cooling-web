@@ -81,13 +81,13 @@ const ORGANIZATION_JSON_LD = {
 const HOME = {
   ar: {
     title: 'ورشة أحمد للتبريد | صيانة مكيفات جدة ومكة',
-    description: 'ورشة أحمد للتبريد: صيانة وغسيل وتعبئة فريون للمكيفات وإصلاح الثلاجات والغسالات في جدة ومكة. طوارئ 24/7 مع ضمان وقطع غيار أصلية.',
-    ogDescription: 'صيانة وإصلاح المكيفات والأجهزة المنزلية في جدة ومكة المكرمة. خدمة طوارئ 24/7 مع فنيين مؤهلين وضمان معتمد.',
+    description: 'ورشة أحمد للتبريد: صيانة وغسيل وتعبئة فريون للمكيفات وإصلاح الثلاجات والغسالات في جدة ومكة. طوارئ 24/7 مع فنيين مؤهلين وقطع غيار أصلية.',
+    ogDescription: 'صيانة وإصلاح المكيفات والأجهزة المنزلية في جدة ومكة المكرمة. خدمة طوارئ 24/7 مع فنيين مؤهلين وقطع غيار أصلية.',
   },
   en: {
     title: 'AC Repair Jeddah & Makkah | Ahmed Cooling Workshop',
-    description: 'Certified AC repair, cleaning and gas refill, plus fridge and washing machine repair in Jeddah & Makkah. 24/7 emergency service with warranty.',
-    ogDescription: 'AC and home appliance repair in Jeddah & Makkah. 24/7 emergency service with certified technicians and an official warranty.',
+    description: 'Certified AC repair, cleaning and gas refill, plus fridge and washing machine repair in Jeddah & Makkah. 24/7 emergency service with genuine spare parts.',
+    ogDescription: 'AC and home appliance repair in Jeddah & Makkah. 24/7 emergency service with certified technicians and genuine spare parts.',
   },
 };
 
@@ -204,7 +204,7 @@ export default async function RootLayout({ children }) {
               image: [LOGO_URL, `${SITE}${OG_IMAGE.ar.url}`, `${SITE}${OG_IMAGE.en.url}`],
               parentOrganization: { '@id': `${SITE}/#organization` },
               alternateName: 'Ahmed Cooling Workshop KSA',
-              description: 'ورشة أحمد للتبريد - صيانة وإصلاح المكيفات (سبليت وشباك ومركزي)، الثلاجات والغسالات في جدة ومكة المكرمة. خدمة طوارئ 24/7 مع ضمان رسمي معتمد وقطع غيار أصلية.',
+              description: 'ورشة أحمد للتبريد - صيانة وإصلاح المكيفات (سبليت وشباك ومركزي)، الثلاجات والغسالات في جدة ومكة المكرمة. خدمة طوارئ 24/7 مع فنيين مؤهلين وقطع غيار أصلية.',
               disambiguatingDescription: 'Professional air conditioning and home appliance repair workshop in Saudi Arabia serving customers across Jeddah and Makkah.',
               url: 'https://www.ahmedcoolingworkshop.com',
               telephone: '+966544483745',

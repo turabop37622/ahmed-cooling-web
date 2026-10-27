@@ -246,12 +246,12 @@ const DETAIL = {
   ar: [
     ({ d, p, fee }) => `الأسعار في ${d} هي نفسها أسعار الموقع: يبدأ إصلاح المكيف من ${p} وتضاف رسوم زيارة ثابتة ${fee}، وتُحدد قطع الغيار بعد الفحص وقبل البدء بالعمل.`,
     ({ d }) => `عند تعطل المكيف في الصيف يصل فريق الطوارئ إلى ${d} عادةً خلال ${RESPONSE.ar}، والخدمة متاحة على مدار الساعة طوال أيام الأسبوع.`,
-    ({ d }) => `نحرص في كل زيارة داخل ${d} على استخدام قطع غيار أصلية وتوضيح التكلفة قبل التنفيذ، وتشمل أعمالنا ضماناً تختلف مدته حسب نوع الخدمة.`,
+    ({ d }) => `نحرص في كل زيارة داخل ${d} على استخدام قطع غيار أصلية وتوضيح التكلفة قبل التنفيذ، ونختبر الجهاز بعد الإصلاح للتأكد من عمله بشكل سليم.`,
   ],
   en: [
     ({ d, p, fee }) => `Prices in ${d} are the same as on the website: AC repair starts from ${p} plus a fixed ${fee} visit fee, and any spare parts are quoted after the inspection, before work starts.`,
     ({ d }) => `When an AC breaks down in summer, our emergency team usually reaches ${d} within ${RESPONSE.en}, and the service is available around the clock, seven days a week.`,
-    ({ d }) => `On every visit in ${d} we use genuine spare parts and explain the cost before starting, and our work comes with a warranty whose length depends on the service.`,
+    ({ d }) => `On every visit in ${d} we use genuine spare parts and explain the cost before starting, and we test the appliance after the repair to make sure it works properly.`,
   ],
 };
 
@@ -320,10 +320,6 @@ const FAQ_OTHER = {
       q: `هل الخدمة متاحة في حي ${d} ليلاً وفي العطلات؟`,
       a: `نعم، خدمة الطوارئ متاحة ٢٤/٧ طوال أيام الأسبوع. تواصل معنا عبر واتساب أو اتصل على ${PHONE_DISPLAY.ar} وسنرسل أقرب فني متاح.`,
     }),
-    ({ d }) => ({
-      q: `هل يوجد ضمان على الصيانة في حي ${d}؟`,
-      a: 'نعم، أعمال الصيانة مشمولة بضمان تختلف مدته حسب نوع الخدمة، ونستخدم قطع غيار أصلية. يوضح لك الفني شروط الضمان عند الزيارة.',
-    }),
   ],
   en: [
     ({ d }) => ({
@@ -333,10 +329,6 @@ const FAQ_OTHER = {
     ({ d }) => ({
       q: `Is service available in ${d} at night and on weekends?`,
       a: `Yes, emergency service runs 24/7, seven days a week. Message us on WhatsApp or call ${PHONE_DISPLAY.en} and we will send the nearest available technician.`,
-    }),
-    ({ d }) => ({
-      q: `Is there a warranty on repairs in ${d}?`,
-      a: 'Yes. Our repairs come with a warranty whose length depends on the service, and we use genuine spare parts. The technician explains the warranty terms during the visit.',
     }),
   ],
 };
@@ -370,18 +362,18 @@ export function districtContent(city, district, lang, svc) {
       ? [
           `صيانة وإصلاح وغسيل المكيفات وتعبئة الفريون في حي ${d} ${city.arIn}. فنيون متنقلون، طوارئ 24/7 ووصول خلال 1.5–2 ساعة، ورسوم زيارة 30 ريال.`,
           `فني مكيفات في حي ${d} ${city.arIn}: إصلاح وغسيل المكيفات والثلاجات والغسالات بأسعار واضحة ورسوم زيارة 30 ريال. احجز أونلاين أو عبر واتساب.`,
-          `ورشة أحمد للتبريد تخدم حي ${d} ${city.arIn}: صيانة المكيفات السبليت والمركزي وتعبئة الفريون وإصلاح الأجهزة المنزلية مع ضمان وطوارئ 24/7.`,
+          `ورشة أحمد للتبريد تخدم حي ${d} ${city.arIn}: صيانة المكيفات السبليت والمركزي وتعبئة الفريون وإصلاح الأجهزة المنزلية مع قطع غيار أصلية وطوارئ 24/7.`,
         ][i % 3]
       : [
           `AC repair, deep cleaning and freon refill in ${d}, ${city.en}. Mobile technicians, 24/7 emergencies with a 1.5–2 hour response and a 30 SAR visit fee.`,
           `AC technician in ${d}, ${city.en}: AC, fridge and washing machine repair with clear prices and a 30 SAR visit fee. Book online or on WhatsApp.`,
-          `Ahmed Cooling Workshop serves ${d}, ${city.en}: split and central AC repair, freon refill and home appliance repair, with warranty and 24/7 emergencies.`,
+          `Ahmed Cooling Workshop serves ${d}, ${city.en}: split and central AC repair, freon refill and home appliance repair, with genuine spare parts and 24/7 emergencies.`,
         ][i % 3];
 
   const faqs = [
     FAQ_COVERAGE[lang][i % 2](vars),
     FAQ_PRICE[lang][i % 3](vars),
-    FAQ_OTHER[lang][(i + 1) % 3](vars),
+    FAQ_OTHER[lang][(i + 1) % 2](vars),
   ];
   // Rotate the question order too, so the pages do not all open with the same question
   const shift = Math.floor(i / 2) % 3;

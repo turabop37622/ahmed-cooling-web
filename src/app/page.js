@@ -80,12 +80,6 @@ const HOME_FAQS = [
     aAr: 'نعم، تضاف رسوم زيارة ثابتة قدرها ٣٠ ريالاً إلى سعر الخدمة. وتظهر على كل خدمة وفي إجمالي الحجز قبل التأكيد، بدون أي مفاجآت. أما باقات الصيانة فهي شاملة رسوم الزيارة.',
   },
   {
-    qEn: 'What is included in the service warranty?',
-    qAr: 'ما الذي يشمله الضمان المعتمد؟',
-    aEn: 'All labor and parts replaced by our team are protected with our official certified warranty. If any issue reoccurs, we send a senior technician to re-inspect and fix it completely free of charge.',
-    aAr: 'جميع أعمال الصيانة وقطع الغيار الموردة مشمولة بضمان رسمي ومعتمد. وإذا تكرر أي عطل يتم إرسال فني متخصص لإعادة الفحص والإصلاح مجاناً بالكامل.',
-  },
-  {
     qEn: 'Which payment methods do you accept?',
     qAr: 'ما هي طرق الدفع المتاحة لديكم؟',
     aEn: 'You pay only after the repair is completed and tested. Payment is collected in cash once the work is done.',
@@ -243,16 +237,16 @@ export default function Home() {
       desc: language === 'ar' ? 'شرح سبب العطل وتكلفة واضحة مسبقة بدون أي مصاريف خفية.' : 'Clear explanation of root cause and transparent price before repair starts.',
     },
     {
-      title: language === 'ar' ? 'فحص تشغيل وضمان معتمد' : 'Testing & Certified Warranty',
-      desc: language === 'ar' ? 'اختبار كفاءة الجهاز بعد الصيانة مع سند ضمان رسمي ومعتمد.' : 'Post-repair cooling performance test with an official certified warranty receipt.',
+      title: language === 'ar' ? 'فحص تشغيل بعد الإصلاح' : 'Post-Repair Testing',
+      desc: language === 'ar' ? 'اختبار كفاءة الجهاز بعد الصيانة للتأكد من عمله بشكل سليم.' : 'Post-repair cooling performance test to confirm everything works properly.',
     },
   ];
 
   const whyItems = [
     {
       icon: <Shield className="h-7 w-7 text-primary dark:text-blue-400" />,
-      title: language === 'ar' ? 'ضمان صيانة رسمي ومعتمد' : 'Official Certified Warranty',
-      desc: language === 'ar' ? 'سند ضمان معتمد يضمن حقك الكامل في حال تكرار أي عطل مجاناً.' : 'Complete protection covering labor and parts with 100% free revisit policy.',
+      title: language === 'ar' ? 'جودة في العمل' : 'Quality Workmanship',
+      desc: language === 'ar' ? 'عمل متقن على يد فنيين مؤهلين مع فحص الجهاز قبل مغادرة الفني.' : 'Careful work by qualified technicians, with the appliance tested before we leave.',
     },
     {
       icon: <Zap className="h-7 w-7 text-primary dark:text-blue-400" />,
@@ -446,7 +440,7 @@ export default function Home() {
             {language === 'ar' ? 'كيف تتم خدمة الصيانة في ٤ خطوات؟' : 'How It Works In 4 Easy Steps'}
           </h2>
           <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-            {language === 'ar' ? 'تجربة حجز مريحة وشفافة من البداية وحتى استلام سند الضمان' : 'Smooth, transparent, and completely stress-free appliance repair'}
+            {language === 'ar' ? 'تجربة حجز مريحة وشفافة من البداية وحتى إتمام الإصلاح' : 'Smooth, transparent, and completely stress-free appliance repair'}
           </p>
         </div>
 
@@ -504,7 +498,7 @@ export default function Home() {
               <ul className="space-y-3 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-8 flex-1">
                 <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" /> {language === 'ar' ? 'تقرير تشخيص كامل للعطل بالمنزل' : 'Full on-site diagnostic report'}</li>
                 <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" /> {language === 'ar' ? 'تسعير مسبق قبل البدء' : 'Upfront written quote'}</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" /> {language === 'ar' ? 'ضمان رسمي معتمد على العمل' : 'Official certified work warranty'}</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" /> {language === 'ar' ? 'فحص تشغيل بعد الإصلاح' : 'Post-repair testing'}</li>
               </ul>
               <Link href="/book/pkg_diagnostic" className="block w-full rounded-2xl border border-slate-200 py-3.5 text-center text-xs font-semibold text-slate-800 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 transition">
                 {language === 'ar' ? 'طلب زيارة كشف' : 'Book Diagnostic'}

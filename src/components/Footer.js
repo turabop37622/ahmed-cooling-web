@@ -45,8 +45,8 @@ export default function Footer() {
             </Link>
             <p className="text-sm text-slate-400 leading-relaxed max-w-sm">
               {isAr
-                ? 'خدمات صيانة وتكييف الهواء والأجهزة المنزلية المعتمدة في المملكة العربية السعودية بضمان رسمي وقطع غيار أصلية.'
-                : 'Certified AC and home appliance repair specialists in Saudi Arabia with guaranteed quality and official warranty.'}
+                ? 'خدمات صيانة وتكييف الهواء والأجهزة المنزلية المعتمدة في المملكة العربية السعودية بجودة في العمل وقطع غيار أصلية.'
+                : 'Certified AC and home appliance repair specialists in Saudi Arabia with quality workmanship and genuine spare parts.'}
             </p>
             <div className="flex items-center gap-3 pt-1">
               <a

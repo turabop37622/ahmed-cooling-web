@@ -13,7 +13,7 @@ const SERVICES_META = {
     keywords: ['AC repair Jeddah', 'صيانة مكيفات جدة', 'تصليح مكيفات سبليت مكة', 'فني تكييف جدة', 'AC repair expert technician'],
   },
   '2': {
-    description: 'Professional installation and relocation for split and window air conditioners in Jeddah & Makkah. Precision copper piping, vacuum testing, and guaranteed leak-free operation.',
+    description: 'Professional installation and relocation for split and window air conditioners in Jeddah & Makkah. Precision copper piping, vacuum testing, and leak testing before handover.',
     keywords: ['AC installation Jeddah', 'تركيب مكيفات سبليت جدة', 'فك وتركيب مكيفات مكة', 'AC moving Jeddah'],
   },
   '3': {
@@ -78,10 +78,10 @@ export async function generateMetadata({ params }) {
   let description;
   if (lang === 'ar') {
     title = `${svc.nameAr || svc.name} في جدة ومكة`;
-    description = clip(`${withPeriod(svc.descriptionAr || svc.nameAr || '')} ورشة أحمد للتبريد في جدة ومكة المكرمة: طوارئ 24/7 وضمان على الصيانة.`);
+    description = clip(`${withPeriod(svc.descriptionAr || svc.nameAr || '')} ورشة أحمد للتبريد في جدة ومكة المكرمة: طوارئ 24/7 وقطع غيار أصلية.`);
   } else {
     title = `${svc.name} in Jeddah & Makkah`;
-    description = clip(known?.description || `${withPeriod(svc.description || svc.name)} Ahmed Cooling Workshop, Jeddah & Makkah: 24/7 emergency service with warranty.`);
+    description = clip(known?.description || `${withPeriod(svc.description || svc.name)} Ahmed Cooling Workshop, Jeddah & Makkah: 24/7 emergency service with genuine spare parts.`);
   }
   const fullTitle = `${title} | ${lang === 'ar' ? 'ورشة أحمد للتبريد' : 'Ahmed Cooling Workshop'}`;
 

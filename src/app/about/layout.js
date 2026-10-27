@@ -4,11 +4,11 @@ import { langAlternates, absoluteUrl } from '../../lib/lang';
 const META = {
   ar: {
     title: 'من نحن | ورشة أحمد للتبريد',
-    description: 'ورشة معتمدة لصيانة المكيفات والأجهزة المنزلية في جدة ومكة. خبرة تزيد عن 10 سنوات، طوارئ 24/7 وجودة مضمونة.',
+    description: 'ورشة معتمدة لصيانة المكيفات والأجهزة المنزلية في جدة ومكة. خبرة تزيد عن 10 سنوات، طوارئ 24/7 وجودة في العمل.',
   },
   en: {
     title: 'About Us | Ahmed Cooling Workshop',
-    description: 'Certified AC and appliance repair workshop in Jeddah & Makkah. 10+ years of experience, 24/7 emergency dispatch and guaranteed quality.',
+    description: 'Certified AC and appliance repair workshop in Jeddah & Makkah. 10+ years of experience, 24/7 emergency dispatch and quality workmanship.',
   },
 };
 
