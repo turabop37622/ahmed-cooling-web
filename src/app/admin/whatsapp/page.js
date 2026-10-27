@@ -309,8 +309,12 @@ export default function AdminWhatsAppPage() {
       {(() => {
         // Meta refused the last template message (booking confirmation, technician offer...) and none has worked since
         const t = health?.templates;
-        const err = t?.lastError;
-        if (!err || (t.lastOk && new Date(t.lastOk.at) > new Date(err.at))) return null;
+        // Refused by Meta right away, unless a later one worked; otherwise a message Meta accepted but could not deliver
+        // in the last 24 hours (reported afterwards through the webhook)
+        const refused = t?.lastError && !(t.lastOk && new Date(t.lastOk.at) > new Date(t.lastError.at)) ? t.lastError : null;
+        const undelivered = t?.lastUndelivered && Date.now() - new Date(t.lastUndelivered.at).getTime() < 24 * 3600 * 1000 ? t.lastUndelivered : null;
+        const err = refused || undelivered;
+        if (!err) return null;
         const hint = {
           131042: L('Add a payment method to the WhatsApp account in Meta Business Settings (WhatsApp accounts > Payment settings).', 'أضف وسيلة دفع لحساب واتساب في إعدادات ميتا للأعمال.'),
           132001: L('The template name or language does not match an approved template.', 'اسم القالب أو لغته لا يطابق قالباً معتمداً.'),
@@ -327,7 +331,7 @@ export default function AdminWhatsAppPage() {
               {L('WhatsApp did not deliver the last automatic message to a customer.', 'لم يُرسل واتساب آخر رسالة تلقائية إلى العميل.')}
             </p>
             <p className="mt-0.5 text-xs opacity-90" dir="ltr">
-              {err.template} · {err.code ? `#${err.code} ` : ''}{err.message} · {new Date(err.at).toLocaleString()}
+              {err.template || (err.to ? `+${err.to}` : '')} · {err.code ? `#${err.code} ` : ''}{err.message} · {new Date(err.at).toLocaleString()}
             </p>
             {hint ? <p className="mt-1 text-xs opacity-90">{hint}</p> : null}
           </div>
