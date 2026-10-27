@@ -228,7 +228,9 @@ function WalletsTab() {
                 <td className="px-4 py-3">
                   {w.frozenUntil
                     ? <span className="inline-flex items-center gap-1 rounded-lg bg-sky-50 px-2 py-0.5 text-xs font-semibold text-sky-700 dark:bg-sky-500/10 dark:text-sky-300"><Snowflake className="h-3 w-3" aria-hidden="true" />{L('Frozen until', 'مجمّد حتى')} {fmtDateTime(w.frozenUntil)}</span>
-                    : <span className="text-xs text-emerald-600 dark:text-emerald-400">{L('Active', 'نشط')}</span>}
+                    : w.active === false
+                      ? <span className="text-xs text-slate-500 dark:text-slate-400">{L('Inactive', 'غير نشط')}</span>
+                      : <span className="text-xs text-emerald-600 dark:text-emerald-400">{L('Active', 'نشط')}</span>}
                 </td>
               </tr>
             ))}
