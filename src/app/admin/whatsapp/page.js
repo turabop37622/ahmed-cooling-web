@@ -306,6 +306,34 @@ export default function AdminWhatsAppPage() {
         </button>
       </div>
 
+      {(() => {
+        // Meta refused the last template message (booking confirmation, technician offer...) and none has worked since
+        const t = health?.templates;
+        const err = t?.lastError;
+        if (!err || (t.lastOk && new Date(t.lastOk.at) > new Date(err.at))) return null;
+        const hint = {
+          131042: L('Add a payment method to the WhatsApp account in Meta Business Settings (WhatsApp accounts > Payment settings).', 'أضف وسيلة دفع لحساب واتساب في إعدادات ميتا للأعمال.'),
+          132001: L('The template name or language does not match an approved template.', 'اسم القالب أو لغته لا يطابق قالباً معتمداً.'),
+          132000: L('The template expects a different number of values.', 'القالب يتوقع عدداً مختلفاً من القيم.'),
+          132012: L('A template value is in the wrong format.', 'إحدى قيم القالب بتنسيق غير صحيح.'),
+          131026: L('That phone number is not on WhatsApp.', 'هذا الرقم غير مسجل في واتساب.'),
+          131049: L('Meta held the message back to protect the customer experience; try again later.', 'أوقفت ميتا الرسالة مؤقتاً؛ حاول لاحقاً.'),
+          131056: L('Too many messages to the same number in a short time.', 'رسائل كثيرة لنفس الرقم في وقت قصير.'),
+          133010: L('The phone number is not registered on the WhatsApp Cloud API.', 'رقم الهاتف غير مسجل في واتساب Cloud API.'),
+        }[err.code];
+        return (
+          <div role="alert" className="rounded-2xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
+            <p className="font-semibold">
+              {L('WhatsApp did not deliver the last automatic message to a customer.', 'لم يُرسل واتساب آخر رسالة تلقائية إلى العميل.')}
+            </p>
+            <p className="mt-0.5 text-xs opacity-90" dir="ltr">
+              {err.template} · {err.code ? `#${err.code} ` : ''}{err.message} · {new Date(err.at).toLocaleString()}
+            </p>
+            {hint ? <p className="mt-1 text-xs opacity-90">{hint}</p> : null}
+          </div>
+        );
+      })()}
+
       {health?.ok === false && (
         <div role="alert" className="rounded-2xl border border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-500/10 px-4 py-3 text-sm text-rose-800 dark:text-rose-200">
           <p className="font-semibold">
