@@ -327,7 +327,7 @@ export default function AdminWhatsAppPage() {
         <div className="flex h-[70vh] min-h-[480px]">
           {/* Conversation list */}
           <div className={`w-full sm:w-80 shrink-0 border-e border-slate-200 dark:border-slate-800 flex flex-col ${selectedPhone ? 'hidden sm:flex' : 'flex'}`}>
-            <div className="flex gap-1 p-2 border-b border-slate-100 dark:border-slate-800 overflow-x-auto">
+            <div className="flex flex-wrap gap-1 p-2 border-b border-slate-100 dark:border-slate-800">
               {TABS.map((t) => (
                 <button
                   key={t.value}

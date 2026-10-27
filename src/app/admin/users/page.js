@@ -392,7 +392,7 @@ export default function AdminUsersPage() {
                   <th scope="col" className="py-3 px-3 text-start">{L('Role', 'الدور')}</th>
                   <th scope="col" className="py-3 px-3 text-start">{L('Status', 'الحالة')}</th>
                   <th scope="col" className="py-3 px-3 text-end">{L('Bookings', 'الحجوزات')}</th>
-                  <th scope="col" className="py-3 px-3 text-start">{L('Joined', 'تاريخ التسجيل')}</th>
+                  <th scope="col" className="hidden 2xl:table-cell py-3 px-3 text-start">{L('Joined', 'تاريخ التسجيل')}</th>
                   <th scope="col" className="py-3 px-3 text-end"><span className="sr-only">{L('Actions', 'إجراءات')}</span></th>
                 </tr>
               </thead>
@@ -431,7 +431,7 @@ export default function AdminUsersPage() {
                         </div>
                       </td>
                       <td className="py-3 px-3 text-end tabular-nums font-semibold text-slate-900 dark:text-white">{fmtNum(u.bookingsCount)}</td>
-                      <td className="py-3 px-3 text-slate-700 dark:text-slate-300 whitespace-nowrap">{fmtDate(u.createdAt)}</td>
+                      <td className="hidden 2xl:table-cell py-3 px-3 text-slate-700 dark:text-slate-300 whitespace-nowrap">{fmtDate(u.createdAt)}</td>
                       <td className="py-3 px-3">
                         <div className="flex items-center justify-end gap-2">
                           {wa && (
