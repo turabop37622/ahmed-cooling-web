@@ -338,6 +338,20 @@ export default function AdminWhatsAppPage() {
         );
       })()}
 
+      {health && health.signatureCheck === false && (
+        <div role="alert" className="rounded-2xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-100">
+          <p className="font-semibold">
+            {L('Security: incoming WhatsApp messages are not being verified.', 'الأمان: لا يتم التحقق من رسائل واتساب الواردة.')}
+          </p>
+          <p className="mt-1 text-xs opacity-90">
+            {L(
+              'Add WHATSAPP_APP_SECRET on Render (Meta app > App settings > Basic > App secret). Until then anyone who finds the webhook address could send fake customer messages.',
+              'أضف WHATSAPP_APP_SECRET في Render (تطبيق ميتا > الإعدادات > أساسي > App secret). حتى ذلك الحين يمكن لأي شخص يعرف عنوان الويب هوك إرسال رسائل عملاء مزيفة.'
+            )}
+          </p>
+        </div>
+      )}
+
       {health?.ok === false && (
         <div role="alert" className="rounded-2xl border border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-500/10 px-4 py-3 text-sm text-rose-800 dark:text-rose-200">
           <p className="font-semibold">
