@@ -160,9 +160,31 @@ function MessageBubble({ msg, L }) {
         <p className={`text-[10px] mt-1 ${mine ? 'text-white/70' : 'text-slate-500 dark:text-slate-400'}`} dir="ltr">
           {new Date(msg.createdAt).toLocaleString()}
         </p>
+        {mine && <DeliveryLine msg={msg} L={L} />}
       </div>
     </div>
   );
+}
+
+// What Meta reported for a message we sent. Older messages (before this was recorded) have no status and show nothing.
+function DeliveryLine({ msg, L }) {
+  const d = msg.delivery;
+  if (!d) return null;
+  if (d === 'failed') {
+    const e = msg.deliveryError || {};
+    return (
+      <p className="mt-1.5 rounded-lg bg-red-50 px-2 py-1 text-[11px] font-semibold text-red-700" dir="auto">
+        ✕ {L('Not delivered', 'لم تصل')}{e.code ? ` (${e.code})` : ''}: {e.message || L('Meta gave no reason', 'لم يذكر Meta السبب')}
+      </p>
+    );
+  }
+  const label = {
+    accepted: L('Sent to Meta, no delivery report yet', 'أُرسلت إلى Meta، بانتظار تقرير التسليم'),
+    sent: L('✓ Sent', '✓ أُرسلت'),
+    delivered: L('✓✓ Delivered to the phone', '✓✓ وصلت إلى الجوال'),
+    read: L('✓✓ Read', '✓✓ قُرئت'),
+  }[d];
+  return <p className={`text-[11px] mt-0.5 font-semibold ${d === 'read' ? 'text-cyan-200' : 'text-white/80'}`}>{label}</p>;
 }
 
 export default function AdminWhatsAppPage() {
