@@ -356,6 +356,16 @@ export default function AdminWhatsAppPage() {
               {err.template || (err.to ? `+${err.to}` : '')} · {err.code ? `#${err.code} ` : ''}{err.message} · {new Date(err.at).toLocaleString()}
             </p>
             {hint ? <p className="mt-1 text-xs opacity-90">{hint}</p> : null}
+            {(() => {
+              // Meta's own fix-it link inside its error text (only ever a business.facebook.com page)
+              const link = String(err.message || '').match(/https:\/\/business\.facebook\.com\/[^\s]+/);
+              const href = link ? link[0].replace(/[.,)]+$/, '') : null;
+              return href ? (
+                <a href={href} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex rounded-xl bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700">
+                  {L('Open the Meta page to fix this', 'افتح صفحة ميتا لإصلاح ذلك')}
+                </a>
+              ) : null;
+            })()}
           </div>
         );
       })()}
