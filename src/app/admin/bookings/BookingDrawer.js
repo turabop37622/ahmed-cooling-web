@@ -20,7 +20,7 @@ import {
 import {
   nextActions, canCancel, canDelete, canAssign, normalizeStatus, statusLabel, serviceInfo, serviceName,
   categoryLabel, customerNameOf, phoneOf, orderRef, coordsOf, mapLink, whatsappLink, telLink,
-  bookingDate, bookingTime, fmtSlot, unwrapBooking,
+  bookingDate, bookingTime, fmtSlot, unwrapBooking, customerMessages,
 } from './bookingUtils';
 import {
   cityKeyOf, cityLabel, specialtyLabel, fitFor, isAssignable, sortForBooking, activeJobsOf, pendingJobsOf, technicianJobText,
@@ -80,6 +80,7 @@ export default function BookingDrawer({ bookingId, initial, servicesById, refres
   const lock = useRef(false);
   const [dialog, setDialog] = useState(null); // 'cancel' | 'complete' | 'delete'
   const [assignOpen, setAssignOpen] = useState(false);
+  const [msgLang, setMsgLang] = useState(null); // ready-made WhatsApp messages: null = the customer's language
   const [techs, setTechs] = useState(null);
   const [techError, setTechError] = useState('');
   const [payMethod, setPayMethod] = useState('');
@@ -230,6 +231,10 @@ export default function BookingDrawer({ bookingId, initial, servicesById, refres
     `Hello ${name || ''}, this is Ahmed Cooling Workshop about your booking ${orderRef(booking)}.`,
     `مرحباً ${name || ''}، معك ورشة أحمد للتبريد بخصوص حجزك ${orderRef(booking)}.`,
   );
+  const customerLang = booking?.language === 'ar' ? 'ar' : 'en';
+  const readyMessages = customerMessages(booking, {
+    serviceEn: info.nameEn, serviceAr: info.nameAr, techName, date, time, lang: msgLang || customerLang,
+  });
 
   const footer = booking && (actions.length > 0 || canCancel(status)) ? (
     <div className="flex flex-wrap items-center gap-2">
@@ -375,6 +380,44 @@ export default function BookingDrawer({ bookingId, initial, servicesById, refres
                   </a>
                 )}
               </div>
+              {phone && readyMessages.length > 0 && (
+                <div className="mt-3 rounded-xl border border-green-200 bg-white p-3 dark:border-green-500/30 dark:bg-slate-900">
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <p className="text-xs font-bold text-green-800 dark:text-green-300">
+                      {L('Ready WhatsApp messages', 'رسائل واتساب جاهزة')}
+                    </p>
+                    <div className="flex overflow-hidden rounded-lg border border-slate-300 text-xs font-semibold dark:border-slate-600" role="group" aria-label={L('Message language', 'لغة الرسالة')}>
+                      {['en', 'ar'].map((lg) => (
+                        <button
+                          key={lg}
+                          type="button"
+                          onClick={() => setMsgLang(lg)}
+                          aria-pressed={(msgLang || customerLang) === lg}
+                          className={`px-2.5 py-1 ${(msgLang || customerLang) === lg ? 'bg-green-700 text-white' : 'bg-white text-slate-700 dark:bg-slate-800 dark:text-slate-200'}`}
+                        >
+                          {lg === 'en' ? 'EN' : 'عربي'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <p className="mb-2 text-xs text-slate-600 dark:text-slate-400">
+                    {L('Tap a message: WhatsApp opens with it written, then press Send.', 'اضغط على رسالة: يفتح واتساب والرسالة مكتوبة، ثم اضغط إرسال.')}
+                  </p>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {readyMessages.map((m) => (
+                      <a
+                        key={m.key}
+                        href={whatsappLink(phone, m.text)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`${BTN} justify-start border border-green-300 bg-green-50 text-green-800 hover:bg-green-100 dark:border-green-500/40 dark:bg-green-500/10 dark:text-green-200`}
+                      >
+                        <Send className="h-4 w-4 shrink-0" aria-hidden="true" />{L(m.en, m.ar)}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
               {booking.email && (
                 <a href={`mailto:${booking.email}`} className="mt-2 flex items-center gap-2 break-all text-blue-700 hover:underline dark:text-blue-300">
                   <Mail className="h-4 w-4 shrink-0" aria-hidden="true" />{booking.email}

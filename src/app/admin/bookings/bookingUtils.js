@@ -219,3 +219,59 @@ export function fmtSlot(t, isAr) {
 
 // The server sends { success, booking } for single fetches; older routes used `data`.
 export const unwrapBooking = (res) => res?.booking || res?.data || (res?._id ? res : null);
+
+// ---------------------------------------------------------------- ready-made WhatsApp messages
+// Text the admin sends from their own WhatsApp (free: wa.me opens the chat with the text filled in, they press Send).
+// `lang` is the language of the message, by default the customer's booking language.
+const SUPPORT_LINE = '+966 54 448 3745';
+const RATE_URL = 'https://www.ahmedcoolingworkshop.com/rate';
+export function customerMessages(b, { serviceEn, serviceAr, techName, date, time, lang } = {}) {
+  if (!b) return [];
+  const ar = (lang || (b.language === 'ar' ? 'ar' : 'en')) === 'ar';
+  const name = (b.customerName || b.user?.fullName || '').trim();
+  const ref = orderRef(b);
+  const service = (ar ? serviceAr || serviceEn : serviceEn || serviceAr) || (ar ? 'الخدمة' : 'your service');
+  const slot = [date, time && fmtSlot(time, ar) ? fmtSlot(time, ar) : time].filter(Boolean).join(' ');
+  const total = Number(b.totalAmount);
+  const price = Number.isFinite(total) && total > 0 ? (ar ? `${total} ريال` : `SAR ${total}`) : null;
+  const hi = ar ? `مرحباً${name ? ` ${name}` : ''}، معك ورشة أحمد للتبريد.` : `Hello${name ? ` ${name}` : ''}, this is Ahmed Cooling Workshop.`;
+  const msgs = [
+    {
+      key: 'confirm_request', en: 'Ask to confirm', ar: 'طلب تأكيد',
+      text: ar
+        ? `${hi}\nاستلمنا حجزك رقم ${ref} لخدمة ${service}${slot ? ` بتاريخ ${slot}` : ''}.${price ? `\nالإجمالي: ${price} (الدفع بعد إنجاز العمل).` : ''}\nهل تؤكد الحجز؟ أرسل "نعم" للتأكيد أو "لا" للإلغاء.`
+        : `${hi}\nWe received your booking ${ref} for ${service}${slot ? ` on ${slot}` : ''}.${price ? `\nTotal: ${price} (pay after the work is done).` : ''}\nDo you confirm? Reply YES to confirm or NO to cancel.`,
+    },
+    {
+      key: 'confirmed', en: 'Booking confirmed', ar: 'تم التأكيد',
+      text: ar
+        ? `${hi}\nتم تأكيد حجزك رقم ${ref} ✅${slot ? `\nالموعد: ${slot}` : ''}${techName ? `\nالفني: ${techName}` : ''}\nسيتواصل معك الفني قبل الوصول.`
+        : `${hi}\nYour booking ${ref} is confirmed ✅${slot ? `\nTime: ${slot}` : ''}${techName ? `\nTechnician: ${techName}` : ''}\nThe technician will call you before arriving.`,
+    },
+    {
+      key: 'on_the_way', en: 'Technician on the way', ar: 'الفني في الطريق',
+      text: ar
+        ? `${hi}\nالفني${techName ? ` ${techName}` : ''} في الطريق إليك الآن لحجزك رقم ${ref} 🚗`
+        : `${hi}\nOur technician${techName ? ` ${techName}` : ''} is on the way to you now for booking ${ref} 🚗`,
+    },
+    {
+      key: 'completed', en: 'Job done, thank you', ar: 'تم العمل، شكراً',
+      text: ar
+        ? `${hi}\nشكراً لاختيارك ورشة أحمد للتبريد! تم إنجاز طلبك رقم ${ref}.\nيسعدنا تقييمك لخدمتنا: ${RATE_URL}`
+        : `${hi}\nThank you for choosing Ahmed Cooling Workshop! Your job ${ref} is done.\nWe would love your rating: ${RATE_URL}`,
+    },
+    {
+      key: 'reschedule', en: 'Change the time', ar: 'تغيير الموعد',
+      text: ar
+        ? `${hi}\nبخصوص حجزك رقم ${ref}: نحتاج إلى تغيير الموعد. ما الوقت المناسب لك؟`
+        : `${hi}\nAbout your booking ${ref}: we need to change the time. What time suits you?`,
+    },
+    {
+      key: 'no_answer', en: 'Could not reach you', ar: 'لم نتمكن من الاتصال',
+      text: ar
+        ? `${hi}\nحاولنا الاتصال بك بخصوص حجزك رقم ${ref}. يرجى الرد هنا أو الاتصال بنا على ${SUPPORT_LINE}.`
+        : `${hi}\nWe tried to call you about your booking ${ref}. Please reply here or call us on ${SUPPORT_LINE}.`,
+    },
+  ];
+  return msgs;
+}

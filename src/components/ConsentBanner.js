@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useTranslation } from '../contexts/TranslationContext';
 import { loadTikTok } from '../lib/tiktok';
 import { pathForLang } from '../lib/lang';
@@ -9,14 +10,17 @@ import { pathForLang } from '../lib/lang';
 const KEY = 'cookie-consent'; // 'granted' | 'denied'
 
 // Asks before loading the TikTok advertising pixel. Nothing is tracked until the visitor accepts.
+// Never on the admin panel (staff only, also the admin app): no banner and no pixel there.
 export default function ConsentBanner() {
   const { language, isRTL } = useTranslation();
   const isAr = language === 'ar';
   const [open, setOpen] = useState(false);
   const [barOffset, setBarOffset] = useState(0); // height of a sticky bottom bar (e.g. the service page booking bar)
   const bannerRef = useRef(null);
+  const isAdmin = (usePathname() || '').startsWith('/admin');
 
   useEffect(() => {
+    if (isAdmin) return undefined;
     let saved = null;
     try {
       saved = localStorage.getItem(KEY);
@@ -28,7 +32,7 @@ export default function ConsentBanner() {
     const reopen = () => setOpen(true);
     window.addEventListener('open-cookie-settings', reopen);
     return () => window.removeEventListener('open-cookie-settings', reopen);
-  }, []);
+  }, [isAdmin]);
 
   // While open: sit above any visible full-width sticky bar at the bottom of the screen, and tell the
   // floating WhatsApp button (via --consent-offset) how far to move up on phones, where the banner is full width.
@@ -83,7 +87,7 @@ export default function ConsentBanner() {
     setOpen(false);
   };
 
-  if (!open) return null;
+  if (!open || isAdmin) return null;
 
   return (
     <div
