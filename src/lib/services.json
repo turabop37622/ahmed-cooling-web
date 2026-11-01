@@ -334,6 +334,7 @@
   {
     "_id": "pkg_diagnostic",
     "id": "pkg_diagnostic",
+    "slug": "home-diagnostic-visit-jeddah",
     "isPackage": true,
     "visitFeeIncluded": true,
     "name": "Diagnostic Repair Visit",
@@ -350,6 +351,7 @@
   {
     "_id": "pkg_summer",
     "id": "pkg_summer",
+    "slug": "summer-ac-prep-jeddah",
     "isPackage": true,
     "visitFeeIncluded": true,
     "name": "Summer AC Prep - Deep Wash + Gas Top-up",
