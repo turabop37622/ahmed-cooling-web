@@ -21,6 +21,26 @@ const LOCAL = {
       'نحفظ اختيارك على جهازك (localStorage باسم «cookie-consent») حتى لا نسألك في كل زيارة.',
       'لسحب موافقتك أو تغييرها في أي وقت: اضغط «إعدادات ملفات تعريف الارتباط» في أسفل الصفحة واختر «لا أوافق»، أو احذف بيانات هذا الموقع من متصفحك.',
     ],
+    appTitle: 'في تطبيق الجوال',
+    appIntro: 'يطلب التطبيق الأذونات التالية فقط عند الحاجة إليها، ويمكنك رفضها:',
+    app: [
+      'الموقع الدقيق: فقط عندما تختار مشاركة موقعك أثناء الحجز ليصل إليك الفني، أو للفني لعرض أقرب الطلبات أولاً. لا نتتبع موقعك في الخلفية.',
+      'الكاميرا والصور: فقط عندما تختار صورة للملف الشخصي، أو يرفق الفني مستنداته في طلب الانضمام.',
+      'الإشعارات: لإرسال تحديثات حجزك. نحفظ رمز الإشعارات الخاص بجهازك لهذا الغرض فقط.',
+      'تسجيل الدخول عبر Google: نستلم اسمك وبريدك الإلكتروني من Google لإنشاء حسابك.',
+      'رسائل واتساب: الرسائل التي ترسلها لرقمنا (ومنها الرسائل الصوتية والصور والموقع) تُحفظ لخدمتك، وقد يجيب عليها مساعد آلي.',
+    ],
+    processorsTitle: 'مزودو الخدمة الذين يعالجون البيانات نيابة عنا: ',
+    processors: 'Google Firebase (تسجيل الدخول والإشعارات)، Render وMongoDB Atlas (الخوادم وقاعدة البيانات)، Cloudinary (الصور)، Meta WhatsApp (الرسائل)، Groq (الردود الآلية على رسائل واتساب)، وBrevo (رسائل البريد الإلكتروني).',
+    security: [
+      'كل الاتصالات بين التطبيق أو الموقع وخوادمنا مشفرة (HTTPS).',
+      'كلمات المرور تُحفظ مشفرة (hash) ولا يمكن لأحد قراءتها.',
+      'رمز تسجيل الدخول في التطبيق يُحفظ في التخزين المشفر للجوال.',
+      'لا يطلع على بيانات الحجوزات إلا موظفو الورشة المخولون والفني المكلف بطلبك.',
+    ],
+    deletionTitle: 'حذف الحساب: ',
+    deletion: 'يمكنك حذف حسابك من التطبيق (الملف الشخصي ← حذف الحساب)، أو طلب ذلك من صفحة حذف الحساب:',
+    deletionLink: 'صفحة حذف الحساب',
   },
   en: {
     paymentBullet: 'The payment method you choose when booking (you pay the technician after the service). We do not collect card details on the website or app.',
@@ -35,6 +55,26 @@ const LOCAL = {
       'Your choice is saved on your device (localStorage, "cookie-consent") so we do not ask on every visit.',
       'To withdraw or change your consent at any time, press "Cookie settings" at the bottom of the page and choose "Decline", or clear this site\'s data in your browser.',
     ],
+    appTitle: 'In the mobile app',
+    appIntro: 'The app asks for these permissions only when it needs them, and you can refuse them:',
+    app: [
+      'Precise location: only when you choose to share your location while booking so the technician can find you, or, for technicians, to show the nearest jobs first. We do not track your location in the background.',
+      'Camera and photos: only when you choose a profile photo, or a technician attaches documents to their application.',
+      'Notifications: to send updates about your booking. We store your device\'s notification token for this purpose only.',
+      'Sign in with Google: we receive your name and email address from Google to create your account.',
+      'WhatsApp messages: messages you send to our number (including voice notes, photos and locations) are kept to serve you, and may be answered by an automated assistant.',
+    ],
+    processorsTitle: 'Service providers that process data on our behalf: ',
+    processors: 'Google Firebase (sign-in and notifications), Render and MongoDB Atlas (servers and database), Cloudinary (photos), Meta WhatsApp (messages), Groq (automated replies to WhatsApp messages) and Brevo (emails).',
+    security: [
+      'All traffic between the app or website and our servers is encrypted (HTTPS).',
+      'Passwords are stored hashed, so nobody can read them.',
+      'In the app, your sign-in token is kept in the phone\'s encrypted storage.',
+      'Booking details are seen only by authorised workshop staff and the technician assigned to your booking.',
+    ],
+    deletionTitle: 'Account deletion: ',
+    deletion: 'You can delete your account in the app (Profile → Delete account), or request it from our account deletion page:',
+    deletionLink: 'Account deletion page',
   },
 };
 
@@ -71,6 +111,7 @@ export default function PrivacyPage() {
             t.privacyBullet9,
           ],
         },
+        { subtitle: L.appTitle, text: L.appIntro, bullets: L.app },
       ],
     },
     {
@@ -88,13 +129,14 @@ export default function PrivacyPage() {
             `${t.privacyShareLegal}${t.privacyShareLegalDesc}`,
           ],
         },
+        { text: `${L.processorsTitle}${L.processors}` },
         { text: t.privacyNoSell },
       ],
     },
     {
       title: t.privacySection4,
       blocks: [
-        { text: t.privacySecurityText, bullets: [t.privacySec1, t.privacySec2, t.privacySec3, t.privacySec4] },
+        { text: t.privacySecurityText, bullets: L.security },
         { text: t.privacySecurityNote },
       ],
     },
@@ -112,6 +154,7 @@ export default function PrivacyPage() {
           ],
         },
         { text: t.privacyRightsContact },
+        { text: `${L.deletionTitle}${L.deletion}`, link: { href: pathForLang('/delete-account', language), label: L.deletionLink } },
       ],
     },
     {
@@ -173,6 +216,11 @@ export default function PrivacyPage() {
                     )}
                     {block.text && (
                       <p className="text-sm leading-relaxed text-sub dark:text-slate-300">{block.text}</p>
+                    )}
+                    {block.link && (
+                      <Link href={block.link.href} className="mt-2 inline-block text-sm font-semibold text-primary underline dark:text-blue-400">
+                        {block.link.label}
+                      </Link>
                     )}
                     {block.bullets && block.bullets.length > 0 && (
                       <ul className="mt-3 list-disc space-y-2 ps-5 text-sm leading-relaxed text-sub marker:text-primary dark:text-slate-300 dark:marker:text-blue-400">

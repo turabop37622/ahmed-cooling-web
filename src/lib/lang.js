@@ -4,7 +4,7 @@
 export const SITE_URL = 'https://www.ahmedcoolingworkshop.com';
 export const LANG_COOKIE = 'lang';
 
-const PUBLIC_EXACT = ['/', '/about', '/contact', '/privacy', '/services', '/areas'];
+const PUBLIC_EXACT = ['/', '/about', '/contact', '/privacy', '/delete-account', '/services', '/areas'];
 // Public sections whose sub-pages also have an English URL (/services/<slug>, /areas/<city>/<district>)
 const PUBLIC_PREFIXES = ['/services/', '/areas/'];
 

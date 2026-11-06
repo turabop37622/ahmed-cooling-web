@@ -61,5 +61,6 @@ export default async function sitemap() {
     ...localized('/contact', { changeFrequency: 'monthly', priority: 0.8 }),
     { url: `${base}/rate`, lastModified: SITE_UPDATED, changeFrequency: 'monthly', priority: 0.6 },
     ...localized('/privacy', { changeFrequency: 'yearly', priority: 0.3 }),
+    ...localized('/delete-account', { changeFrequency: 'yearly', priority: 0.2 }),
   ];
 }
