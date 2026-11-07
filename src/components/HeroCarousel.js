@@ -9,7 +9,8 @@ import { pathForLang } from '../lib/lang';
 // Hero banners (from the project's assets folder, optimised to WebP in public/hero-banners).
 // Each banner has an Arabic and an English version with its own headline and button baked in,
 // so the whole banner links to where its button points.
-const PHONE_HREF = 'tel:+966544483745';
+// The emergency banner opens WhatsApp with a ready message (we no longer take emergency calls on the phone)
+const EMERGENCY_HREF = `https://wa.me/966544483745?text=${encodeURIComponent('Emergency repair needed / أحتاج إصلاح طارئ')}`;
 const SLIDES = [
   {
     key: 'ac',
@@ -27,9 +28,9 @@ const SLIDES = [
     key: 'emergency',
     // Bump when the artwork changes: the banners are cached for 30 days under the same file name
     version: 2,
-    href: PHONE_HREF,
-    altEn: 'Sudden breakdown? We arrive within 1.5 to 2 hours across Jeddah and Makkah. Call now',
-    altAr: 'عطل مفاجئ؟ نصلك خلال ساعة ونصف إلى ساعتين في جميع أحياء جدة ومكة. اتصل الآن',
+    href: EMERGENCY_HREF,
+    altEn: 'Sudden breakdown? We arrive within 1.5 to 2 hours across Jeddah and Makkah. Message us on WhatsApp',
+    altAr: 'عطل مفاجئ؟ نصلك خلال ساعة ونصف إلى ساعتين في جميع أحياء جدة ومكة. راسلنا واتساب',
   },
 ];
 
@@ -37,8 +38,9 @@ const INTERVAL_MS = 6000;
 
 function SlideLink({ href, label }) {
   const className = 'absolute inset-0 z-10 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white';
-  if (href.startsWith('tel:')) {
-    return <a href={href} aria-label={label} className={className} />;
+  if (/^(tel:|https?:)/.test(href)) {
+    const external = href.startsWith('http');
+    return <a href={href} aria-label={label} className={className} {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})} />;
   }
   return <Link href={href} aria-label={label} className={className} />;
 }
