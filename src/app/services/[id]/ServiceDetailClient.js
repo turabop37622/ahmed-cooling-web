@@ -328,15 +328,6 @@ export default function ServiceDetailClient({ service, related = [] }) {
           </svg>
           <span>{t.bookViaWhatsApp || 'Book via WhatsApp'}</span>
         </a>
-
-        {/* Hotline Phone Call */}
-        <a
-          href="tel:+966544483745"
-          className="flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 py-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-        >
-          <Phone className="h-3.5 w-3.5 text-primary" />
-          <span>{t.callTechnician || 'Emergency Call'}: <bdi dir="ltr">+966 54 448 3745</bdi></span>
-        </a>
       </div>
 
       {/* Trust footer inside card */}
